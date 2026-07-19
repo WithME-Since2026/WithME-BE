@@ -1,3 +1,8 @@
+---
+name: Fix Request
+about: 기능 수정을 위해 사용합니다.
+title: '[Fix]'
+---
 ## 1. Issue : 🐞 Fix / Bug
 발생한 문제에 대해 설명해주세요.
 

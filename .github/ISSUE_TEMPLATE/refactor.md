@@ -1,3 +1,8 @@
+---
+name: Refactor Request
+about: 코드 리팩토링을 위해 사용합니다.
+title: '[Refactor]'
+---
 ## Issue : ♻️ Refactor
 리팩토링이 필요한 내용을 작성해주세요.
 
