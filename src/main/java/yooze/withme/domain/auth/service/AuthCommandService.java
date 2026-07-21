@@ -31,7 +31,7 @@ public class AuthCommandService {
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
 
-    /** 로컬 회원가입  */
+    /** 로컬 회원가입 */
     public SignUpResponse signUp(SignUpRequest signUpRequest) {
         if (userAuthRepository.existsByLocalIdAndProvider(signUpRequest.localId(), ProviderType.LOCAL)) {
             throw new GeneralException(ErrorStatus.DUPLICATE_ID);

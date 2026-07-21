@@ -8,7 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import yooze.withme.common.base.BaseStatus;
-import yooze.withme.common.status.error.ErrorStatus;
 
 @Getter
 @NoArgsConstructor
@@ -17,7 +16,7 @@ import yooze.withme.common.status.error.ErrorStatus;
 public class ApiResponse<T> {
 
     @JsonProperty("isSuccess")
-    private boolean isSuccess;
+    private boolean success;
     private String code;
     private String message;
 
