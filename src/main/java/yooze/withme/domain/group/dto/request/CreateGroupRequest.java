@@ -28,6 +28,7 @@ public record CreateGroupRequest(
         @NotBlank(message = "장소 주소는 필수입니다.")
         String locationAddress,
 
+        @NotNull(message = "장소 ID는 필수입니다.")
         Long placeId
 ) {
 }

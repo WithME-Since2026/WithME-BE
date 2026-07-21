@@ -37,6 +37,6 @@ public class GroupLocation {
     @Column(name = "location_address", nullable = false)
     private String locationAddress;
 
-    @Column(name = "place_id")
+    @Column(name = "place_id", nullable = false)
     private Long placeId;
 }
