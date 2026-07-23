@@ -50,9 +50,13 @@ public class GroupResponse {
         this.attendanceStatus = AttendanceStatus.RERESPONSE;
     }
 
-    /** 참여자가 본인 출석 여부를 응답 */
+    /** 참여자가 본인 출석 여부를 응답 - ATTEND로 바뀌면 기존 결석 사유는 제거한다 */
     public void respond(AttendanceStatus status, String reason) {
         this.attendanceStatus = status;
-        this.absenceReason = reason;
+        if (status == AttendanceStatus.ATTEND) {
+            this.absenceReason = null;
+        } else {
+            this.absenceReason = reason;
+        }
     }
 }
