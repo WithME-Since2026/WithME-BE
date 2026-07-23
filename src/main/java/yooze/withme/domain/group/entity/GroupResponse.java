@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -44,6 +45,10 @@ public class GroupResponse {
 
     @Column(name = "absence_reason")
     private String absenceReason;
+
+    /** 일정 변경(markRerespond)과 출석 응답 제출(respond)이 동시에 들어올 때의 충돌을 막기 위한 낙관적 락 */
+    @Version
+    private Long version;
 
     /** 회차 일정이 변경됐을 때 재확인 상태로 전환 */
     public void markRerespond() {

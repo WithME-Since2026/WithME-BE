@@ -28,7 +28,8 @@ public enum ErrorStatus implements BaseStatus {
     GROUP_MEMBER_FORBIDDEN("GROUP_403", HttpStatus.FORBIDDEN, "모임 운영자만 접근할 수 있습니다."),
     GROUP_MEMBER_INACTIVE("GROUP_403", HttpStatus.FORBIDDEN, "비활성화되었거나 탈퇴한 멤버는 이용할 수 없습니다."),
     GROUP_RESPONSE_NOT_FOUND("GROUP_404", HttpStatus.NOT_FOUND, "출석 응답 정보를 찾을 수 없습니다."),
-    INVALID_ATTENDANCE_STATUS("GROUP_400", HttpStatus.BAD_REQUEST, "참석 응답은 ATTEND 또는 ABSENT만 가능합니다.");
+    INVALID_ATTENDANCE_STATUS("GROUP_400", HttpStatus.BAD_REQUEST, "참석 응답은 ATTEND 또는 ABSENT만 가능합니다."),
+    GROUP_RESPONSE_CONFLICT("GROUP_409", HttpStatus.CONFLICT, "다른 요청과 동시에 처리되어 충돌이 발생했습니다. 다시 시도해주세요.");
 
     private final String code;
     private final HttpStatus httpStatus;

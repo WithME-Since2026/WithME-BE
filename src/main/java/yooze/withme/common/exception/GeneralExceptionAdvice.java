@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -26,6 +27,12 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
             log.warn("[*] GeneralException : {}", e.getMessage());
         }
         return ApiResponse.error(e.getErrorStatus());
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ApiResponse<Void>> handleOptimisticLockingFailureException(ObjectOptimisticLockingFailureException e) {
+        log.warn("[*] ObjectOptimisticLockingFailureException : {}", e.getMessage());
+        return ApiResponse.error(ErrorStatus.GROUP_RESPONSE_CONFLICT);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
