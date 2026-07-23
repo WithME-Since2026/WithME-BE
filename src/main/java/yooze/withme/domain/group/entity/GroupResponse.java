@@ -42,7 +42,7 @@ public class GroupResponse {
     @Column(name = "attendance_status", nullable = false, length = 20)
     private AttendanceStatus attendanceStatus;
 
-    @Column(name = "absense_reason")
+    @Column(name = "absence_reason")
     private String absenceReason;
 
     /** 회차 일정이 변경됐을 때 재확인 상태로 전환 */
