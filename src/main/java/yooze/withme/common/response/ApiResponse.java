@@ -1,7 +1,6 @@
 package yooze.withme.common.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,11 +11,10 @@ import yooze.withme.common.status.BaseStatus;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonPropertyOrder({"isSuccess", "code", "message", "data"})
+@JsonPropertyOrder({"success", "code", "message", "data"})
 public class ApiResponse<T> {
 
-    @JsonProperty("isSuccess")
-    private boolean isSuccess;
+    private boolean success;
     private String code;
     private String message;
 
