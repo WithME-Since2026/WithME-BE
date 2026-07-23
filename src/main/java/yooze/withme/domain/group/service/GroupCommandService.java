@@ -90,8 +90,20 @@ public class GroupCommandService {
                 .orElseThrow(() -> new GeneralException(ErrorStatus.GROUP_MEMBER_NOT_FOUND));
         validateManager(member);
 
-        String newLocationName = request.locationName() != null ? request.locationName() : round.getRoundLocationName();
-        String newLocationAddress = request.locationAddress() != null ? request.locationAddress() : round.getRoundLocationAddress();
+        String newLocationName;
+        if (request.locationName() != null) {
+            newLocationName = request.locationName();
+        } else {
+            newLocationName = round.getRoundLocationName();
+        }
+
+        String newLocationAddress;
+        if (request.locationAddress() != null) {
+            newLocationAddress = request.locationAddress();
+        } else {
+            newLocationAddress = round.getRoundLocationAddress();
+        }
+
         round.reschedule(request.roundDate(), request.roundTime(), newLocationName, newLocationAddress);
 
         List<GroupResponse> responses = groupResponseRepository.findByGroupRoundId(roundId);
@@ -103,7 +115,7 @@ public class GroupCommandService {
     /** 참여자 본인의 출석 응답 제출/수정 (ATTEND, ABSENT만 허용) */
     public AttendanceResponse submitGroupResponse(Long userId, Long roundId, SubmitGroupResponseRequest request) {
         if (request.attendanceStatus() != AttendanceStatus.ATTEND && request.attendanceStatus() != AttendanceStatus.ABSENT) {
-            throw new GeneralException(ErrorStatus.BAD_REQUEST);
+            throw new GeneralException(ErrorStatus.INVALID_ATTENDANCE_STATUS);
         }
 
         GroupRound round = groupRoundRepository.findById(roundId)
@@ -111,6 +123,9 @@ public class GroupCommandService {
 
         GroupMember member = groupMemberRepository.findByGroupIdAndUserId(round.getGroup().getId(), userId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.GROUP_MEMBER_NOT_FOUND));
+        if (member.getStatus() != GroupMemberStatus.ACTIVE) {
+            throw new GeneralException(ErrorStatus.GROUP_MEMBER_INACTIVE);
+        }
 
         GroupResponse response = groupResponseRepository.findByGroupRoundIdAndMemberId(roundId, member.getId())
                 .orElseThrow(() -> new GeneralException(ErrorStatus.GROUP_RESPONSE_NOT_FOUND));
