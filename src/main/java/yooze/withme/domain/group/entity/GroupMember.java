@@ -47,8 +47,9 @@ public class GroupMember {
     @Column(nullable = false, length = 20)
     private GroupMemberStatus status;
 
-    /** OWNER/CO_OWNER 여부 — 모임 운영 권한이 필요한 API의 인가 체크에 사용 */
+    /** ACTIVE 상태이면서 OWNER/CO_OWNER인 경우에만 관리자로 인정 — 탈퇴/비활성 멤버는 직책이 남아있어도 권한 없음 */
     public boolean isManager() {
-        return position == GroupMemberPosition.OWNER || position == GroupMemberPosition.CO_OWNER;
+        return status == GroupMemberStatus.ACTIVE
+                && (position == GroupMemberPosition.OWNER || position == GroupMemberPosition.CO_OWNER);
     }
 }
