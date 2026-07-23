@@ -9,9 +9,9 @@ import yooze.withme.common.status.BaseStatus;
 @AllArgsConstructor
 public enum SuccessStatus implements BaseStatus {
 
-    SUCCESS_200("WITHME_200", HttpStatus.OK, "성공입니다."),
-    SUCCESS_201("WITHME_201", HttpStatus.CREATED, "성공입니다."),
-    SUCCESS_204("WITHME_204", HttpStatus.NO_CONTENT, "성공입니다."),
+    SUCCESS_200("WITHME_200", HttpStatus.OK, "성공적으로 처리했습니다."),
+    SUCCESS_201("WITHME_201", HttpStatus.CREATED, "성공적으로 생성했습니다."),
+    SUCCESS_204("WITHME_204", HttpStatus.NO_CONTENT, "성공적으로 삭제했습니다."),
 
     /**
      * Group
