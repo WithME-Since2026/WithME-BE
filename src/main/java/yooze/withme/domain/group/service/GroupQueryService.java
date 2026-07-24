@@ -59,7 +59,7 @@ public class GroupQueryService {
 
         GroupMember member = groupMemberRepository.findByGroupIdAndUserId(round.getGroup().getId(), userId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.GROUP_MEMBER_NOT_FOUND));
-        if (!member.isManager()) {
+        if (!member.manager()) {
             throw new GeneralException(ErrorStatus.GROUP_MEMBER_FORBIDDEN);
         }
 

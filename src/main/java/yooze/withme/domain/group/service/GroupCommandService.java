@@ -136,7 +136,7 @@ public class GroupCommandService {
     }
 
     private void validateManager(GroupMember member) {
-        if (!member.isManager()) {
+        if (!member.manager()) {
             throw new GeneralException(ErrorStatus.GROUP_MEMBER_FORBIDDEN);
         }
     }

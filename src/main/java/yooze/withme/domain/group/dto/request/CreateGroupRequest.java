@@ -38,7 +38,7 @@ public record CreateGroupRequest(
 ) {
 
     @AssertTrue(message = "종료 날짜는 시작 날짜보다 이후여야 합니다.")
-    public boolean isEndDateValid() {
+    public boolean getEndDateValid() {
         if (endDate == null) {
             return true;
         }

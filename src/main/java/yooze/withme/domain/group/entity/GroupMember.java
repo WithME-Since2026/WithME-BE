@@ -48,7 +48,7 @@ public class GroupMember {
     private GroupMemberStatus status;
 
     /** ACTIVE 상태이면서 OWNER/CO_OWNER인 경우에만 관리자로 인정 — 탈퇴/비활성 멤버는 직책이 남아있어도 권한 없음 */
-    public boolean isManager() {
+    public boolean manager() {
         return status == GroupMemberStatus.ACTIVE
                 && (position == GroupMemberPosition.OWNER || position == GroupMemberPosition.CO_OWNER);
     }
