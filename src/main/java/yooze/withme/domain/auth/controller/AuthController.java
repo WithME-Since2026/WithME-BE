@@ -12,12 +12,13 @@ import yooze.withme.domain.auth.dto.request.LoginRequest;
 import yooze.withme.domain.auth.dto.request.SignUpRequest;
 import yooze.withme.domain.auth.dto.response.LoginResponse;
 import yooze.withme.domain.auth.dto.response.SignUpResponse;
+import yooze.withme.domain.auth.controller.docs.AuthControllerDocs;
 import yooze.withme.domain.auth.service.AuthCommandService;
 
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
-public class AuthController {
+public class AuthController implements AuthControllerDocs {
 
     private final AuthCommandService authCommandService;
 

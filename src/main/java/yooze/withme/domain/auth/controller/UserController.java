@@ -10,12 +10,13 @@ import yooze.withme.common.response.ApiResponse;
 import yooze.withme.common.status.success.SuccessStatus;
 import yooze.withme.domain.auth.dto.request.UpdateNicknameRequest;
 import yooze.withme.domain.auth.dto.response.ProfileResponse;
+import yooze.withme.domain.auth.controller.docs.UserControllerDocs;
 import yooze.withme.domain.auth.service.UserCommandService;
 
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
-public class UserController {
+public class UserController implements UserControllerDocs {
 
     private final UserCommandService userCommandService;
 
