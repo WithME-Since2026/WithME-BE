@@ -30,7 +30,6 @@ public class SwaggerConfig {
         return new OpenAPI()
                 .info(info)
                 .addServersItem(new Server().url("/"))
-                .addSecurityItem(securityRequirement)
-                .components(components);
+                .components(components); // 전역 security 미적용 → 각 엔드포인트에서 @SecurityRequirement로 개별 지정
     }
 }

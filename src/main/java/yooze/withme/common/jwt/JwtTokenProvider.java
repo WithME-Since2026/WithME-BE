@@ -31,10 +31,15 @@ public class JwtTokenProvider {
         this.refreshTokenExpiration = jwtProperties.refreshTokenExpiration();
     }
 
+    private static final String TOKEN_TYPE_CLAIM = "type";
+    private static final String ACCESS_TOKEN_TYPE = "access";
+    private static final String REFRESH_TOKEN_TYPE = "refresh";
+
     /** AccessToken 생성 */
     public String generateAccessToken(Long userId) {
         return Jwts.builder()
                 .subject(userId.toString())
+                .claim(TOKEN_TYPE_CLAIM, ACCESS_TOKEN_TYPE)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
                 .signWith(secretKey)
@@ -45,10 +50,16 @@ public class JwtTokenProvider {
     public String generateRefreshToken(Long userId) {
         return Jwts.builder()
                 .subject(userId.toString())
+                .claim(TOKEN_TYPE_CLAIM, REFRESH_TOKEN_TYPE)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + refreshTokenExpiration))
                 .signWith(secretKey)
                 .compact();
+    }
+
+    /** AccessToken 여부 확인 */
+    public boolean isAccessToken(String token) {
+        return ACCESS_TOKEN_TYPE.equals(getClaims(token).get(TOKEN_TYPE_CLAIM, String.class));
     }
 
     /** RefreshToken 만료 시각 반환 */

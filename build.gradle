@@ -33,12 +33,8 @@ dependencies {
     // PostgreSQL
     runtimeOnly 'org.postgresql:postgresql'
 
-    // Swagger
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9'
-
-    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
-    runtimeOnly 'com.mysql:mysql-connector-j'
+    // Swagger (Spring Boot 4.x 호환)
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0'
 
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'

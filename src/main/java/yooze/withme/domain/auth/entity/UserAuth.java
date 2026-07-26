@@ -9,7 +9,13 @@ import yooze.withme.domain.auth.enums.ProviderType;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-@Table(name = "user_auth")
+@Table(
+        name = "user_auth",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uq_user_auth_provider_login_id",
+                columnNames = {"provider", "login_id"}
+        )
+)
 public class UserAuth {
 
     @Id

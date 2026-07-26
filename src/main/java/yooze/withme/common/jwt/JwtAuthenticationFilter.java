@@ -34,13 +34,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (StringUtils.hasText(token)) {
             try {
-                if (jwtTokenProvider.validateToken(token)) {
+                if (jwtTokenProvider.validateToken(token) && jwtTokenProvider.isAccessToken(token)) {
                     Long userId = jwtTokenProvider.getUserIdFromToken(token);
                     UserDetails userDetails = userDetailsService.loadUserByUsername(userId.toString());
 
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(authentication);
+                } else if (!jwtTokenProvider.isAccessToken(token)) {
+                    log.warn("[*] JWT 필터: RefreshToken으로 인증 시도 차단");
+                    SecurityContextHolder.clearContext();
                 }
             } catch (GeneralException e) {
                 log.warn("[*] JWT 필터 인증 실패: {}", e.getMessage());
