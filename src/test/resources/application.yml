@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: WithME
+  # 테스트는 dev/prod 어느 쪽에도 의존하지 않고 H2 인메모리 DB만 사용한다.
+  profiles:
+    default: test
+  datasource:
+    url: jdbc:h2:mem:withme;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        globally_quoted_identifiers: true
+    show-sql: true

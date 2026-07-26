@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    # 배포된 PostgreSQL 인스턴스 정보. 기본값을 두지 않아 미주입 시 기동 단계에서 즉시 실패한다.
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 10
+      connection-timeout: 30000
+  jpa:
+    hibernate:
+      # 평소에는 validate. 스키마를 새로 만들어야 하는 최초 배포만
+      # GitHub 리포지토리 변수 DDL_AUTO=update 를 지정하고, 배포 후 다시 제거.
+      ddl-auto: ${DDL_AUTO:validate}
+    show-sql: false
+
+logging:
+  level:
+    root: info
+    yooze.withme: info

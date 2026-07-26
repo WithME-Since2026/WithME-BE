@@ -38,3 +38,6 @@ out/
 
 ### claude ###
 .claude/
+
+### oh-my-claudecode ###
+.omc/
