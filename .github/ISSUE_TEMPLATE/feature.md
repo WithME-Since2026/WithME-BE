@@ -1,7 +1,7 @@
 ---
 name: Feature Request
 about: 기능 구현을 위해 사용합니다.
-title: '[Feature]'
+title: '[Feat]'
 ---
 ## Issue : ✅ Feature
 작업하고자 하는 기능을 입력해주세요.

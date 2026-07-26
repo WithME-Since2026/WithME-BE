@@ -7,15 +7,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import yooze.withme.common.BaseStatus;
+import yooze.withme.common.status.BaseStatus;
 
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonPropertyOrder({"isSuccess", "code", "message", "data"})
+@JsonPropertyOrder({"success", "code", "message", "data"})
 public class ApiResponse<T> {
 
-    @JsonProperty("isSuccess")
     private boolean success;
     private String code;
     private String message;

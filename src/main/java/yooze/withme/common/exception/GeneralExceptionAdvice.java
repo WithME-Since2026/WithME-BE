@@ -4,17 +4,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-import yooze.withme.common.BaseStatus;
 import yooze.withme.common.response.ApiResponse;
+import yooze.withme.common.status.BaseStatus;
 import yooze.withme.common.status.error.ErrorStatus;
 
-@Slf4j
 @RestControllerAdvice
+@Slf4j
 public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(GeneralException.class)
@@ -25,6 +27,12 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
             log.warn("[*] GeneralException : {}", e.getMessage());
         }
         return ApiResponse.error(e.getErrorStatus());
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ApiResponse<Void>> handleOptimisticLockingFailureException(ObjectOptimisticLockingFailureException e) {
+        log.warn("[*] ObjectOptimisticLockingFailureException : {}", e.getMessage());
+        return ApiResponse.error(ErrorStatus.GROUP_RESPONSE_CONFLICT);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -63,11 +71,23 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(ex, body, headers, status, request);
     }
 
+    @Override
+    protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(
+            HttpRequestMethodNotSupportedException ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request
+    ) {
+        BaseStatus errorCode = ErrorStatus.METHOD_NOT_ALLOWED;
+        ApiResponse<Void> body = createApiResponse(errorCode, null);
+        return handleExceptionInternal(ex, body, headers, status, request);
+    }
+
     private ApiResponse<Void> createApiResponse(BaseStatus errorStatus, String errorMessage) {
         return new ApiResponse<>(
                 false,
                 errorStatus.getCode(),
-                errorMessage != null ? errorMessage : errorStatus.getMessage(),
+                (errorMessage != null ? errorMessage : errorStatus.getMessage()),
                 null
         );
     }
