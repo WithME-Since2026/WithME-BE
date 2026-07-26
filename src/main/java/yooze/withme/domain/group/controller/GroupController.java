@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import yooze.withme.common.response.ApiResponse;
-import yooze.withme.common.status.success.SuccessStatus;
+import yooze.withme.common.status.SuccessStatus;
 import yooze.withme.domain.group.controller.docs.GroupControllerDocs;
 import yooze.withme.domain.group.dto.request.CreateGroupRequest;
 import yooze.withme.domain.group.dto.response.GroupDetailResponse;

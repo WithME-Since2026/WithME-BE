@@ -1,9 +1,9 @@
-package yooze.withme.common.status.success;
+package yooze.withme.common.status;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
-import yooze.withme.common.status.BaseStatus;
+import yooze.withme.common.base.BaseStatus;
 
 @Getter
 @AllArgsConstructor

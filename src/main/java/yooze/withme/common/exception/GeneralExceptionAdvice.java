@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import yooze.withme.common.response.ApiResponse;
-import yooze.withme.common.status.BaseStatus;
-import yooze.withme.common.status.error.ErrorStatus;
+import yooze.withme.common.base.BaseStatus;
+import yooze.withme.common.status.ErrorStatus;
 
 @RestControllerAdvice
 @Slf4j
