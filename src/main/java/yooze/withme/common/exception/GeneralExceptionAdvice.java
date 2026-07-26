@@ -30,20 +30,23 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
-    public ResponseEntity<ApiResponse<Void>> handleOptimisticLockingFailureException(ObjectOptimisticLockingFailureException e) {
+    public ResponseEntity<ApiResponse<Void>> handleOptimisticLockingFailureException(
+            ObjectOptimisticLockingFailureException e) {
         log.warn("[*] ObjectOptimisticLockingFailureException : {}", e.getMessage());
         return ApiResponse.error(ErrorStatus.GROUP_RESPONSE_CONFLICT);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiResponse<Void>> handleIllegalArgumentException(IllegalArgumentException e) {
+    public ResponseEntity<ApiResponse<Void>> handleIllegalArgumentException(
+            IllegalArgumentException e) {
         String errorMessage = "잘못된 요청입니다: " + e.getMessage();
         log.error("[*] IllegalArgumentException :", e);
         return ApiResponse.error(ErrorStatus.BAD_REQUEST, errorMessage);
     }
 
     @ExceptionHandler(NullPointerException.class)
-    public ResponseEntity<ApiResponse<Void>> handleNullPointerException(NullPointerException e) {
+    public ResponseEntity<ApiResponse<Void>> handleNullPointerException(
+            NullPointerException e) {
         String errorMessage = "서버에서 예기치 않은 오류가 발생했습니다. 요청을 처리하는 중에 Null 값이 참조되었습니다.";
         log.error("[*] NullPointerException :", e);
         return ApiResponse.error(ErrorStatus.INTERNAL_SERVER_ERROR, errorMessage);
@@ -83,7 +86,9 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(ex, body, headers, status, request);
     }
 
-    private ApiResponse<Void> createApiResponse(BaseStatus errorStatus, String errorMessage) {
+    private ApiResponse<Void> createApiResponse(
+            BaseStatus errorStatus, String errorMessage
+    ) {
         return new ApiResponse<>(
                 false,
                 errorStatus.getCode(),
