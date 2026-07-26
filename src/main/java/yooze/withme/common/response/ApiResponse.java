@@ -1,6 +1,7 @@
 package yooze.withme.common.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -43,5 +44,10 @@ public class ApiResponse<T> {
         return ResponseEntity
                 .status(errorStatus.getHttpStatus())
                 .body(new ApiResponse<>(false, errorStatus.getCode(), message, null));
+    }
+
+    public static ApiResponse<Void> errorBody(BaseStatus errorStatus, String message) {
+        return new ApiResponse<>(false, errorStatus.getCode(),
+                message != null ? message : errorStatus.getMessage(), null);
     }
 }

@@ -20,6 +20,21 @@ public enum ErrorStatus implements BaseStatus {
     INTERNAL_SERVER_ERROR("COMM_500", HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류입니다."),
 
     /**
+     * Auth
+     */
+    INVALID_CREDENTIALS("AUTH_401", HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 올바르지 않습니다."),
+    INVALID_TOKEN("AUTH_401", HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
+    EXPIRED_TOKEN("AUTH_401", HttpStatus.UNAUTHORIZED, "만료된 토큰입니다."),
+
+    /**
+     * User
+     */
+    USER_NOT_FOUND("USER_404", HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
+    DUPLICATE_EMAIL("USER_409", HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다."),
+    DUPLICATE_ID("USER_409", HttpStatus.CONFLICT, "이미 사용 중인 아이디입니다."),
+    PASSWORD_MISMATCH("USER_400", HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
+
+    /**
      * Group
      */
     GROUP_NOT_FOUND("GROUP_404", HttpStatus.NOT_FOUND, "존재하지 않는 모임입니다."),
@@ -30,6 +45,8 @@ public enum ErrorStatus implements BaseStatus {
     GROUP_RESPONSE_NOT_FOUND("GROUP_404", HttpStatus.NOT_FOUND, "출석 응답 정보를 찾을 수 없습니다."),
     INVALID_ATTENDANCE_STATUS("GROUP_400", HttpStatus.BAD_REQUEST, "참석 응답은 ATTEND 또는 ABSENT만 가능합니다."),
     GROUP_RESPONSE_CONFLICT("GROUP_409", HttpStatus.CONFLICT, "다른 요청과 동시에 처리되어 충돌이 발생했습니다. 다시 시도해주세요.");
+
+
 
     private final String code;
     private final HttpStatus httpStatus;

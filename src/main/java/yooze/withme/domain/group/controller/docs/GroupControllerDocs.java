@@ -1,6 +1,7 @@
 package yooze.withme.domain.group.controller.docs;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -21,6 +22,7 @@ public interface GroupControllerDocs {
     @Operation(summary = "모임 생성", description = "모임과 기본 장소, 최초 회차를 생성하고 생성자를 운영자(OWNER)로 등록한다.")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "모임 생성 성공")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "요청값이 올바르지 않음")
+    @SecurityRequirement(name = "JWT TOKEN")
     @PostMapping
     ResponseEntity<ApiResponse<GroupDetailResponse>> createGroup(
             @RequestHeader("X-USER-ID") Long userId,

@@ -1,0 +1,50 @@
+package yooze.withme.domain.auth.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+import yooze.withme.common.base.BaseTimeEntity;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
+@Table(name = "users")
+public class User extends BaseTimeEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long userId;
+
+    @Column(nullable = false, length = 40)
+    private String nickname;
+
+    @Column(length = 1024)
+    private String profileImg;
+
+    @Column
+    private LocalDateTime deletedAt;
+
+    @Column
+    private Long kakaoId;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean kakaoSync = false;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean notifyAgree = true;
+
+    /** 소프트 삭제 */
+    public void delete() {
+        this.deletedAt = LocalDateTime.now();
+    }
+
+    /** 닉네임 변경 */
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+}
