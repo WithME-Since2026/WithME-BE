@@ -32,8 +32,13 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiResponse<Void>> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
-        log.warn("[*] DataIntegrityViolationException : {}", e.getMessage());
-        return ApiResponse.error(ErrorStatus.DUPLICATE_ID);
+        String rootMessage = e.getMostSpecificCause().getMessage();
+        log.warn("[*] DataIntegrityViolationException : {}", rootMessage);
+
+        if (rootMessage != null && rootMessage.contains("uq_user_auth_provider_login_id")) {
+            return ApiResponse.error(ErrorStatus.DUPLICATE_ID);
+        }
+        return ApiResponse.error(ErrorStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)

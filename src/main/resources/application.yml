@@ -17,6 +17,10 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     show-sql: false        # 운영 기본값. 개발 시 application-dev.yml에서 true로 오버라이드
 
+  flyway:
+    baseline-on-migrate: true   # 기존 스키마(JPA ddl-auto 생성)가 있을 때 Flyway 첫 실행 허용
+    locations: classpath:db/migration
+
 jwt:
   secret: ${JWT_SECRET}
   access-token-expiration: 1800000      # 30분 (ms)

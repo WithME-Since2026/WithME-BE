@@ -33,6 +33,10 @@ dependencies {
     // PostgreSQL
     runtimeOnly 'org.postgresql:postgresql'
 
+    // Flyway (partial unique index 등 JPA로 표현 불가한 스키마 관리)
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-database-postgresql'
+
     // Swagger (Spring Boot 4.x 호환)
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0'
 
