@@ -1,7 +1,7 @@
 package yooze.withme.common.exception;
 
 import lombok.Getter;
-import yooze.withme.common.base.BaseStatus;
+import yooze.withme.common.BaseStatus;
 
 @Getter
 public class GeneralException extends RuntimeException {

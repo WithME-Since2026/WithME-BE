@@ -3,7 +3,7 @@ package yooze.withme.common.status.error;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
-import yooze.withme.common.base.BaseStatus;
+import yooze.withme.common.BaseStatus;
 
 @Getter
 @AllArgsConstructor

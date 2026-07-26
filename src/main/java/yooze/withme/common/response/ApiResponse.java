@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import yooze.withme.common.base.BaseStatus;
+import yooze.withme.common.BaseStatus;
 
 @Getter
 @NoArgsConstructor
