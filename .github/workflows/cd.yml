@@ -87,7 +87,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # concurrency 는 빌드가 끝난 뒤에야 적용되므로, 커밋 A 의 빌드가 느린 사이
+      # 더 최신인 B 가 먼저 배포되면 뒤늦게 잠금을 얻은 A 가 B 를 덮어쓸 수 있다.
+      # 배포 직전에 이 실행의 SHA 가 여전히 develop 의 HEAD 인지 확인한다.
+      - name: Guard against stale deploy
+        id: guard
+        if: github.ref == 'refs/heads/develop'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          head_sha=$(gh api "repos/${GITHUB_REPOSITORY}/commits/develop" --jq .sha)
+          if [ "$head_sha" != "$GITHUB_SHA" ]; then
+            echo "::notice::develop HEAD 가 ${head_sha} 로 앞서 있어 ${GITHUB_SHA} 배포를 건너뛴다."
+            echo "stale=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "stale=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Copy deploy files to EC2
+        if: steps.guard.outputs.stale != 'true'
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -99,31 +117,66 @@ jobs:
       # 새 설정은 .env.new 로 전달하고, 기존 .env 는 deploy.sh 가
       # .env.rollback 으로 보관한다. 검증 실패 시 이 파일로 되돌린다.
       - name: Deploy with health check and rollback
+        if: steps.guard.outputs.stale != 'true'
         uses: appleboy/ssh-action@v1.2.0
+        # 비밀값을 script 본문에 ${{ }} 로 끼워 넣으면 따옴표/개행/$(...) 같은 문자가
+        # 원격 셸에서 해석되어 .env 가 깨지거나 임의 명령이 실행될 수 있다.
+        # 값은 전부 환경변수로 넘기고, 스크립트에서는 변수로만 참조한다.
         env:
-          IMAGE: ${{ needs.build-and-push.outputs.image }}
+          IMAGE_REF: ${{ needs.build-and-push.outputs.image }}:${{ github.sha }}
+          DDL_AUTO: ${{ vars.DDL_AUTO || 'validate' }}
+          FLYWAY_ENABLED: ${{ vars.FLYWAY_ENABLED || 'true' }}
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: IMAGE
+          envs: IMAGE_REF,DDL_AUTO,FLYWAY_ENABLED,DB_URL,DB_USERNAME,DB_PASSWORD,JWT_SECRET,GHCR_USER,GHCR_TOKEN
           script_stop: true
           command_timeout: 15m
           script: |
+            set -eu
             cd ~/withme
 
-            cat > .env.new <<EOF
-            APP_IMAGE=${IMAGE}:${{ github.sha }}
-            DDL_AUTO=${{ vars.DDL_AUTO || 'validate' }}
-            FLYWAY_ENABLED=${{ vars.FLYWAY_ENABLED || 'true' }}
-            DB_URL=${{ secrets.DB_URL }}
-            DB_USERNAME=${{ secrets.DB_USERNAME }}
-            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-            JWT_SECRET=${{ secrets.JWT_SECRET }}
-            EOF
+            # .env 는 한 줄에 하나의 KEY=VALUE 여야 한다.
+            # 값에 CR/LF 가 섞이면 뒷줄이 잘리거나 다른 키로 오인되므로 먼저 거른다.
+            for key in IMAGE_REF DDL_AUTO FLYWAY_ENABLED DB_URL DB_USERNAME DB_PASSWORD JWT_SECRET; do
+              eval "value=\${$key-}"
+              if [ -z "$value" ]; then
+                echo "$key 값이 비어 있다. Secrets/Variables 설정을 확인하라."
+                exit 1
+              fi
+              if [ "$(printf '%s' "$value" | tr -d '\r\n')" != "$value" ]; then
+                echo "$key 값에 개행 문자가 포함되어 있다. Secret 을 다시 등록하라."
+                exit 1
+              fi
+            done
+
+            # docker compose 는 .env 값 안의 $ 를 변수 참조로 해석한다.
+            # 이스케이프하지 않으면 $HOME 같은 문자열이 든 비밀번호가 조용히 다른 값으로 바뀐다.
+            # $$ 로 써두면 compose 가 되돌려 컨테이너에는 원본이 전달된다.
+            write_env() {
+              printf '%s=%s\n' "$1" "$(printf '%s' "$2" | sed 's/\$/$$/g')"
+            }
+
+            umask 077
+            {
+              write_env APP_IMAGE "$IMAGE_REF"
+              write_env DDL_AUTO "$DDL_AUTO"
+              write_env FLYWAY_ENABLED "$FLYWAY_ENABLED"
+              write_env DB_URL "$DB_URL"
+              write_env DB_USERNAME "$DB_USERNAME"
+              write_env DB_PASSWORD "$DB_PASSWORD"
+              write_env JWT_SECRET "$JWT_SECRET"
+            } > .env.new
             chmod 600 .env.new
 
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
 
             chmod +x scripts/deploy.sh
             bash scripts/deploy.sh
