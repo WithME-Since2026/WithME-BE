@@ -1,5 +1,8 @@
 FROM eclipse-temurin:21-jre-alpine
 
+# 컨테이너 healthcheck에서 사용한다.
+RUN apk add --no-cache curl
+
 WORKDIR /app
 
 ARG JAR_FILE=build/libs/*.jar

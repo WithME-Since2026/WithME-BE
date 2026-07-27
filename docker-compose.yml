@@ -11,11 +11,17 @@ services:
       DB_URL: ${DB_URL}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
     depends_on:
       redis:
         condition: service_healthy
+    # 배포 성공 판정의 기준. DB 연결이 끊겨 있으면 actuator가 503을 반환하므로
+    # 컨테이너가 떴다는 사실이 아니라 실제로 서비스 가능한 상태인지를 검증한다.
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
 
   redis:
     image: redis:7-alpine

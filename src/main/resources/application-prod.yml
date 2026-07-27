@@ -1,6 +1,6 @@
 spring:
   datasource:
-    # 배포된 PostgreSQL 인스턴스 정보. 기본값을 두지 않아 미주입 시 기동 단계에서 즉시 실패한다.
+    # 배포된 PostgreSQL 인스턴스 정보. 기본값을 두지 않아 미주입 시 기동 단계에서 즉시 실패
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
@@ -13,6 +13,12 @@ spring:
       # GitHub 리포지토리 변수 DDL_AUTO=update 를 지정하고, 배포 후 다시 제거.
       ddl-auto: ${DDL_AUTO:validate}
     show-sql: false
+
+# 배포 검증은 DB 연결까지 확인해야 의미가 있으므로 db 헬스 인디케이터 킴
+management:
+  health:
+    db:
+      enabled: true
 
 logging:
   level:

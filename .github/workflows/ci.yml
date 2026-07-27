@@ -4,10 +4,17 @@ on:
   pull_request:
     branches: [ main, develop ]
 
+# 워크플로 전체 기본 권한을 최소로 고정한다.
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build & Test
     runs-on: ubuntu-latest
+    # 소스 체크아웃 외에는 아무 권한도 필요하지 않다.
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout
