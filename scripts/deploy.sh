@@ -134,6 +134,19 @@ if [ ! -f .env.new ]; then
   exit 1
 fi
 
+# GitHub Secret 이 비어 있어도 .env 는 `KEY=` 형태로 생성되므로 파일 존재만으로는 알 수 없다.
+# 값이 비면 컨테이너가 기동 직후 죽어 헬스체크 타임아웃까지 기다리게 되므로 여기서 먼저 걸러낸다.
+missing=""
+for key in APP_IMAGE DB_URL DB_USERNAME DB_PASSWORD JWT_SECRET; do
+  value="$(grep -E "^${key}=" .env.new | cut -d= -f2- || true)"
+  [ -n "$value" ] || missing="${missing} ${key}"
+done
+if [ -n "$missing" ]; then
+  log "필수 환경변수가 비어 있다:${missing}"
+  log "GitHub Secrets/Variables 설정을 확인하라. 배포를 중단한다."
+  exit 1
+fi
+
 # 현재 동작 중인 설정을 롤백용으로 보관한 뒤 새 설정으로 교체한다.
 if [ -f .env ]; then
   cp .env .env.rollback

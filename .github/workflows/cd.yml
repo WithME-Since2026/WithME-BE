@@ -115,9 +115,11 @@ jobs:
             cat > .env.new <<EOF
             APP_IMAGE=${IMAGE}:${{ github.sha }}
             DDL_AUTO=${{ vars.DDL_AUTO || 'validate' }}
+            FLYWAY_ENABLED=${{ vars.FLYWAY_ENABLED || 'true' }}
             DB_URL=${{ secrets.DB_URL }}
             DB_USERNAME=${{ secrets.DB_USERNAME }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
             EOF
             chmod 600 .env.new
 
