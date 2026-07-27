@@ -36,6 +36,9 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        // 배포 헬스체크용. 인증을 걸면 컨테이너가 항상 unhealthy 로 판정되어 배포가 롤백된다.
+                        // application.yml 에서 health 외의 actuator 엔드포인트는 노출하지 않는다.
+                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(
