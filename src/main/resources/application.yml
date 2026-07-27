@@ -29,6 +29,11 @@ spring:
     baseline-version: 0
     locations: classpath:db/migration
 
+  # 종료 신호를 받으면 처리 중인 요청이 끝날 때까지 최대 20초 기다린다.
+  # docker-compose 의 stop_grace_period 보다 반드시 짧아야 한다.
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+
   # ddl-auto 와 show-sql 은 프로필별로 지정한다 (dev: update/true, prod: validate/false)
   jpa:
     open-in-view: false
@@ -37,6 +42,10 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         globally_quoted_identifiers: true
+
+# 기본값은 immediate 라 종료 시 처리 중인 요청이 그냥 끊긴다.
+server:
+  shutdown: graceful
 
 jwt:
   secret: ${JWT_SECRET}

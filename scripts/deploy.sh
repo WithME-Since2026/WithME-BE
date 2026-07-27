@@ -161,16 +161,21 @@ mv .env.new .env
 chmod 600 .env
 log "배포 대상: $(grep -E '^APP_IMAGE=' .env | cut -d= -f2-)"
 
-docker compose pull
-docker compose up -d --remove-orphans
+compose_up() {
+  docker compose pull && docker compose up -d --remove-orphans
+}
 
-if wait_healthy; then
+# set -e 아래에서 compose 명령을 그냥 나열하면 pull/up 실패 시 즉시 종료되어
+# 새 .env 를 그대로 둔 채 롤백도 진단 출력도 하지 못한다.
+# 그 상태로 다음 배포가 돌면 깨진 .env 가 .env.rollback 으로 보관되어
+# 롤백 지점 자체가 오염된다. 조건문 안에서 실행해 실패를 롤백 분기로 넘긴다.
+if compose_up && wait_healthy; then
   log "배포 성공"
   cleanup_old_images
   exit 0
 fi
 
-log "배포 검증 실패. 롤백을 시도한다."
+log "배포 또는 검증 실패. 롤백을 시도한다."
 dump_diagnostics
 
 if [ ! -f .env.rollback ]; then
@@ -182,10 +187,9 @@ cp .env.rollback .env
 chmod 600 .env
 log "롤백 대상: $(grep -E '^APP_IMAGE=' .env | cut -d= -f2-)"
 
-docker compose pull
-docker compose up -d --remove-orphans
-
-if wait_healthy; then
+# 롤백 경로도 마찬가지로 조건문 안에서 실행해, pull/up 이 실패해도
+# 진단을 남기고 "롤백 실패"를 명시적으로 알린다.
+if compose_up && wait_healthy; then
   log "롤백 성공. 서버는 직전 이미지로 서비스 중이다."
 else
   log "롤백마저 실패했다. 수동 조치가 필요하다."

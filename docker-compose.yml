@@ -3,6 +3,9 @@ services:
     image: ${APP_IMAGE}
     container_name: withme-app
     restart: unless-stopped
+    # Docker 기본값은 10초라 앱의 graceful shutdown(20초)보다 짧다.
+    # 그대로 두면 요청을 다 처리하기 전에 SIGKILL 로 강제 종료된다.
+    stop_grace_period: 30s
     ports:
       - "8080:8080"
     environment:

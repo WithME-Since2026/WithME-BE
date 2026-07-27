@@ -58,3 +58,10 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+// plain jar 를 만들지 않는다.
+// bootJar 와 함께 build/libs 에 두 개가 생기면 Dockerfile 의 COPY glob 이
+// 소스 2개를 잡아 이미지 빌드가 실패한다.
+tasks.named('jar') {
+    enabled = false
+}
