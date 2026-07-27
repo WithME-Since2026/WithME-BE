@@ -193,5 +193,6 @@ notice or attribution required by the License must also include
 this Commons Clause License Condition notice.
 
 Software: WithME
-License: Apache License 2.0
-Licensor: 2026 WithME
+License: Apache License 2.0 with Commons Clause License Condition v1.0
+Copyright: © 2026 WithME
+Licensor: WithME
