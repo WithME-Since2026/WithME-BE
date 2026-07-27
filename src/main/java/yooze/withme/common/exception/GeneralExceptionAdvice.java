@@ -1,6 +1,7 @@
 package yooze.withme.common.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +28,17 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
             log.warn("[*] GeneralException : {}", e.getMessage());
         }
         return ApiResponse.error(e.getErrorStatus());
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
+        String rootMessage = e.getMostSpecificCause().getMessage();
+        log.warn("[*] DataIntegrityViolationException : {}", rootMessage);
+
+        if (rootMessage != null && rootMessage.contains("uq_user_auth_provider_login_id")) {
+            return ApiResponse.error(ErrorStatus.DUPLICATE_ID);
+        }
+        return ApiResponse.error(ErrorStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)

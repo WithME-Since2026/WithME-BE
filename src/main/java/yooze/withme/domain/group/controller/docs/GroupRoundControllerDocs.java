@@ -1,6 +1,7 @@
 package yooze.withme.domain.group.controller.docs;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -23,6 +24,7 @@ public interface GroupRoundControllerDocs {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "일정 변경 성공")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "운영자가 아니어서 접근 불가")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "존재하지 않는 회차")
+    @SecurityRequirement(name = "JWT TOKEN")
     @PatchMapping("/{roundId}/reschedule")
     ResponseEntity<ApiResponse<GroupRoundResponse>> rescheduleGroupRound(
             @RequestHeader("X-USER-ID") Long userId,
@@ -33,6 +35,7 @@ public interface GroupRoundControllerDocs {
     @Operation(summary = "특정 회차의 참석 현황 목록 조회", description = "운영자(OWNER/CO_OWNER)만 조회할 수 있다.")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "참석 현황 조회 성공")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "운영자가 아니어서 접근 불가")
+    @SecurityRequirement(name = "JWT TOKEN")
     @GetMapping("/{roundId}/group-responses")
     ResponseEntity<ApiResponse<List<AttendanceResponse>>> getGroupResponses(
             @RequestHeader("X-USER-ID") Long userId,
@@ -42,6 +45,7 @@ public interface GroupRoundControllerDocs {
     @Operation(summary = "참석 응답 제출", description = "참여자 본인의 출석 여부(ATTEND/ABSENT)를 제출하거나 수정한다.")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "참석 응답 제출 성공")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "모임 멤버가 아니거나 응답 정보를 찾을 수 없음")
+    @SecurityRequirement(name = "JWT TOKEN")
     @PatchMapping("/{roundId}/group-responses")
     ResponseEntity<ApiResponse<AttendanceResponse>> submitGroupResponse(
             @RequestHeader("X-USER-ID") Long userId,

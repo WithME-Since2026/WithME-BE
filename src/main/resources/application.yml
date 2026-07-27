@@ -6,8 +6,8 @@ spring:
     default: dev
 
   # DB_URL 은 항상 완전한 JDBC URL
-  # develop 의 `jdbc:postgresql://localhost:5432/${DB_URL}` 형태는 호스트가 localhost 로
-  # 고정되어 별도 PostgreSQL 인스턴스를 가리킬 수 없으므로, 병합 시 이 형태로 통일한다.
+  # `jdbc:postgresql://localhost:5432/${DB_URL}` 형태는 호스트가 localhost 로
+  # 고정되어 별도 PostgreSQL 인스턴스를 가리킬 수 없으므로 이 형태로 통일한다.
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -23,17 +23,25 @@ spring:
   flyway:
     # 스키마가 없는 최초 배포에서는 꺼야 한다. docs/DEPLOYMENT.md 참고.
     enabled: ${FLYWAY_ENABLED:true}
+    # 기존 스키마(JPA ddl-auto 생성)가 있을 때 Flyway 첫 실행 허용
     baseline-on-migrate: true
     # 기본값 1 을 쓰면 baseline 이 V1 을 "이미 적용됨"으로 표시해 V1 이 영영 실행되지 않는다.
     baseline-version: 0
     locations: classpath:db/migration
 
+  # ddl-auto 와 show-sql 은 프로필별로 지정한다 (dev: update/true, prod: validate/false)
   jpa:
     open-in-view: false
     properties:
       hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         globally_quoted_identifiers: true
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expiration: 1800000      # 30분 (ms)
+  refresh-token-expiration: 1209600000  # 14일 (ms)
 
 # 배포 검증용 헬스체크 엔드포인트. health 외에는 노출X
 management:
