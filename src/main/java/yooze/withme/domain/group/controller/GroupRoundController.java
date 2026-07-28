@@ -3,6 +3,8 @@ package yooze.withme.domain.group.controller;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import yooze.withme.common.response.ApiResponse;
@@ -25,22 +27,27 @@ public class GroupRoundController implements GroupRoundControllerDocs {
 
     @Override
     public ResponseEntity<ApiResponse<GroupRoundResponse>> rescheduleGroupRound(
-            Long userId, Long roundId, RescheduleGroupRoundRequest request
+            @AuthenticationPrincipal UserDetails userDetails, Long roundId, RescheduleGroupRoundRequest request
     ) {
+        Long userId = Long.parseLong(userDetails.getUsername());
         GroupRoundResponse response = groupCommandService.rescheduleGroupRound(userId, roundId, request);
         return ApiResponse.success(SuccessStatus.RESCHEDULE_GROUP_ROUND_SUCCESS, response);
     }
 
     @Override
-    public ResponseEntity<ApiResponse<List<AttendanceResponse>>> getGroupResponses(Long userId, Long roundId) {
+    public ResponseEntity<ApiResponse<List<AttendanceResponse>>> getGroupResponses(
+            @AuthenticationPrincipal UserDetails userDetails, Long roundId
+    ) {
+        Long userId = Long.parseLong(userDetails.getUsername());
         List<AttendanceResponse> response = groupQueryService.getGroupResponses(userId, roundId);
         return ApiResponse.success(SuccessStatus.GET_GROUP_RESPONSES_SUCCESS, response);
     }
 
     @Override
     public ResponseEntity<ApiResponse<AttendanceResponse>> submitGroupResponse(
-            Long userId, Long roundId, SubmitGroupResponseRequest request
+            @AuthenticationPrincipal UserDetails userDetails, Long roundId, SubmitGroupResponseRequest request
     ) {
+        Long userId = Long.parseLong(userDetails.getUsername());
         AttendanceResponse response = groupCommandService.submitGroupResponse(userId, roundId, request);
         return ApiResponse.success(SuccessStatus.SUBMIT_GROUP_RESPONSE_SUCCESS, response);
     }
