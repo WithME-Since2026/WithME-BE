@@ -47,7 +47,12 @@ public class ApiResponse<T> {
     }
 
     public static ApiResponse<Void> errorBody(BaseStatus errorStatus, String message) {
-        return new ApiResponse<>(false, errorStatus.getCode(),
-                message != null ? message : errorStatus.getMessage(), null);
+        String responseMessage;
+        if (message != null) {
+            responseMessage = message;
+        } else {
+            responseMessage = errorStatus.getMessage();
+        }
+        return new ApiResponse<>(false, errorStatus.getCode(), responseMessage, null);
     }
 }
