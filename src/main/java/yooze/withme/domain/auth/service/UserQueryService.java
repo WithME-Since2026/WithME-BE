@@ -6,16 +6,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import yooze.withme.common.exception.GeneralException;
 import yooze.withme.common.status.ErrorStatus;
-import yooze.withme.domain.auth.dto.response.AttendanceRateResponse;
-import yooze.withme.domain.auth.dto.response.MyGroupResponse;
 import yooze.withme.domain.auth.dto.response.NotificationSettingsResponse;
 import yooze.withme.domain.auth.dto.response.ProfileResponse;
 import yooze.withme.domain.auth.entity.User;
 import yooze.withme.domain.auth.repository.UserRepository;
-import yooze.withme.domain.group.enums.AttendanceStatus;
-import yooze.withme.domain.group.enums.GroupMemberStatus;
-import yooze.withme.domain.group.repository.GroupMemberRepository;
-import yooze.withme.domain.group.repository.GroupResponseRepository;
+import yooze.withme.domain.group.dto.response.AttendanceRateResponse;
+import yooze.withme.domain.group.dto.response.MyGroupResponse;
+import yooze.withme.domain.group.service.GroupQueryService;
 
 @Service
 @Transactional(readOnly = true)
@@ -23,8 +20,7 @@ import yooze.withme.domain.group.repository.GroupResponseRepository;
 public class UserQueryService {
 
     private final UserRepository userRepository;
-    private final GroupMemberRepository groupMemberRepository;
-    private final GroupResponseRepository groupResponseRepository;
+    private final GroupQueryService groupQueryService;
 
     /** userId로 사용자 조회 */
     public User getUserByUserId(Long userId) {
@@ -44,17 +40,15 @@ public class UserQueryService {
         return NotificationSettingsResponse.from(user);
     }
 
-    /** 내 참여율 조회 - 결정된(ATTEND/ABSENT) 응답 중 ATTEND 비율 */
+    /** 내 참여율 조회 - 사용자 존재를 확인한 뒤 Group 도메인의 계산 결과를 그대로 전달 */
     public AttendanceRateResponse getUserAttendanceRate(Long userId) {
-        long attendCount = groupResponseRepository.countByMember_UserIdAndAttendanceStatus(userId, AttendanceStatus.ATTEND);
-        long absentCount = groupResponseRepository.countByMember_UserIdAndAttendanceStatus(userId, AttendanceStatus.ABSENT);
-        return AttendanceRateResponse.of(attendCount, absentCount);
+        getUserByUserId(userId);
+        return groupQueryService.getUserAttendanceRate(userId);
     }
 
-    /** 내가 활동 중인 모임 목록 조회 */
+    /** 내가 활동 중인 모임 목록 조회 - 사용자 존재를 확인한 뒤 Group 도메인의 조회 결과를 그대로 전달 */
     public List<MyGroupResponse> getUserGroups(Long userId) {
-        return groupMemberRepository.findByUserIdAndStatus(userId, GroupMemberStatus.ACTIVE).stream()
-                .map(MyGroupResponse::from)
-                .toList();
+        getUserByUserId(userId);
+        return groupQueryService.getUserGroups(userId);
     }
 }

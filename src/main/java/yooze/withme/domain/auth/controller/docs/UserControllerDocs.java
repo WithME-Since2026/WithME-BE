@@ -14,10 +14,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import yooze.withme.common.response.ApiResponse;
 import yooze.withme.domain.auth.dto.request.UpdateNicknameRequest;
 import yooze.withme.domain.auth.dto.request.UpdateNotificationSettingsRequest;
-import yooze.withme.domain.auth.dto.response.AttendanceRateResponse;
-import yooze.withme.domain.auth.dto.response.MyGroupResponse;
 import yooze.withme.domain.auth.dto.response.NotificationSettingsResponse;
 import yooze.withme.domain.auth.dto.response.ProfileResponse;
+import yooze.withme.domain.group.dto.response.AttendanceRateResponse;
+import yooze.withme.domain.group.dto.response.MyGroupResponse;
 
 @Tag(name = "유저", description = "유저 마이페이지(프로필/알림설정/참여율/내 모임 목록) API")
 public interface UserControllerDocs {

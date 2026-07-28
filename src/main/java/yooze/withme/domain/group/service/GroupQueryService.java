@@ -6,13 +6,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import yooze.withme.common.exception.GeneralException;
 import yooze.withme.common.status.ErrorStatus;
+import yooze.withme.domain.group.dto.response.AttendanceRateResponse;
 import yooze.withme.domain.group.dto.response.AttendanceResponse;
 import yooze.withme.domain.group.dto.response.GroupDetailResponse;
 import yooze.withme.domain.group.dto.response.GroupRoundResponse;
+import yooze.withme.domain.group.dto.response.MyGroupResponse;
 import yooze.withme.domain.group.entity.Group;
 import yooze.withme.domain.group.entity.GroupLocation;
 import yooze.withme.domain.group.entity.GroupMember;
 import yooze.withme.domain.group.entity.GroupRound;
+import yooze.withme.domain.group.enums.AttendanceStatus;
 import yooze.withme.domain.group.enums.GroupMemberStatus;
 import yooze.withme.domain.group.repository.GroupLocationRepository;
 import yooze.withme.domain.group.repository.GroupMemberRepository;
@@ -65,6 +68,20 @@ public class GroupQueryService {
 
         return groupResponseRepository.findByGroupRoundId(roundId).stream()
                 .map(AttendanceResponse::from)
+                .toList();
+    }
+
+    /** 특정 유저의 참여율 조회 - 현재 활동 중(ACTIVE)인 모임에서 결정된(ATTEND/ABSENT) 응답 중 ATTEND 비율 */
+    public AttendanceRateResponse getUserAttendanceRate(Long userId) {
+        long attendCount = groupResponseRepository.countAttendance(userId, GroupMemberStatus.ACTIVE, AttendanceStatus.ATTEND);
+        long absentCount = groupResponseRepository.countAttendance(userId, GroupMemberStatus.ACTIVE, AttendanceStatus.ABSENT);
+        return AttendanceRateResponse.of(attendCount, absentCount);
+    }
+
+    /** 특정 유저가 활동 중(ACTIVE)인 모임 목록 조회 */
+    public List<MyGroupResponse> getUserGroups(Long userId) {
+        return groupMemberRepository.findByUserIdAndStatus(userId, GroupMemberStatus.ACTIVE).stream()
+                .map(MyGroupResponse::from)
                 .toList();
     }
 }

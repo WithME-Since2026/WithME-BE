@@ -1,4 +1,4 @@
-package yooze.withme.domain.auth.dto.response;
+package yooze.withme.domain.group.dto.response;
 
 import yooze.withme.domain.group.entity.GroupMember;
 import yooze.withme.domain.group.enums.GroupMemberPosition;
