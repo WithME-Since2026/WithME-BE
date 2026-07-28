@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import yooze.withme.domain.group.entity.GroupResponse;
 import yooze.withme.domain.group.enums.AttendanceStatus;
+import yooze.withme.domain.group.enums.GroupMemberStatus;
 
 public interface GroupResponseRepository extends JpaRepository<GroupResponse, Long> {
 
@@ -16,5 +17,16 @@ public interface GroupResponseRepository extends JpaRepository<GroupResponse, Lo
     @Query("select gr from GroupResponse gr join fetch gr.member where gr.groupRound.id = :roundId and gr.member.id = :memberId")
     Optional<GroupResponse> findByGroupRoundIdAndMemberId(@Param("roundId") Long roundId, @Param("memberId") Long memberId);
 
-    long countByMember_UserIdAndAttendanceStatus(Long userId, AttendanceStatus status);
+    @Query("""
+        select count(gr)
+        from GroupResponse gr
+        where gr.member.userId = :userId
+          and gr.member.status = :memberStatus
+          and gr.attendanceStatus = :attendanceStatus
+        """)
+    long countAttendance(
+            @Param("userId") Long userId,
+            @Param("memberStatus") GroupMemberStatus memberStatus,
+            @Param("attendanceStatus") AttendanceStatus attendanceStatus
+    );
 }
