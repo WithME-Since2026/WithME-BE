@@ -1,0 +1,48 @@
+services:
+  app:
+    image: ${APP_IMAGE}
+    container_name: withme-app
+    restart: unless-stopped
+    # Docker 기본값은 10초라 앱의 graceful shutdown(20초)보다 짧다.
+    # 그대로 두면 요청을 다 처리하기 전에 SIGKILL 로 강제 종료된다.
+    stop_grace_period: 30s
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DDL_AUTO: ${DDL_AUTO:-validate}
+      FLYWAY_ENABLED: ${FLYWAY_ENABLED:-true}
+      DB_URL: ${DB_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      # 앱 컨테이너 기준 Redis 는 서비스명으로 접근한다. localhost 로 두면 자기 자신을 가리킨다.
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    # 배포 성공 판정의 기준. DB 연결이 끊겨 있으면 actuator가 503을 반환하므로
+    # 컨테이너가 떴다는 사실이 아니라 실제로 서비스 가능한 상태인지를 검증한다.
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  redis:
+    image: redis:7-alpine
+    container_name: withme-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  redis-data:

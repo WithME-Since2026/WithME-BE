@@ -19,6 +19,8 @@ repositories {
 }
 
 dependencies {
+    // 배포 헬스체크(/actuator/health). 빠지면 컨테이너가 영구 unhealthy 로 판정되어 배포가 롤백된다.
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -48,9 +50,18 @@ dependencies {
     testImplementation 'org.springframework.security:spring-security-test'
     testCompileOnly 'org.projectlombok:lombok'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // CI 테스트용 인메모리 DB. 빠지면 테스트가 실제 PostgreSQL 을 요구하게 된다.
+    testRuntimeOnly 'com.h2database:h2'
     testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+// plain jar 를 만들지 않는다.
+// bootJar 와 함께 build/libs 에 두 개가 생기면 Dockerfile 의 COPY glob 이
+// 소스 2개를 잡아 이미지 빌드가 실패한다.
+tasks.named('jar') {
+    enabled = false
 }

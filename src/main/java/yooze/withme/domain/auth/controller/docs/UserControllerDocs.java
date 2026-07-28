@@ -21,7 +21,7 @@ public interface UserControllerDocs {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "요청값이 올바르지 않음")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
-    @SecurityRequirement(name = "JWT TOKEN")
+    @SecurityRequirement(name = "bearerAuth")
     @PatchMapping("/me/profile")
     ResponseEntity<ApiResponse<ProfileResponse>> patchUserProfile(
             @Parameter(hidden = true) UserDetails userDetails,

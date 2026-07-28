@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import yooze.withme.common.exception.GeneralException;
-import yooze.withme.common.status.error.ErrorStatus;
+import yooze.withme.common.status.ErrorStatus;
 import yooze.withme.domain.auth.entity.User;
 import yooze.withme.domain.auth.repository.UserRepository;
 

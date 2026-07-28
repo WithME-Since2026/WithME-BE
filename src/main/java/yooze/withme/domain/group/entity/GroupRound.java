@@ -16,7 +16,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import yooze.withme.common.base.BaseTimeEntity;
+import yooze.withme.common.base.BaseEntity;
 
 @Entity
 @Table(name = "group_round")
@@ -24,7 +24,7 @@ import yooze.withme.common.base.BaseTimeEntity;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class GroupRound extends BaseTimeEntity {
+public class GroupRound extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

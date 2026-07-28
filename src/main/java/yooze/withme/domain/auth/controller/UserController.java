@@ -7,7 +7,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import yooze.withme.common.response.ApiResponse;
-import yooze.withme.common.status.success.SuccessStatus;
+import yooze.withme.common.status.SuccessStatus;
 import yooze.withme.domain.auth.dto.request.UpdateNicknameRequest;
 import yooze.withme.domain.auth.dto.response.ProfileResponse;
 import yooze.withme.domain.auth.controller.docs.UserControllerDocs;

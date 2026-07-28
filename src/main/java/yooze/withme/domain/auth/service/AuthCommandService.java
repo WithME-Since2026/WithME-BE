@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import yooze.withme.common.exception.GeneralException;
 import yooze.withme.common.jwt.JwtTokenProvider;
-import yooze.withme.common.status.error.ErrorStatus;
+import yooze.withme.common.status.ErrorStatus;
 import yooze.withme.domain.auth.dto.request.LoginRequest;
 import yooze.withme.domain.auth.dto.request.SignUpRequest;
 import yooze.withme.domain.auth.dto.response.LoginResponse;

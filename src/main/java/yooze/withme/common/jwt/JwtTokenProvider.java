@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import yooze.withme.common.exception.GeneralException;
 import yooze.withme.common.properties.JwtProperties;
-import yooze.withme.common.status.error.ErrorStatus;
+import yooze.withme.common.status.ErrorStatus;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;

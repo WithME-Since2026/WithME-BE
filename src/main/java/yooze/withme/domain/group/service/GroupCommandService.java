@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import yooze.withme.common.exception.GeneralException;
-import yooze.withme.common.status.error.ErrorStatus;
+import yooze.withme.common.status.ErrorStatus;
 import yooze.withme.domain.group.dto.request.CreateGroupRequest;
 import yooze.withme.domain.group.dto.request.RescheduleGroupRoundRequest;
 import yooze.withme.domain.group.dto.request.SubmitGroupResponseRequest;

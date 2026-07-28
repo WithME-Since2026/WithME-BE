@@ -2,7 +2,7 @@ package yooze.withme.domain.auth.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import yooze.withme.common.base.BaseTimeEntity;
+import yooze.withme.common.base.BaseEntity;
 
 import java.time.LocalDateTime;
 
@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @Table(name = "users")
-public class User extends BaseTimeEntity {
+public class User extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

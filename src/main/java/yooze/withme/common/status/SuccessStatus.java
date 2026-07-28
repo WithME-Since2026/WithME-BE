@@ -1,17 +1,18 @@
-package yooze.withme.common.status.success;
+package yooze.withme.common.status;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
-import yooze.withme.common.status.BaseStatus;
+import yooze.withme.common.base.BaseStatus;
 
 
 @Getter
 @AllArgsConstructor
 public enum SuccessStatus implements BaseStatus {
-    SUCCESS_200("WITHME_200", HttpStatus.OK, "성공적으로 처리했습니다."),
-    SUCCESS_201("WITHME_201", HttpStatus.CREATED, "성공적으로 생성했습니다."),
-    SUCCESS_204("WITHME_204", HttpStatus.NO_CONTENT, "성공적으로 삭제했습니다."),
+
+    SUCCESS_200("COMM_200", HttpStatus.OK, "요청을 성공했습니다."),
+    SUCCESS_201("COMM_201", HttpStatus.CREATED, "요청을 생성했습니다."),
+    SUCCESS_204("COMM_204", HttpStatus.NO_CONTENT, "요청을 성공했습니다."),
 
     /**
      * Auth

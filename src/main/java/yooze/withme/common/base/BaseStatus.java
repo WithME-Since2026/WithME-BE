@@ -1,4 +1,4 @@
-package yooze.withme.common.status;
+package yooze.withme.common.base;
 
 import org.springframework.http.HttpStatus;
 
