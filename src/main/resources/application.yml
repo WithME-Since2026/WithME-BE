@@ -20,6 +20,18 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
 
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
   flyway:
     # 스키마가 없는 최초 배포에서는 꺼야 한다. docs/DEPLOYMENT.md 참고.
     enabled: ${FLYWAY_ENABLED:true}

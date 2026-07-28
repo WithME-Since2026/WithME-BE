@@ -1,9 +1,12 @@
 package yooze.withme.domain.auth.controller.docs;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,7 +14,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import yooze.withme.common.response.ApiResponse;
 import yooze.withme.domain.auth.dto.request.IdCheckRequest;
 import yooze.withme.domain.auth.dto.request.LoginRequest;
+import yooze.withme.domain.auth.dto.request.SendCodeRequest;
 import yooze.withme.domain.auth.dto.request.SignUpRequest;
+import yooze.withme.domain.auth.dto.request.VerifyCodeRequest;
+import yooze.withme.domain.auth.dto.response.FindIdResponse;
 import yooze.withme.domain.auth.dto.response.LoginResponse;
 import yooze.withme.domain.auth.dto.response.SignUpResponse;
 
@@ -41,5 +47,31 @@ public interface AuthControllerDocs {
     @GetMapping("/id-check")
     ResponseEntity<ApiResponse<Void>> getIdCheck(
             @Valid @ModelAttribute IdCheckRequest idCheckRequest
+    );
+
+    @Operation(summary = "로그아웃", description = "로그인한 사용자의 리프레시 토큰을 삭제한다.")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "로그아웃 성공")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    @SecurityRequirement(name = "JWT TOKEN")
+    @PostMapping("/logout")
+    ResponseEntity<ApiResponse<Void>> postLogout(
+            @Parameter(hidden = true) UserDetails userDetails
+    );
+
+    @Operation(summary = "아이디 찾기 - 인증코드 발송", description = "이름과 이메일로 사용자를 확인하고 6자리 인증코드를 이메일로 발송한다.")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "인증코드 발송 성공")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "요청값이 올바르지 않음")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "이름 또는 이메일이 일치하는 사용자 없음")
+    @PostMapping("/find-id/send-code")
+    ResponseEntity<ApiResponse<Void>> postFindIdSendCode(
+            @Valid @RequestBody SendCodeRequest request
+    );
+
+    @Operation(summary = "아이디 찾기 - 인증코드 확인", description = "인증코드 검증 후 아이디를 반환한다.")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "아이디 찾기 성공")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "인증코드가 올바르지 않거나 만료됨")
+    @PostMapping("/find-id/verify")
+    ResponseEntity<ApiResponse<FindIdResponse>> postFindIdVerify(
+            @Valid @RequestBody VerifyCodeRequest request
     );
 }

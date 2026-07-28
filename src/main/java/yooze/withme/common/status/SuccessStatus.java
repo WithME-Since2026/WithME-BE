@@ -19,6 +19,8 @@ public enum SuccessStatus implements BaseStatus {
      */
     LOGIN_SUCCESS("AUTH_200", HttpStatus.OK, "로그인 성공"),
     LOGOUT_SUCCESS("AUTH_200", HttpStatus.OK, "로그아웃 성공"),
+    SEND_CODE_SUCCESS("AUTH_200", HttpStatus.OK, "인증코드 발송 성공"),
+    FIND_ID_SUCCESS("AUTH_200", HttpStatus.OK, "아이디 찾기 성공"),
     CREATE_USER_SUCCESS("AUTH_201", HttpStatus.CREATED, "회원가입 성공"),
     UPDATE_PASSWORD_SUCCESS("AUTH_204", HttpStatus.OK, "비밀번호 변경 성공"),
     CREATE_TOKEN_SUCCESS("AUTH_200", HttpStatus.OK, "토큰 재발급 성공"),
