@@ -1,5 +1,7 @@
 package yooze.withme.domain.group.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -37,6 +39,8 @@ public record CreateGroupRequest(
         Long placeId
 ) {
 
+    @JsonIgnore
+    @Schema(hidden = true)
     @AssertTrue(message = "종료 날짜는 시작 날짜보다 이후여야 합니다.")
     public boolean getEndDateValid() {
         if (endDate == null) {

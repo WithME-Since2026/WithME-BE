@@ -29,6 +29,15 @@ public enum SuccessStatus implements BaseStatus {
     CREATE_CATEGORY_SUCCESS("CATEGORY_201", HttpStatus.CREATED, "카테고리 생성 성공"),
     UPDATE_CATEGORY_SUCCESS("CATEGORY_200", HttpStatus.OK, "카테고리 수정 성공"),
     GET_CATEGORIES_SUCCESS("CATEGORY_200", HttpStatus.OK, "카테고리 목록 조회 성공"),
+    
+    /**
+     * User
+     */
+    GET_PROFILE_SUCCESS("USER_200", HttpStatus.OK, "프로필 조회 성공"),
+    GET_NOTIFICATION_SUCCESS("USER_200", HttpStatus.OK, "알림 설정 조회 성공"),
+    UPDATE_NOTIFICATION_SUCCESS("USER_200", HttpStatus.OK, "알림 설정 수정 성공"),
+    GET_ATTENDANCE_SUCCESS("USER_200", HttpStatus.OK, "참여율 조회 성공"),
+    GET_MY_GROUPS_SUCCESS("USER_200", HttpStatus.OK, "참여 모임 목록 조회 성공"),
 
     /**
      * Group
