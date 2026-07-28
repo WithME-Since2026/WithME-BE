@@ -6,6 +6,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -78,11 +79,27 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
             WebRequest request
     ) {
         BaseStatus errorCode = ErrorStatus.BAD_REQUEST;
-        String errorMessage = ex.getBindingResult().getFieldErrors().isEmpty()
-                ? errorCode.getMessage()
-                : ex.getBindingResult().getFieldErrors().get(0).getDefaultMessage();
+        String errorMessage;
+        if (ex.getBindingResult().getFieldErrors().isEmpty()) {
+            errorMessage = errorCode.getMessage();
+        } else {
+            errorMessage = ex.getBindingResult().getFieldErrors().get(0).getDefaultMessage();
+        }
 
         ApiResponse<Void> body = createApiResponse(errorCode, errorMessage);
+        return handleExceptionInternal(ex, body, headers, status, request);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(
+            HttpMessageNotReadableException ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request
+    ) {
+        log.warn("[*] HttpMessageNotReadableException : {}", ex.getMessage());
+        BaseStatus errorCode = ErrorStatus.BAD_REQUEST;
+        ApiResponse<Void> body = createApiResponse(errorCode, null);
         return handleExceptionInternal(ex, body, headers, status, request);
     }
 

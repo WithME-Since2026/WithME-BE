@@ -20,7 +20,7 @@ import yooze.withme.domain.group.enums.GroupMemberPosition;
 import yooze.withme.domain.group.enums.GroupMemberStatus;
 
 @Entity
-@Table(name = "group_member")
+@Table(name = "group_members")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor

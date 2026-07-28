@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 import yooze.withme.domain.group.enums.AttendanceStatus;
 
 @Entity
-@Table(name = "group_response")
+@Table(name = "group_responses")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor

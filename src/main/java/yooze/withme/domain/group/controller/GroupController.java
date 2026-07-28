@@ -3,6 +3,8 @@ package yooze.withme.domain.group.controller;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import yooze.withme.common.response.ApiResponse;
@@ -23,7 +25,10 @@ public class GroupController implements GroupControllerDocs {
     private final GroupQueryService groupQueryService;
 
     @Override
-    public ResponseEntity<ApiResponse<GroupDetailResponse>> createGroup(Long userId, CreateGroupRequest request) {
+    public ResponseEntity<ApiResponse<GroupDetailResponse>> createGroup(
+            @AuthenticationPrincipal UserDetails userDetails, CreateGroupRequest request
+    ) {
+        Long userId = Long.parseLong(userDetails.getUsername());
         GroupDetailResponse response = groupCommandService.createGroup(userId, request);
         return ApiResponse.success(SuccessStatus.CREATE_GROUP_SUCCESS, response);
     }

@@ -24,6 +24,15 @@ public enum SuccessStatus implements BaseStatus {
     CREATE_TOKEN_SUCCESS("AUTH_200", HttpStatus.OK, "토큰 재발급 성공"),
 
     /**
+     * User
+     */
+    GET_PROFILE_SUCCESS("USER_200", HttpStatus.OK, "프로필 조회 성공"),
+    GET_NOTIFICATION_SUCCESS("USER_200", HttpStatus.OK, "알림 설정 조회 성공"),
+    UPDATE_NOTIFICATION_SUCCESS("USER_200", HttpStatus.OK, "알림 설정 수정 성공"),
+    GET_ATTENDANCE_SUCCESS("USER_200", HttpStatus.OK, "참여율 조회 성공"),
+    GET_MY_GROUPS_SUCCESS("USER_200", HttpStatus.OK, "참여 모임 목록 조회 성공"),
+
+    /**
      * Group
      */
     CREATE_GROUP_SUCCESS("GROUP_201", HttpStatus.CREATED, "모임 생성 성공"),
