@@ -22,8 +22,8 @@ import yooze.withme.domain.todo.enums.RepetitionEndType;
 import yooze.withme.domain.todo.enums.RepetitionType;
 
 /**
- * 할 일의 반복 설정. 하나의 할 일에 최대 하나의 반복 설정만 존재하므로 todo_id 에 유니크 제약을 둔다.
- * (ERD 의 복합 PK(id, todo_id) 는 대리키 id 만으로 이미 유일하므로 단일 PK + todo_id 유니크로 대체)
+ * todo 반복 설정. 하나의 할 일에 최대 하나의 반복 설정만 존재, todo_id 에 유니크 제약
+ * (ERD 의 복합 PK(id, todo_id)는 대리키 id 만으로 이미 유일하므로 단일 PK + todo_id 유니크로 대체)
  */
 @Entity
 @Table(name = "todo_repetitions")
@@ -47,7 +47,7 @@ public class TodoRepetition {
     @Builder.Default
     private RepetitionType repetitionType = RepetitionType.NONE;
 
-    /** 반복 간격 (예: 2 + WEEK = 2주마다) */
+    // 반복 간격
     @Column(name = "repetition_num", nullable = false)
     @Builder.Default
     private Long repetitionNum = 1L;
@@ -68,7 +68,7 @@ public class TodoRepetition {
     @Column(name = "repetition_end_count")
     private Long repetitionEndCount;
 
-    /** 반복 설정 전체 교체 — 종료 조건이 바뀌면 사용하지 않는 종료 값은 비운다 */
+    /** 반복 설정 전체 교체 : 종료 조건이 바뀌면 사용하지 않는 종료 값은 null */
     public void update(RepetitionType repetitionType, Long repetitionNum, RepetitionDay repetitionDay,
                        RepetitionEndType repetitionEndType, LocalDate repetitionEndDate, Long repetitionEndCount) {
         this.repetitionType = repetitionType;
