@@ -24,6 +24,13 @@ public enum SuccessStatus implements BaseStatus {
     CREATE_TOKEN_SUCCESS("AUTH_200", HttpStatus.OK, "토큰 재발급 성공"),
 
     /**
+     * CATEGORY
+     */
+    CREATE_CATEGORY_SUCCESS("CATEGORY_201", HttpStatus.CREATED, "카테고리 생성 성공"),
+    UPDATE_CATEGORY_SUCCESS("CATEGORY_200", HttpStatus.OK, "카테고리 수정 성공"),
+    GET_CATEGORIES_SUCCESS("CATEGORY_200", HttpStatus.OK, "카테고리 목록 조회 성공"),
+
+    /**
      * Group
      */
     CREATE_GROUP_SUCCESS("GROUP_201", HttpStatus.CREATED, "모임 생성 성공"),
