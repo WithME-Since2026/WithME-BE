@@ -11,23 +11,47 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class VerificationCodeRedisRepository {
 
-    private static final String KEY_PREFIX = "find-id:verify:";
+    private static final String FIND_ID_PREFIX = "find-id:verify:";
+    private static final String FIND_PW_PREFIX = "find-pw:verify:";
     private static final long CODE_TTL_SECONDS = 300; // 5분
 
     private final StringRedisTemplate redisTemplate;
 
-    /** 인증코드 저장 */
+    // ── 아이디 찾기 ──────────────────────────────────────────────
+
     public void save(String email, String code) {
-        redisTemplate.opsForValue().set(KEY_PREFIX + email, code, CODE_TTL_SECONDS, TimeUnit.SECONDS);
+        set(FIND_ID_PREFIX + email, code);
     }
 
-    /** 인증코드 조회 */
     public Optional<String> findByEmail(String email) {
-        return Optional.ofNullable(redisTemplate.opsForValue().get(KEY_PREFIX + email));
+        return get(FIND_ID_PREFIX + email);
     }
 
-    /** 인증코드 삭제 (검증 완료 후 재사용 방지) */
     public void deleteByEmail(String email) {
-        redisTemplate.delete(KEY_PREFIX + email);
+        redisTemplate.delete(FIND_ID_PREFIX + email);
+    }
+
+    // ── 비밀번호 찾기 ─────────────────────────────────────────────
+
+    public void saveForPasswordReset(String email, String code) {
+        set(FIND_PW_PREFIX + email, code);
+    }
+
+    public Optional<String> findForPasswordReset(String email) {
+        return get(FIND_PW_PREFIX + email);
+    }
+
+    public void deleteForPasswordReset(String email) {
+        redisTemplate.delete(FIND_PW_PREFIX + email);
+    }
+
+    // ── 공통 ─────────────────────────────────────────────────────
+
+    private void set(String key, String value) {
+        redisTemplate.opsForValue().set(key, value, CODE_TTL_SECONDS, TimeUnit.SECONDS);
+    }
+
+    private Optional<String> get(String key) {
+        return Optional.ofNullable(redisTemplate.opsForValue().get(key));
     }
 }

@@ -20,4 +20,16 @@ public class UserQueryService {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
     }
+
+    /** 닉네임 + 이메일로 사용자 조회 */
+    public User getUserByNicknameAndEmail(String nickname, String email) {
+        return userRepository.findByNicknameAndEmail(nickname, email)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND_BY_INFO));
+    }
+
+    /** 이메일로 사용자 조회 */
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
+    }
 }

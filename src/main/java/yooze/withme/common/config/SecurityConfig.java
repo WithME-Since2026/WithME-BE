@@ -40,7 +40,9 @@ public class SecurityConfig {
                                 "/api/v1/auth/login",
                                 "/api/v1/auth/id-check",
                                 "/api/v1/auth/find-id/send-code",
-                                "/api/v1/auth/find-id/verify"
+                                "/api/v1/auth/find-id/verify",
+                                "/api/v1/auth/find-password/send-code",
+                                "/api/v1/auth/find-password/reset"
                         ).permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         // 배포 헬스체크용. 인증을 걸면 컨테이너가 항상 unhealthy 로 판정되어 배포가 롤백된다.

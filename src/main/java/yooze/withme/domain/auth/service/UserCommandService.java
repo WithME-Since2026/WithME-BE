@@ -19,10 +19,9 @@ public class UserCommandService {
     private final UserRepository userRepository;
 
     /** 신규 사용자 생성 */
-    public User registerUser(String nickname, String name, String email) {
+    public User registerUser(String nickname, String email) {
         User user = User.builder()
                 .nickname(nickname)
-                .name(name)
                 .email(email)
                 .kakaoSync(false)
                 .notifyAgree(false)
