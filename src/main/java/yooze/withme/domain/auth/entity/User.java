@@ -34,12 +34,10 @@ public class User extends BaseEntity {
     private Long kakaoId;
 
     @Column(nullable = false)
-    @Builder.Default
-    private boolean kakaoSync = false;
+    private boolean kakaoSync;
 
     @Column(nullable = false)
-    @Builder.Default
-    private boolean notifyAgree = true;
+    private boolean notifyAgree;
 
     /** 소프트 삭제 */
     public void delete() {
