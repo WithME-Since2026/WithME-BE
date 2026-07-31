@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import yooze.withme.common.exception.GeneralException;
 import yooze.withme.common.status.ErrorStatus;
+import yooze.withme.domain.auth.dto.response.NotificationSettingsResponse;
 import yooze.withme.domain.auth.dto.response.ProfileResponse;
 import yooze.withme.domain.auth.entity.User;
 import yooze.withme.domain.auth.repository.UserRepository;
@@ -38,5 +39,14 @@ public class UserCommandService {
 
         user.updateNickname(nickname);
         return ProfileResponse.from(user);
+    }
+
+    /** 알림 수신 동의 여부 변경 */
+    public NotificationSettingsResponse updateNotificationSettings(Long userId, boolean notifyAgree) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
+
+        user.updateNotifyAgree(notifyAgree);
+        return NotificationSettingsResponse.from(user);
     }
 }

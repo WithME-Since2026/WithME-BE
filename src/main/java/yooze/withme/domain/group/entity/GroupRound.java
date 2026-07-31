@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 import yooze.withme.common.base.BaseEntity;
 
 @Entity
-@Table(name = "group_round")
+@Table(name = "group_rounds")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor

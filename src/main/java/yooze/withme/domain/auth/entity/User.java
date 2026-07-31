@@ -48,4 +48,9 @@ public class User extends BaseEntity {
     public void updateNickname(String nickname) {
         this.nickname = nickname;
     }
+
+    /** 알림 수신 동의 여부 변경 */
+    public void updateNotifyAgree(boolean notifyAgree) {
+        this.notifyAgree = notifyAgree;
+    }
 }
