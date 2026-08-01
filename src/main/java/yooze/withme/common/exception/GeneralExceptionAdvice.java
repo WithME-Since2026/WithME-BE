@@ -16,6 +16,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import yooze.withme.common.response.ApiResponse;
 import yooze.withme.common.base.BaseStatus;
 import yooze.withme.common.status.ErrorStatus;
+import yooze.withme.domain.todo.entity.Category;
 
 @RestControllerAdvice
 @Slf4j
@@ -33,11 +34,13 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiResponse<Void>> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
-        String rootMessage = e.getMostSpecificCause().getMessage();
-        log.warn("[*] DataIntegrityViolationException : {}", rootMessage);
+        log.warn("[*] DataIntegrityViolationException : {}", e.getMostSpecificCause().getMessage());
 
-        if (rootMessage != null && rootMessage.contains("uq_user_auth_provider_login_id")) {
+        if (ConstraintViolations.matches(e, "uq_user_auth_provider_login_id")) {
             return ApiResponse.error(ErrorStatus.DUPLICATE_ID);
+        }
+        if (ConstraintViolations.matches(e, Category.UK_CATEGORY_USER_NAME)) {
+            return ApiResponse.error(ErrorStatus.DUPLICATE_CATEGORY_NAME);
         }
         return ApiResponse.error(ErrorStatus.INTERNAL_SERVER_ERROR);
     }
