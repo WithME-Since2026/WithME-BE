@@ -22,7 +22,7 @@ import yooze.withme.domain.auth.entity.User;
 @Table(
         name = "categories",
         uniqueConstraints = @UniqueConstraint(
-                name = "uk_category_user_name",
+                name = Category.UK_CATEGORY_USER_NAME,
                 columnNames = {"user_id", "category_name"}
         )
 )
@@ -33,6 +33,13 @@ import yooze.withme.domain.auth.entity.User;
 public class Category extends BaseEntity {
 
     public static final String DEFAULT_COLOR = "#FFAA03";
+
+    /**
+     * 사용자별 카테고리 이름 유니크 제약.
+     * 이름 중복의 최종 판정 기준
+     * 제약 위반을 DUPLICATE_CATEGORY_NAME 으로 변환할 때 이 상수를 사용.
+     */
+    public static final String UK_CATEGORY_USER_NAME = "uk_category_user_name";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
