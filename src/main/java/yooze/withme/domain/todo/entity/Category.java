@@ -53,6 +53,7 @@ public class Category extends BaseEntity {
     @Column(name = "category_name", nullable = false, length = 64)
     private String categoryName;
 
+    //todo : 나중에 색상값 정해지면 ENUM으로 설정
     @Column(name = "category_color", nullable = false, length = 7)
     @Builder.Default
     private String categoryColor = DEFAULT_COLOR;
