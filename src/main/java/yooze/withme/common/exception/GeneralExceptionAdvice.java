@@ -6,6 +6,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.transaction.TransactionSystemException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -42,6 +43,30 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
         if (ConstraintViolations.matches(e, Category.UK_CATEGORY_USER_NAME)) {
             return ApiResponse.error(ErrorStatus.DUPLICATE_CATEGORY_NAME);
         }
+        if (ConstraintViolations.matches(e, Category.UK_CATEGORY_USER_SORT_ORDER)) {
+            return ApiResponse.error(ErrorStatus.CATEGORY_ORDER_CONFLICT);
+        }
+        return ApiResponse.error(ErrorStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * DEFERRABLE 제약 위반은 서비스 메서드가 끝난 뒤 커밋 시점에 터지므로
+     * 서비스의 try/catch 가 아니라 여기까지 올라온다.
+     * 커밋 실패 전반을 감싸는 예외이므로, 우리가 아는 제약일 때만 해석하고
+     * 나머지는 기존대로 500 으로 둔다.
+     */
+    @ExceptionHandler(TransactionSystemException.class)
+    public ResponseEntity<ApiResponse<Void>> handleTransactionSystemException(
+            TransactionSystemException e) {
+        if (ConstraintViolations.matches(e, Category.UK_CATEGORY_USER_SORT_ORDER)) {
+            log.warn("[*] 카테고리 정렬 순서 충돌 : {}", e.getMessage());
+            return ApiResponse.error(ErrorStatus.CATEGORY_ORDER_CONFLICT);
+        }
+        if (ConstraintViolations.matches(e, Category.UK_CATEGORY_USER_NAME)) {
+            log.warn("[*] 카테고리 이름 중복 : {}", e.getMessage());
+            return ApiResponse.error(ErrorStatus.DUPLICATE_CATEGORY_NAME);
+        }
+        log.error("[*] TransactionSystemException :", e);
         return ApiResponse.error(ErrorStatus.INTERNAL_SERVER_ERROR);
     }
 

@@ -41,6 +41,14 @@ public class Category extends BaseEntity {
      */
     public static final String UK_CATEGORY_USER_NAME = "uk_category_user_name";
 
+    /**
+     * 사용자별 정렬 순서 유니크 제약.
+     * 재정렬 중간 상태에서 일시적으로 중복이 생기므로 DEFERRABLE 이어야 하고,
+     * {@code @Table(uniqueConstraints)} 로는 표현할 수 없어 Flyway(V2)에서 생성한다.
+     * 위반은 커밋 시점에 드러나므로 서비스가 아니라 예외 어드바이스에서 해석한다.
+     */
+    public static final String UK_CATEGORY_USER_SORT_ORDER = "uk_category_user_sort_order";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "category_id")
