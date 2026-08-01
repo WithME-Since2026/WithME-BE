@@ -1,9 +1,12 @@
 package yooze.withme.domain.todo.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -12,6 +15,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
+import yooze.withme.common.exception.GeneralException;
+import yooze.withme.common.status.ErrorStatus;
 import yooze.withme.domain.auth.entity.User;
 import yooze.withme.domain.auth.repository.UserRepository;
 import yooze.withme.domain.todo.dto.request.CreateCategoryRequest;
@@ -41,7 +47,7 @@ class CategoryCommandServiceTest {
         when(categoryRepository.existsByUserUserIdAndCategoryName(USER_ID, "운동"))
                 .thenReturn(false);
         when(categoryRepository.findMaxSortOrder(USER_ID)).thenReturn(Optional.of(2L));
-        when(categoryRepository.save(any(Category.class)))
+        when(categoryRepository.saveAndFlush(any(Category.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         CategoryResponse response = categoryCommandService.createCategory(
@@ -52,6 +58,70 @@ class CategoryCommandServiceTest {
         assertThat(response.categoryName()).isEqualTo("운동");
         assertThat(response.categoryColor()).isEqualTo(Category.DEFAULT_COLOR);
         assertThat(response.sortOrder()).isEqualTo(3L);
+    }
+
+    @Test
+    void createCategoryTranslatesUniqueConstraintViolationToDuplicateName() {
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user()));
+        when(categoryRepository.existsByUserUserIdAndCategoryName(USER_ID, "운동"))
+                .thenReturn(false);
+        when(categoryRepository.findMaxSortOrder(USER_ID)).thenReturn(Optional.of(2L));
+        when(categoryRepository.saveAndFlush(any(Category.class)))
+                .thenThrow(uniqueViolation(Category.UK_CATEGORY_USER_NAME));
+
+        assertThatThrownBy(() -> categoryCommandService.createCategory(
+                USER_ID,
+                new CreateCategoryRequest("운동", null)
+        ))
+                .isInstanceOf(GeneralException.class)
+                .extracting(e -> ((GeneralException) e).getErrorStatus())
+                .isEqualTo(ErrorStatus.DUPLICATE_CATEGORY_NAME);
+    }
+
+    @Test
+    void createCategoryRethrowsUnrelatedConstraintViolation() {
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user()));
+        when(categoryRepository.existsByUserUserIdAndCategoryName(USER_ID, "운동"))
+                .thenReturn(false);
+        when(categoryRepository.findMaxSortOrder(USER_ID)).thenReturn(Optional.of(2L));
+        when(categoryRepository.saveAndFlush(any(Category.class)))
+                .thenThrow(uniqueViolation("fk_category_user"));
+
+        assertThatThrownBy(() -> categoryCommandService.createCategory(
+                USER_ID,
+                new CreateCategoryRequest("운동", null)
+        ))
+                .isInstanceOf(DataIntegrityViolationException.class);
+    }
+
+    @Test
+    void updateCategoryTranslatesUniqueConstraintViolationToDuplicateName() {
+        Category category = category(10L, user(), "A", 0L);
+        when(categoryRepository.findById(category.getCategoryId()))
+                .thenReturn(Optional.of(category));
+        when(categoryRepository.existsByUserUserIdAndCategoryNameAndCategoryIdNot(
+                USER_ID, "B", category.getCategoryId()
+        )).thenReturn(false);
+        doThrow(uniqueViolation(Category.UK_CATEGORY_USER_NAME))
+                .when(categoryRepository).flush();
+
+        assertThatThrownBy(() -> categoryCommandService.updateCategory(
+                USER_ID,
+                new UpdateCategoryRequest(category.getCategoryId(), "B", null, null)
+        ))
+                .isInstanceOf(GeneralException.class)
+                .extracting(e -> ((GeneralException) e).getErrorStatus())
+                .isEqualTo(ErrorStatus.DUPLICATE_CATEGORY_NAME);
+    }
+
+    private DataIntegrityViolationException uniqueViolation(String constraintName) {
+        return new DataIntegrityViolationException(
+                "could not execute statement",
+                new SQLException(
+                        "ERROR: duplicate key value violates unique constraint \""
+                                + constraintName + "\""
+                )
+        );
     }
 
     @Test
