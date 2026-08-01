@@ -2,8 +2,10 @@ package yooze.withme.domain.todo.service;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import yooze.withme.common.exception.ConstraintViolations;
 import yooze.withme.common.exception.GeneralException;
 import yooze.withme.common.status.ErrorStatus;
 import yooze.withme.domain.auth.entity.User;
@@ -26,6 +28,8 @@ public class CategoryCommandService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
 
+        // 선검사는 정상 케이스를 빠르게 걸러낼 뿐, 동시 요청에서는 양쪽 모두 통과 가능
+        // 중복 여부의 최종 판정은 아래 flush 에서 발생하는 유니크 제약 위반으로 위임
         if (categoryRepository.existsByUserUserIdAndCategoryName(userId, request.categoryName())) {
             throw new GeneralException(ErrorStatus.DUPLICATE_CATEGORY_NAME);
         }
@@ -37,12 +41,18 @@ public class CategoryCommandService {
                 ? Category.DEFAULT_COLOR
                 : request.categoryColor();
 
-        Category category = categoryRepository.save(Category.builder()
+        Category category = Category.builder()
                 .user(user)
                 .categoryName(request.categoryName())
                 .categoryColor(color)
                 .sortOrder(sortOrder)
-                .build());
+                .build();
+
+        try {
+            categoryRepository.saveAndFlush(category);
+        } catch (DataIntegrityViolationException e) {
+            throw translateDuplicateName(e);
+        }
 
         return CategoryResponse.from(category);
     }
@@ -71,7 +81,24 @@ public class CategoryCommandService {
         }
 
         category.update(request.categoryName(), request.categoryColor(), null);
+
+        try {
+            categoryRepository.flush();
+        } catch (DataIntegrityViolationException e) {
+            throw translateDuplicateName(e);
+        }
+
         return CategoryResponse.from(category);
+    }
+
+    /**
+     * 카테고리 이름 유니크 제약 위반만 409 로 변환하고, 그 외 무결성 위반은 그대로 전파한다.
+     */
+    private GeneralException translateDuplicateName(DataIntegrityViolationException e) {
+        if (ConstraintViolations.matches(e, Category.UK_CATEGORY_USER_NAME)) {
+            return new GeneralException(ErrorStatus.DUPLICATE_CATEGORY_NAME);
+        }
+        throw e;
     }
 
     private void reorderCategories(Long userId, Category target, long requestedOrder) {
