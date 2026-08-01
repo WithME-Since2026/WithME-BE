@@ -4,6 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.sql.SQLException;
@@ -12,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -43,7 +47,7 @@ class CategoryCommandServiceTest {
     @Test
     void createCategoryUsesDefaultColorAndNextSortOrder() {
         User user = user();
-        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+        when(userRepository.findByIdForUpdate(USER_ID)).thenReturn(Optional.of(user));
         when(categoryRepository.existsByUserUserIdAndCategoryName(USER_ID, "운동"))
                 .thenReturn(false);
         when(categoryRepository.findMaxSortOrder(USER_ID)).thenReturn(Optional.of(2L));
@@ -62,7 +66,7 @@ class CategoryCommandServiceTest {
 
     @Test
     void createCategoryTranslatesUniqueConstraintViolationToDuplicateName() {
-        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user()));
+        when(userRepository.findByIdForUpdate(USER_ID)).thenReturn(Optional.of(user()));
         when(categoryRepository.existsByUserUserIdAndCategoryName(USER_ID, "운동"))
                 .thenReturn(false);
         when(categoryRepository.findMaxSortOrder(USER_ID)).thenReturn(Optional.of(2L));
@@ -80,7 +84,7 @@ class CategoryCommandServiceTest {
 
     @Test
     void createCategoryRethrowsUnrelatedConstraintViolation() {
-        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user()));
+        when(userRepository.findByIdForUpdate(USER_ID)).thenReturn(Optional.of(user()));
         when(categoryRepository.existsByUserUserIdAndCategoryName(USER_ID, "운동"))
                 .thenReturn(false);
         when(categoryRepository.findMaxSortOrder(USER_ID)).thenReturn(Optional.of(2L));
@@ -135,6 +139,7 @@ class CategoryCommandServiceTest {
                 List.of(categoryA, categoryB, categoryC, categoryD)
         );
 
+        when(userRepository.findByIdForUpdate(USER_ID)).thenReturn(Optional.of(user));
         when(categoryRepository.findById(categoryC.getCategoryId()))
                 .thenReturn(Optional.of(categoryC));
         when(categoryRepository.findByUserUserIdOrderBySortOrderAsc(USER_ID))
@@ -162,6 +167,7 @@ class CategoryCommandServiceTest {
                 List.of(categoryA, categoryB, categoryC)
         );
 
+        when(userRepository.findByIdForUpdate(USER_ID)).thenReturn(Optional.of(user));
         when(categoryRepository.findById(categoryA.getCategoryId()))
                 .thenReturn(Optional.of(categoryA));
         when(categoryRepository.findByUserUserIdOrderBySortOrderAsc(USER_ID))
@@ -176,6 +182,45 @@ class CategoryCommandServiceTest {
         assertThat(categoryB.getSortOrder()).isEqualTo(0L);
         assertThat(categoryC.getSortOrder()).isEqualTo(1L);
         assertThat(categoryA.getSortOrder()).isEqualTo(2L);
+    }
+
+    @Test
+    void updateCategoryLocksUserBeforeReadingListForReorder() {
+        User user = user();
+        Category categoryA = category(10L, user, "A", 0L);
+        Category categoryB = category(11L, user, "B", 1L);
+
+        when(userRepository.findByIdForUpdate(USER_ID)).thenReturn(Optional.of(user));
+        when(categoryRepository.findById(categoryB.getCategoryId()))
+                .thenReturn(Optional.of(categoryB));
+        when(categoryRepository.findByUserUserIdOrderBySortOrderAsc(USER_ID))
+                .thenReturn(new ArrayList<>(List.of(categoryA, categoryB)));
+
+        categoryCommandService.updateCategory(
+                USER_ID,
+                new UpdateCategoryRequest(categoryB.getCategoryId(), null, null, 0L)
+        );
+
+        InOrder inOrder = inOrder(userRepository, categoryRepository);
+        inOrder.verify(userRepository).findByIdForUpdate(USER_ID);
+        inOrder.verify(categoryRepository).findByUserUserIdOrderBySortOrderAsc(USER_ID);
+    }
+
+    @Test
+    void updateCategoryWithoutSortOrderDoesNotLockUser() {
+        Category category = category(10L, user(), "A", 0L);
+        when(categoryRepository.findById(category.getCategoryId()))
+                .thenReturn(Optional.of(category));
+        when(categoryRepository.existsByUserUserIdAndCategoryNameAndCategoryIdNot(
+                USER_ID, "B", category.getCategoryId()
+        )).thenReturn(false);
+
+        categoryCommandService.updateCategory(
+                USER_ID,
+                new UpdateCategoryRequest(category.getCategoryId(), "B", null, null)
+        );
+
+        verify(userRepository, never()).findByIdForUpdate(any());
     }
 
     private User user() {

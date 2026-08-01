@@ -25,8 +25,9 @@ public class CategoryCommandService {
     private final UserRepository userRepository;
 
     public CategoryResponse createCategory(Long userId, CreateCategoryRequest request) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
+        // sortOrder 계산은 "현재 목록을 읽고 → 다음 값을 정해서 → 저장"하는 읽기-수정-쓰기다.
+        // 사용자 행을 먼저 잠가 같은 사용자의 동시 생성/재정렬이 같은 값을 읽지 못하게 한다.
+        User user = lockUser(userId);
 
         // 선검사는 정상 케이스를 빠르게 걸러낼 뿐, 동시 요청에서는 양쪽 모두 통과 가능
         // 중복 여부의 최종 판정은 아래 flush 에서 발생하는 유니크 제약 위반으로 위임
@@ -58,6 +59,14 @@ public class CategoryCommandService {
     }
 
     public CategoryResponse updateCategory(Long userId, UpdateCategoryRequest request) {
+        // 정렬 순서를 건드리는 요청만 잠근다.
+        // 이름/색상만 바꾸는 요청은 목록 전체를 재계산하지 않으므로 직렬화할 이유가 없고,
+        // 이름 중복의 최종 판정은 아래 flush 의 유니크 제약이 담당한다.
+        // 목록을 읽기 전에 잠가야 하므로 카테고리 조회보다 먼저 획득한다.
+        if (request.sortOrder() != null) {
+            lockUser(userId);
+        }
+
         Category category = categoryRepository.findById(request.categoryId())
                 .orElseThrow(() -> new GeneralException(ErrorStatus.CATEGORY_NOT_FOUND));
 
@@ -89,6 +98,15 @@ public class CategoryCommandService {
         }
 
         return CategoryResponse.from(category);
+    }
+
+    /**
+     * 사용자별 정렬 순서 재계산을 직렬화하기 위한 게이트.
+     * 트랜잭션이 끝날 때까지 유지되므로 읽기-수정-쓰기 전체가 보호된다.
+     */
+    private User lockUser(Long userId) {
+        return userRepository.findByIdForUpdate(userId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
     }
 
     /**
