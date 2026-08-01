@@ -15,4 +15,16 @@ public record CreateCategoryRequest(
         )
         String categoryColor
 ) {
+    /**
+     * 앞뒤 공백을 제거해 "업무", "업무 ", " 업무" 가 같은 이름으로 취급되도록 한다.
+     * 역직렬화 직후 실행되므로 아래 검증과 중복 검사 모두 정규화된 값을 기준으로 동작한다.
+     */
+    public CreateCategoryRequest {
+        categoryName = strip(categoryName);
+        categoryColor = strip(categoryColor);
+    }
+
+    private static String strip(String value) {
+        return value == null ? null : value.strip();
+    }
 }

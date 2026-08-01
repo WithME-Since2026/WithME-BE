@@ -22,4 +22,15 @@ public record UpdateCategoryRequest(
         @PositiveOrZero(message = "정렬 순서는 0 이상이어야 합니다.")
         Long sortOrder
 ) {
+    /**
+     * 생성과 동일하게 앞뒤 공백을 제거한다. null 은 "변경하지 않음" 을 뜻하므로 그대로 둔다.
+     */
+    public UpdateCategoryRequest {
+        categoryName = strip(categoryName);
+        categoryColor = strip(categoryColor);
+    }
+
+    private static String strip(String value) {
+        return value == null ? null : value.strip();
+    }
 }
