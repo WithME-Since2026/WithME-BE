@@ -1,5 +1,6 @@
 package yooze.withme.common.exception;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
@@ -16,17 +17,22 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import yooze.withme.common.response.ApiResponse;
 import yooze.withme.common.base.BaseStatus;
+import yooze.withme.common.notify.DiscordErrorNotifier;
 import yooze.withme.common.status.ErrorStatus;
 import yooze.withme.domain.todo.entity.Category;
 
 @RestControllerAdvice
 @Slf4j
+@RequiredArgsConstructor
 public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
+
+    private final DiscordErrorNotifier discordErrorNotifier;
 
     @ExceptionHandler(GeneralException.class)
     public ResponseEntity<ApiResponse<Void>> handleGeneralException(GeneralException e) {
         if (e.getErrorStatus().getHttpStatus().is5xxServerError()) {
             log.error("[*] GeneralException :", e);
+            discordErrorNotifier.notify(e.getErrorStatus(), e);
         } else {
             log.warn("[*] GeneralException : {}", e.getMessage());
         }
@@ -46,6 +52,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
         if (ConstraintViolations.matches(e, Category.UK_CATEGORY_USER_SORT_ORDER)) {
             return ApiResponse.error(ErrorStatus.CATEGORY_ORDER_CONFLICT);
         }
+        discordErrorNotifier.notify(ErrorStatus.INTERNAL_SERVER_ERROR, e);
         return ApiResponse.error(ErrorStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -67,6 +74,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
             return ApiResponse.error(ErrorStatus.DUPLICATE_CATEGORY_NAME);
         }
         log.error("[*] TransactionSystemException :", e);
+        discordErrorNotifier.notify(ErrorStatus.INTERNAL_SERVER_ERROR, e);
         return ApiResponse.error(ErrorStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -90,12 +98,14 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
             NullPointerException e) {
         String errorMessage = "서버에서 예기치 않은 오류가 발생했습니다. 요청을 처리하는 중에 Null 값이 참조되었습니다.";
         log.error("[*] NullPointerException :", e);
+        discordErrorNotifier.notify(ErrorStatus.INTERNAL_SERVER_ERROR, e);
         return ApiResponse.error(ErrorStatus.INTERNAL_SERVER_ERROR, errorMessage);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
         log.error("[*] Internal Server Error :", e);
+        discordErrorNotifier.notify(ErrorStatus.INTERNAL_SERVER_ERROR, e);
         return ApiResponse.error(ErrorStatus.INTERNAL_SERVER_ERROR);
     }
 
