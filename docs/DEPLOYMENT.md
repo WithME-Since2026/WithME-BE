@@ -10,15 +10,16 @@
 
 ### Secrets
 
-| 이름 | 설명 |
-|---|---|
-| `EC2_HOST` | EC2 퍼블릭 IP 또는 도메인 |
-| `EC2_USER` | `ubuntu` 또는 `ec2-user` |
-| `EC2_SSH_KEY` | `.pem` 파일 전체 내용 |
+| 이름 | 설명                                                       |
+|---|----------------------------------------------------------|
+| `EC2_HOST` | EC2 퍼블릭 IP 또는 도메인                                        |
+| `EC2_USER` | `ubuntu` 또는 `ec2-user`                                   |
+| `EC2_SSH_KEY` | `.pem` 파일 전체 내용                                          |
 | `DB_URL` | **완전한 JDBC URL** (`jdbc:postgresql://<host>:5432/withme`) |
-| `DB_USERNAME` | DB 계정 |
-| `DB_PASSWORD` | DB 비밀번호 |
-| `JWT_SECRET` | JWT 서명 키 |
+| `DB_USERNAME` | DB 계정                                                    |
+| `DB_PASSWORD` | DB 비밀번호                                                  |
+| `JWT_SECRET` | JWT 서명 키                                                 |
+| `DISCORD_WEBHOOK_URL` | (선택) 5xx 알림용 Discord 웹훅 URL. 미등록이면 알림만 꺼지고 배포는 정상 진행. |
 
 `GITHUB_TOKEN` 은 자동 제공되므로 등록하지 않는다.
 
