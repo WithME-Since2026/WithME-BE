@@ -16,6 +16,8 @@ services:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
+      # 선택값. 비어 있으면 5xx Discord 알림 발송 X
+      DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
       # 앱 컨테이너 기준 Redis 는 서비스명으로 접근한다. localhost 로 두면 자기 자신을 가리킨다.
       REDIS_HOST: redis
       REDIS_PORT: 6379
