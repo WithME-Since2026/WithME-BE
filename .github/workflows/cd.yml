@@ -130,13 +130,15 @@ jobs:
           DB_USERNAME: ${{ secrets.DB_USERNAME }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          # 선택값. 미등록이면 5xx Discord 알림만 꺼지고 배포는 정상 진행
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: IMAGE_REF,DDL_AUTO,FLYWAY_ENABLED,DB_URL,DB_USERNAME,DB_PASSWORD,JWT_SECRET,GHCR_USER,GHCR_TOKEN
+          envs: IMAGE_REF,DDL_AUTO,FLYWAY_ENABLED,DB_URL,DB_USERNAME,DB_PASSWORD,JWT_SECRET,DISCORD_WEBHOOK_URL,GHCR_USER,GHCR_TOKEN
           script_stop: true
           command_timeout: 15m
           script: |
@@ -173,6 +175,7 @@ jobs:
               write_env DB_USERNAME "$DB_USERNAME"
               write_env DB_PASSWORD "$DB_PASSWORD"
               write_env JWT_SECRET "$JWT_SECRET"
+              write_env DISCORD_WEBHOOK_URL "${DISCORD_WEBHOOK_URL-}"
             } > .env.new
             chmod 600 .env.new
 
