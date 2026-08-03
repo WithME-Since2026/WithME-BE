@@ -1,0 +1,70 @@
+package yooze.withme.common.notify;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import yooze.withme.common.properties.DiscordWebhookProperties;
+import yooze.withme.common.status.ErrorStatus;
+
+class DiscordErrorNotifierTest {
+
+    private static DiscordErrorNotifier notifier(Duration cooldown) {
+        return new DiscordErrorNotifier(
+                new DiscordWebhookProperties("https://discord.test/webhook", true, cooldown));
+    }
+
+    @Test
+    @DisplayName("같은 에러가 쿨다운 안에 반복되면 첫 건만 전송하고 나머지는 억제 건수로 모은다")
+    void 쿨다운_동안_중복_전송을_막는다() throws Exception {
+        DiscordErrorNotifier notifier = notifier(Duration.ofMillis(50));
+        String key = "java.lang.IllegalStateException#boom";
+
+        assertThat(notifier.claimSend(key)).isZero();   // 첫 건은 전송
+        assertThat(notifier.claimSend(key)).isNegative(); // 억제
+        assertThat(notifier.claimSend(key)).isNegative();
+
+        Thread.sleep(60);
+        assertThat(notifier.claimSend(key)).isEqualTo(2); // 억제된 2건을 보고
+        assertThat(notifier.claimSend(key)).isNegative();
+    }
+
+    @Test
+    @DisplayName("스택트레이스가 Discord field 한계(1024자) 안으로 잘린다")
+    void 스택트레이스를_자른다() {
+        assertThat(DiscordErrorNotifier.truncate("x".repeat(2000), 1000)).hasSize(1000);
+    }
+
+    @Test
+    @DisplayName("억제된 건수가 있으면 본문에 표시한다")
+    void 억제_건수를_본문에_담는다() {
+        Map<String, Object> payload = notifier(Duration.ofMinutes(5))
+                .buildPayload(ErrorStatus.INTERNAL_SERVER_ERROR, new IllegalStateException("boom"), "GET /a", 7);
+
+        assertThat(embed(payload).get("description").toString()).contains("7건");
+    }
+
+    @Test
+    @DisplayName("url 이 비면 알림을 시도하지 않는다 (예외도 던지지 않는다)")
+    void url이_없으면_아무것도_하지_않는다() {
+        DiscordErrorNotifier notifier = new DiscordErrorNotifier(
+                new DiscordWebhookProperties("", true, Duration.ofMinutes(5)));
+
+        Exception boom = new IllegalStateException("boom");
+        notifier.notify(ErrorStatus.INTERNAL_SERVER_ERROR, boom);
+
+        // 전송 시도 자체가 없었으므로 해당 키의 쿨다운도 소비되지 않았다.
+        String key = boom.getClass().getName() + "#" + boom.getStackTrace()[0];
+        assertThat(notifier.claimSend(key)).isZero();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> embed(Map<String, Object> payload) {
+        return ((List<Map<String, Object>>) payload.get("embeds")).get(0);
+    }
+}
