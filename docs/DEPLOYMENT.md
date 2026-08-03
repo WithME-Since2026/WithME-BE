@@ -31,8 +31,9 @@
 
 ## 최초 배포 절차
 
-Flyway 마이그레이션 `V1__add_partial_unique_index.sql` 은 `user_token` 테이블이
-**이미 존재한다고 가정**한다. 따라서 빈 DB 에 Flyway 를 먼저 돌리면
+기존 마이그레이션은 대상 테이블이 **이미 존재한다고 가정**한다
+(`V1` → `user_token`, `V2` → `categories`).
+따라서 빈 DB 에 Flyway 를 먼저 돌리면
 `relation "user_token" does not exist` 로 기동에 실패한다.
 
 순서를 지켜야 한다.
@@ -62,7 +63,7 @@ FLYWAY_ENABLED=true    (또는 변수 삭제)
 ```
 
 `baseline-on-migrate: true` + `baseline-version: 0` 설정에 의해
-Flyway 가 기존 스키마를 버전 0 으로 baseline 한 뒤 `V1` 을 적용한다.
+Flyway 가 기존 스키마를 버전 0 으로 baseline 한 뒤 `V1` 부터 순서대로 적용한다.
 
 > `baseline-version` 을 지정하지 않으면 Flyway 기본값이 `1` 이라
 > baseline 이 `V1` 을 "이미 적용됨"으로 표시하고 건너뛴다. 반드시 `0` 이어야 한다.
@@ -72,7 +73,16 @@ Flyway 가 기존 스키마를 버전 0 으로 baseline 한 뒤 `V1` 을 적용�
 ```bash
 psql -h <DB호스트> -U <user> -d withme -c 'SELECT version, description, success FROM flyway_schema_history;'
 psql -h <DB호스트> -U <user> -d withme -c '\di uq_user_token_active'
+psql -h <DB호스트> -U <user> -d withme -c "SELECT conname, condeferrable, condeferred FROM pg_constraint WHERE conname = 'uk_category_user_sort_order';"
 ```
+
+`uk_category_user_sort_order` 는 `condeferrable`/`condeferred` 가 모두 `t` 여야 한다.
+카테고리 재정렬은 목록 전체의 `sort_order` 를 다시 매기는 과정에서
+일시적으로 중복 값을 거치므로, 즉시 검사하는 제약이면 정상 재정렬이 실패한다.
+
+> `V2` 는 제약을 걸기 전에 기존 `sort_order` 를 사용자별로 `0..n-1` 로 정규화한다.
+> 사용자별 잠금이 없던 시절의 경합으로 중복/구멍이 남아 있을 수 있기 때문이다.
+> 순서 자체는 보존되지만 값이 바뀌므로, 적용 전 `categories` 백업을 권장한다.
 
 ### 3단계 — 이후 스키마 변경
 
