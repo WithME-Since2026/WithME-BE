@@ -15,7 +15,7 @@ import yooze.withme.domain.todo.entity.Category;
 
 class GeneralExceptionAdviceTest {
 
-    // url 이 비어 있으면 알림은 no-op 이라 별도 mock 이 필요 없다.
+    // url 이 비어 있으면 알림은 no-op 이라 별도 mock 이 필요 없음.
     private final GeneralExceptionAdvice advice = new GeneralExceptionAdvice(
             new DiscordErrorNotifier(new DiscordWebhookProperties(null, false, null)));
 
