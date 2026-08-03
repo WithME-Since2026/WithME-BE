@@ -38,6 +38,15 @@ public enum ErrorStatus implements BaseStatus {
     EMAIL_SEND_FAILED("COMM_500", HttpStatus.INTERNAL_SERVER_ERROR, "이메일 발송에 실패했습니다."),
 
     /**
+     * CATEGORY
+     */
+    CATEGORY_NOT_FOUND("CATEGORY_404", HttpStatus.NOT_FOUND, "존재하지 않는 카테고리입니다."),
+    CATEGORY_FORBIDDEN("CATEGORY_403", HttpStatus.FORBIDDEN, "본인의 카테고리만 수정할 수 있습니다."),
+    DUPLICATE_CATEGORY_NAME("CATEGORY_409", HttpStatus.CONFLICT, "이미 존재하는 카테고리 이름입니다."),
+    CATEGORY_ORDER_CONFLICT("CATEGORY_409", HttpStatus.CONFLICT,
+            "다른 요청과 동시에 처리되어 카테고리 순서가 충돌했습니다. 다시 시도해주세요."),
+
+    /**
      * Group
      */
     GROUP_NOT_FOUND("GROUP_404", HttpStatus.NOT_FOUND, "존재하지 않는 모임입니다."),
