@@ -47,6 +47,15 @@ spring:
 server:
   shutdown: graceful
 
+# 5xx 발생 시 Discord 채널로 알림.
+# url 은 그 자체가 인증 수단이므로 환경변수로만 주입
+discord:
+  webhook:
+    url: ${DISCORD_WEBHOOK_URL:}
+    enabled: ${DISCORD_WEBHOOK_ENABLED:false}
+    # 장애 시 같은 에러가 초당 수백 건 나므로 종류별로 이 간격 안에서는 1건만 전송
+    cooldown: 5m
+
 jwt:
   secret: ${JWT_SECRET}
   access-token-expiration: 1800000      # 30분 (ms)
