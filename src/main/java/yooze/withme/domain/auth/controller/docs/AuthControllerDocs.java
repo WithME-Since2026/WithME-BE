@@ -49,7 +49,7 @@ public interface AuthControllerDocs {
     @Operation(summary = "로그아웃", description = "로그인한 사용자의 리프레시 토큰을 삭제한다.")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "로그아웃 성공")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
-    @SecurityRequirement(name = "JWT TOKEN")
+    @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/logout")
     ResponseEntity<ApiResponse<Void>> postLogout(
             @Parameter(hidden = true) UserDetails userDetails

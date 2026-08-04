@@ -12,6 +12,7 @@ import yooze.withme.domain.auth.dto.response.FindIdResponse;
 import yooze.withme.domain.auth.entity.User;
 import yooze.withme.domain.auth.entity.UserAuth;
 import yooze.withme.domain.auth.enums.ProviderType;
+import yooze.withme.domain.auth.repository.RateLimitRedisRepository;
 import yooze.withme.domain.auth.repository.UserAuthRepository;
 import yooze.withme.domain.auth.repository.VerificationCodeRedisRepository;
 
@@ -23,14 +24,21 @@ import java.security.SecureRandom;
 @RequiredArgsConstructor
 public class FindAccountCommandService {
 
+    private static final long CODE_TTL_SECONDS = 300;
+
     private final UserAuthRepository userAuthRepository;
     private final VerificationCodeRedisRepository verificationCodeRedisRepository;
+    private final RateLimitRedisRepository rateLimitRedisRepository;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final UserQueryService userQueryService;
 
     /** 아이디 찾기 - 닉네임+이메일로 사용자 확인 후 6자리 인증코드를 이메일로 발송 */
     public void sendFindIdCode(String nickname, String email) {
+        if (!rateLimitRedisRepository.checkAndSetSendLimit(email)) {
+            throw new GeneralException(ErrorStatus.TOO_MANY_REQUESTS);
+        }
+
         userQueryService.getUserByNicknameAndEmail(nickname, email);
 
         String code = generateCode();
@@ -46,10 +54,17 @@ public class FindAccountCommandService {
                 .orElseThrow(() -> new GeneralException(ErrorStatus.INVALID_VERIFICATION_CODE));
 
         if (!stored.equals(code)) {
+            long failCount = rateLimitRedisRepository.incrementVerifyFail(email, CODE_TTL_SECONDS);
+            if (failCount >= rateLimitRedisRepository.getMaxVerifyFailCount()) {
+                verificationCodeRedisRepository.deleteByEmail(email);
+                rateLimitRedisRepository.deleteVerifyFail(email);
+                log.warn("아이디 찾기 인증코드 최대 실패 초과 - email: {}", email);
+            }
             throw new GeneralException(ErrorStatus.INVALID_VERIFICATION_CODE);
         }
 
         verificationCodeRedisRepository.deleteByEmail(email);
+        rateLimitRedisRepository.deleteVerifyFail(email);
 
         User user = userQueryService.getUserByEmail(email);
         UserAuth userAuth = userAuthRepository.findByUserAndProvider(user, ProviderType.LOCAL)
@@ -61,6 +76,10 @@ public class FindAccountCommandService {
 
     /** 비밀번호 찾기 - localId+이메일 일치 확인 후 6자리 인증코드를 이메일로 발송 */
     public void sendFindPasswordCode(String localId, String email) {
+        if (!rateLimitRedisRepository.checkAndSetSendLimit(email)) {
+            throw new GeneralException(ErrorStatus.TOO_MANY_REQUESTS);
+        }
+
         UserAuth userAuth = userAuthRepository.findByLocalIdAndProvider(localId, ProviderType.LOCAL)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND_BY_INFO));
 
@@ -86,10 +105,17 @@ public class FindAccountCommandService {
                 .orElseThrow(() -> new GeneralException(ErrorStatus.INVALID_VERIFICATION_CODE));
 
         if (!stored.equals(code)) {
+            long failCount = rateLimitRedisRepository.incrementVerifyFail(email, CODE_TTL_SECONDS);
+            if (failCount >= rateLimitRedisRepository.getMaxVerifyFailCount()) {
+                verificationCodeRedisRepository.deleteForPasswordReset(email);
+                rateLimitRedisRepository.deleteVerifyFail(email);
+                log.warn("비밀번호 찾기 인증코드 최대 실패 초과 - email: {}", email);
+            }
             throw new GeneralException(ErrorStatus.INVALID_VERIFICATION_CODE);
         }
 
         verificationCodeRedisRepository.deleteForPasswordReset(email);
+        rateLimitRedisRepository.deleteVerifyFail(email);
 
         UserAuth userAuth = userAuthRepository.findByUser_EmailAndProvider(email, ProviderType.LOCAL)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
