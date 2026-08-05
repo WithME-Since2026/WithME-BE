@@ -45,15 +45,13 @@ public class FindAccountCommandService {
         verificationCodeRedisRepository.save(email, code);
         emailService.sendVerificationCode(email, code);
 
-        log.info("아이디 찾기 인증코드 발송 - email: {}", email);
+        log.info("아이디 찾기 인증코드 발송 - email: {}", maskEmail(email));
     }
 
     /** 아이디 찾기 - 인증코드 검증 후 아이디 반환 */
     public FindIdResponse verifyAndFindId(String email, String code) {
-        String stored = verificationCodeRedisRepository.findByEmail(email)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.INVALID_VERIFICATION_CODE));
-
-        if (!stored.equals(code)) {
+        boolean consumed = verificationCodeRedisRepository.consumeByEmail(email, code);
+        if (!consumed) {
             long failCount = rateLimitRedisRepository.incrementVerifyFail(email, CODE_TTL_SECONDS);
             if (failCount >= rateLimitRedisRepository.getMaxVerifyFailCount()) {
                 verificationCodeRedisRepository.deleteByEmail(email);
@@ -63,7 +61,6 @@ public class FindAccountCommandService {
             throw new GeneralException(ErrorStatus.INVALID_VERIFICATION_CODE);
         }
 
-        verificationCodeRedisRepository.deleteByEmail(email);
         rateLimitRedisRepository.deleteVerifyFail(email);
 
         User user = userQueryService.getUserByEmail(email);
@@ -91,7 +88,7 @@ public class FindAccountCommandService {
         verificationCodeRedisRepository.saveForPasswordReset(email, code);
         emailService.sendVerificationCode(email, code);
 
-        log.info("비밀번호 찾기 인증코드 발송 - email: {}", email);
+        log.info("비밀번호 찾기 인증코드 발송 - email: {}", maskEmail(email));
     }
 
     /** 비밀번호 찾기 - 인증코드 검증 후 비밀번호 재설정 */
@@ -101,10 +98,8 @@ public class FindAccountCommandService {
             throw new GeneralException(ErrorStatus.PASSWORD_MISMATCH);
         }
 
-        String stored = verificationCodeRedisRepository.findForPasswordReset(email)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.INVALID_VERIFICATION_CODE));
-
-        if (!stored.equals(code)) {
+        boolean consumed = verificationCodeRedisRepository.consumeForPasswordReset(email, code);
+        if (!consumed) {
             long failCount = rateLimitRedisRepository.incrementVerifyFail(email, CODE_TTL_SECONDS);
             if (failCount >= rateLimitRedisRepository.getMaxVerifyFailCount()) {
                 verificationCodeRedisRepository.deleteForPasswordReset(email);
@@ -114,7 +109,6 @@ public class FindAccountCommandService {
             throw new GeneralException(ErrorStatus.INVALID_VERIFICATION_CODE);
         }
 
-        verificationCodeRedisRepository.deleteForPasswordReset(email);
         rateLimitRedisRepository.deleteVerifyFail(email);
 
         UserAuth userAuth = userAuthRepository.findByUser_EmailAndProvider(email, ProviderType.LOCAL)
@@ -127,5 +121,11 @@ public class FindAccountCommandService {
     private String generateCode() {
         SecureRandom random = new SecureRandom();
         return String.valueOf(100000 + random.nextInt(900000));
+    }
+
+    private String maskEmail(String email) {
+        int atIndex = email.indexOf('@');
+        if (atIndex <= 2) return "***" + email.substring(atIndex);
+        return email.substring(0, 2) + "***" + email.substring(atIndex);
     }
 }

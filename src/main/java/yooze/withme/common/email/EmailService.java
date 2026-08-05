@@ -33,11 +33,17 @@ public class EmailService {
             helper.setText(buildCodeEmailBody(code), true);
 
             mailSender.send(message);
-            log.info("인증코드 이메일 발송 완료 - to: {}", to);
+            log.info("인증코드 이메일 발송 완료 - to: {}", maskEmail(to));
         } catch (MessagingException e) {
-            log.error("인증코드 이메일 발송 실패 - to: {}", to, e);
+            log.error("인증코드 이메일 발송 실패 - to: {}", maskEmail(to), e);
             throw new GeneralException(ErrorStatus.EMAIL_SEND_FAILED);
         }
+    }
+
+    private String maskEmail(String email) {
+        int atIndex = email.indexOf('@');
+        if (atIndex <= 2) return "***" + email.substring(atIndex);
+        return email.substring(0, 2) + "***" + email.substring(atIndex);
     }
 
     private String buildCodeEmailBody(String code) {
