@@ -19,6 +19,11 @@ management:
   health:
     db:
       enabled: true
+    # health 는 배포 성공 판정과 컨테이너 헬스체크(10초 주기)에 쓰인다.
+    # 메일 인디케이터를 켜두면 그때마다 SMTP 로 접속하고, Gmail 이 잠깐만 막혀도
+    # 배포가 롤백된다. 메일 장애는 알림 대상이지 배포 차단 대상이 아니다.
+    mail:
+      enabled: false
 
 # 운영에서는 기본 on. DISCORD_WEBHOOK_URL 이 비어 있으면 전송만 건너뜀.
 discord:

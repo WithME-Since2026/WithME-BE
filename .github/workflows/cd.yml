@@ -130,6 +130,9 @@ jobs:
           DB_USERNAME: ${{ secrets.DB_USERNAME }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          # 메일 발송(인증코드) 계정. 미주입이면 앱이 기동 단계에서 실패한다.
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
           # 선택값. 미등록이면 5xx Discord 알림만 꺼지고 배포는 정상 진행
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           # 선택값. 미등록이면 compose 기본값 true. 알림을 끄려면 false 로 등록
@@ -140,8 +143,11 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: IMAGE_REF,DDL_AUTO,FLYWAY_ENABLED,DB_URL,DB_USERNAME,DB_PASSWORD,JWT_SECRET,DISCORD_WEBHOOK_URL,DISCORD_WEBHOOK_ENABLED,GHCR_USER,GHCR_TOKEN
-          script_stop: true
+          envs: IMAGE_REF,DDL_AUTO,FLYWAY_ENABLED,DB_URL,DB_USERNAME,DB_PASSWORD,JWT_SECRET,MAIL_USERNAME,MAIL_PASSWORD,DISCORD_WEBHOOK_URL,DISCORD_WEBHOOK_ENABLED,GHCR_USER,GHCR_TOKEN
+          # script_stop 은 쓰지 않는다. 이 옵션은 스크립트 매 줄 뒤에 종료코드 검사 줄을
+          # 끼워 넣는데, for/case/함수 같은 여러 줄 구문 한가운데에도 들어가서 스크립트가
+          # 통째로 syntax error 가 난다. 첫 줄의 set -eu 가 같은 역할을 하고,
+          # 원격 셸이 0 이 아닌 코드로 끝나면 이 스텝도 실패한다.
           command_timeout: 15m
           script: |
             set -eu
@@ -149,7 +155,7 @@ jobs:
 
             # .env 는 한 줄에 하나의 KEY=VALUE 여야 한다.
             # 값에 CR/LF 가 섞이면 뒷줄이 잘리거나 다른 키로 오인되므로 먼저 거른다.
-            for key in IMAGE_REF DDL_AUTO FLYWAY_ENABLED DB_URL DB_USERNAME DB_PASSWORD JWT_SECRET; do
+            for key in IMAGE_REF DDL_AUTO FLYWAY_ENABLED DB_URL DB_USERNAME DB_PASSWORD JWT_SECRET MAIL_USERNAME MAIL_PASSWORD; do
               eval "value=\${$key-}"
               if [ -z "$value" ]; then
                 echo "$key 값이 비어 있다. Secrets/Variables 설정을 확인하라."
@@ -194,6 +200,8 @@ jobs:
               write_env DB_USERNAME "$DB_USERNAME"
               write_env DB_PASSWORD "$DB_PASSWORD"
               write_env JWT_SECRET "$JWT_SECRET"
+              write_env MAIL_USERNAME "$MAIL_USERNAME"
+              write_env MAIL_PASSWORD "$MAIL_PASSWORD"
               write_env DISCORD_WEBHOOK_URL "${DISCORD_WEBHOOK_URL-}"
               write_env DISCORD_WEBHOOK_ENABLED "${DISCORD_WEBHOOK_ENABLED-}"
             } > .env.new
