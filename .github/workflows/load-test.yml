@@ -1,0 +1,63 @@
+name: Load Test
+
+# 수동 실행 전용. PR 마다 실행 X
+# GitHub 러너는 CPU 를 다른 작업과 나눠 쓰므로 실행할 때마다 수치 변동있을 수 있음
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: '대상 서버 (예: http://<EC2 퍼블릭 IP>:8080)'
+        required: true
+      vus:
+        description: '동시 가상 사용자 수'
+        required: false
+        default: '5'
+      duration:
+        description: '지속 시간 (30s, 1m, ...)'
+        required: false
+        default: '30s'
+
+permissions:
+  contents: read
+
+jobs:
+  k6:
+    name: k6
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 계정이 없으면 스크립트가 로그인 단계에서 종료. 원인 보고 후 종료.
+      - name: Check test account secrets
+        env:
+          LOGIN_ID: ${{ secrets.LOAD_TEST_LOGIN_ID }}
+          PASSWORD: ${{ secrets.LOAD_TEST_PASSWORD }}
+        run: |
+          set -eu
+          if [ -z "${LOGIN_ID}" ] || [ -z "${PASSWORD}" ]; then
+            echo "LOAD_TEST_LOGIN_ID / LOAD_TEST_PASSWORD 시크릿이 필요합니다."
+            echo "대상 서버에 실제로 존재하는 테스트 계정을 등록해주세요."
+            exit 1
+          fi
+
+      # 입력값을 run 본문에 ${{ }} 로 끼워 넣으면 러너 셸에서 그대로 해석
+      # 전부 환경변수로 넘기고 스크립트에서는 변수로만 참조
+      #
+      # k6 는 프로세스 환경변수를 __ENV 로 그대로 넘겨주므로(includeSystemEnvVars 기본 true)
+      # 비밀번호를 명령줄 인자에 노출시키지 않아도 됨
+      - name: Run k6
+        env:
+          BASE_URL: ${{ inputs.base_url }}
+          VUS: ${{ inputs.vus }}
+          DURATION: ${{ inputs.duration }}
+          LOGIN_ID: ${{ secrets.LOAD_TEST_LOGIN_ID }}
+          PASSWORD: ${{ secrets.LOAD_TEST_PASSWORD }}
+        run: |
+          set -eu
+          docker run --rm -i \
+            -e BASE_URL -e VUS -e DURATION -e LOGIN_ID -e PASSWORD \
+            grafana/k6 run - < scripts/k6/load.js

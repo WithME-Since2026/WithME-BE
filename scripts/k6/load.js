@@ -1,12 +1,14 @@
-// 읽기 전용 부하 테스트. 로그인 1회 후 카테고리 목록 조회를 반복한다.
+// 읽기 전용 부하 테스트. 로그인 1회 후 카테고리 목록 조회를 반복
 //
 //   k6 run -e BASE_URL=http://localhost:8080 -e LOGIN_ID=tester -e PASSWORD=... scripts/k6/load.js
 //   k6 run -e ... -e VUS=20 -e DURATION=1m scripts/k6/load.js
 //
 // 주의
-// - 서버가 EC2 한 대이므로 부하 테스트 자체가 장애다. 운영에 걸려면 시간대를 잡을 것.
-// - 로그인은 setup() 에서 1회만 한다. VU 마다 로그인하면 BCrypt 해싱 속도를 재게 된다.
-// - 조회만 한다. 쓰기를 넣으면 대상 DB 에 쓰레기 데이터가 쌓인다.
+// - 서버가 EC2 한 대이므로 부하 테스트 자체가 문제될 수 있음
+// - 운영 서버에서 확인하려면 사용률이 적은 시간대에 수행
+// - 로그인은 setup() 에서 1회만
+// - VU 마다 로그인하면 BCrypt 해싱 속도를 측정하게됨.
+// - 조회만 한다. 쓰기를 넣으면 대상 DB 에 쓰레기 데이터가 쌓임.
 import http from 'k6/http';
 import { check, sleep, fail } from 'k6';
 
@@ -29,7 +31,9 @@ export function setup() {
   );
 
   if (response.status !== 200) {
-    fail(`로그인 실패(${response.status}). LOGIN_ID/PASSWORD 와 BASE_URL 을 확인하라: ${response.body}`);
+    // 대상 URL 을 같이 찍음
+    // status 0(연결 실패)일 때 어디로 쐈는지 표시
+    fail(`로그인 실패(${response.status}) at ${BASE_URL}. LOGIN_ID/PASSWORD 와 BASE_URL 을 확인하세요: ${response.body}`);
   }
   return { token: response.json('data.accessToken') };
 }
