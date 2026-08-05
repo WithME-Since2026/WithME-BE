@@ -130,13 +130,17 @@ jobs:
           DB_USERNAME: ${{ secrets.DB_USERNAME }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          # 선택값. 미등록이면 5xx Discord 알림만 꺼지고 배포는 정상 진행
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          # 선택값. 미등록이면 compose 기본값 true. 알림을 끄려면 false 로 등록
+          DISCORD_WEBHOOK_ENABLED: ${{ secrets.DISCORD_WEBHOOK_ENABLED }}
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: IMAGE_REF,DDL_AUTO,FLYWAY_ENABLED,DB_URL,DB_USERNAME,DB_PASSWORD,JWT_SECRET,GHCR_USER,GHCR_TOKEN
+          envs: IMAGE_REF,DDL_AUTO,FLYWAY_ENABLED,DB_URL,DB_USERNAME,DB_PASSWORD,JWT_SECRET,DISCORD_WEBHOOK_URL,DISCORD_WEBHOOK_ENABLED,GHCR_USER,GHCR_TOKEN
           script_stop: true
           command_timeout: 15m
           script: |
@@ -157,6 +161,23 @@ jobs:
               fi
             done
 
+            # 선택값도 .env 형식을 깨뜨릴 수 있는 개행은 허용하지 않는다.
+            for key in DISCORD_WEBHOOK_URL DISCORD_WEBHOOK_ENABLED; do
+              eval "value=\${$key-}"
+              if [ "$(printf '%s' "$value" | tr -d '\r\n')" != "$value" ]; then
+                echo "$key 값에 개행 문자가 포함되어 있다. Secret 을 다시 등록하라."
+                exit 1
+              fi
+            done
+
+            case "${DISCORD_WEBHOOK_ENABLED-}" in
+              ""|true|false) ;;
+              *)
+                echo "DISCORD_WEBHOOK_ENABLED는 빈 값, true 또는 false만 허용된다."
+                exit 1
+                ;;
+            esac
+
             # docker compose 는 .env 값 안의 $ 를 변수 참조로 해석한다.
             # 이스케이프하지 않으면 $HOME 같은 문자열이 든 비밀번호가 조용히 다른 값으로 바뀐다.
             # $$ 로 써두면 compose 가 되돌려 컨테이너에는 원본이 전달된다.
@@ -173,6 +194,8 @@ jobs:
               write_env DB_USERNAME "$DB_USERNAME"
               write_env DB_PASSWORD "$DB_PASSWORD"
               write_env JWT_SECRET "$JWT_SECRET"
+              write_env DISCORD_WEBHOOK_URL "${DISCORD_WEBHOOK_URL-}"
+              write_env DISCORD_WEBHOOK_ENABLED "${DISCORD_WEBHOOK_ENABLED-}"
             } > .env.new
             chmod 600 .env.new
 

@@ -20,6 +20,11 @@ management:
     db:
       enabled: true
 
+# 운영에서는 기본 on. DISCORD_WEBHOOK_URL 이 비어 있으면 전송만 건너뜀.
+discord:
+  webhook:
+    enabled: ${DISCORD_WEBHOOK_ENABLED:true}
+
 logging:
   level:
     root: info

@@ -1,0 +1,41 @@
+package yooze.withme.common.notify;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.time.Duration;
+import java.util.Map;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestClient;
+
+import yooze.withme.common.properties.DiscordWebhookProperties;
+import yooze.withme.common.status.ErrorStatus;
+
+/** 실제 Discord 로 메시지를 보내는 수동 확인용.
+ * DISCORD_WEBHOOK_URL 이 있을 때만 실행 */
+@EnabledIfEnvironmentVariable(named = "DISCORD_WEBHOOK_URL", matches = ".+")
+class DiscordWebhookSmokeTest {
+
+    @Test
+    void sendsToRealWebhook() {
+        String url = System.getenv("DISCORD_WEBHOOK_URL");
+        RestClient restClient = DiscordNotificationConfig.createRestClient();
+        Map<String, Object> payload = new DiscordErrorNotifier(
+                new DiscordWebhookProperties(url, true, Duration.ofMinutes(5)),
+                restClient,
+                Runnable::run)
+                .buildPayload(
+                        ErrorStatus.INTERNAL_SERVER_ERROR,
+                        new IllegalStateException("smoke test"),
+                        "GET /smoke-test",
+                        3);
+
+        ResponseEntity<Void> response = restClient.post()
+                .uri(url).body(payload).retrieve().toBodilessEntity();
+
+        System.out.println("[SMOKE] Discord 응답: " + response.getStatusCode());
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+    }
+}
