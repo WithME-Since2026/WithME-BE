@@ -1,5 +1,6 @@
 package yooze.withme.domain.todo.dto.request;
 
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -11,6 +12,7 @@ public record CreateTodoRequest(
         String title,
 
         @NotNull(message = "마감일은 필수입니다.")
+        @FutureOrPresent(message = "마감일은 오늘 이후여야 합니다.")
         LocalDate dueDate,
 
         Long categoryId,
