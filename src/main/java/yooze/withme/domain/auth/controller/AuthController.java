@@ -3,16 +3,18 @@ package yooze.withme.domain.auth.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import yooze.withme.common.response.ApiResponse;
 import yooze.withme.common.status.ErrorStatus;
 import yooze.withme.common.status.SuccessStatus;
+import yooze.withme.domain.auth.controller.docs.AuthControllerDocs;
 import yooze.withme.domain.auth.dto.request.IdCheckRequest;
 import yooze.withme.domain.auth.dto.request.LoginRequest;
 import yooze.withme.domain.auth.dto.request.SignUpRequest;
 import yooze.withme.domain.auth.dto.response.LoginResponse;
 import yooze.withme.domain.auth.dto.response.SignUpResponse;
-import yooze.withme.domain.auth.controller.docs.AuthControllerDocs;
 import yooze.withme.domain.auth.service.AuthCommandService;
 
 @RestController
@@ -47,5 +49,14 @@ public class AuthController implements AuthControllerDocs {
             return ApiResponse.error(ErrorStatus.DUPLICATE_ID);
         }
         return ApiResponse.success(SuccessStatus.SUCCESS_200);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> postLogout(
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        Long userId = Long.parseLong(userDetails.getUsername());
+        authCommandService.logout(userId);
+        return ApiResponse.success(SuccessStatus.LOGOUT_SUCCESS);
     }
 }

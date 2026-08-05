@@ -27,6 +27,7 @@ public class AuthCommandService {
 
     private final UserAuthRepository userAuthRepository;
     private final UserCommandService userCommandService;
+    private final UserQueryService userQueryService;
     private final UserTokenCommandService userTokenCommandService;
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
@@ -41,7 +42,7 @@ public class AuthCommandService {
             throw new GeneralException(ErrorStatus.PASSWORD_MISMATCH);
         }
 
-        User user = userCommandService.registerUser(signUpRequest.localId());
+        User user = userCommandService.registerUser(signUpRequest.localId(), signUpRequest.email());
 
         UserAuth userAuth = UserAuth.builder()
                 .user(user)
@@ -80,6 +81,13 @@ public class AuthCommandService {
 
         log.info("로컬 로그인 성공 - userId: {}", user.getUserId());
         return LoginResponse.of(accessToken, refreshToken);
+    }
+
+    /** 로컬 로그아웃 — Redis에서 리프레시 토큰 삭제 */
+    public void logout(Long userId) {
+        User user = userQueryService.getUserByUserId(userId);
+        userTokenCommandService.revokeToken(user, ProviderType.LOCAL);
+        log.info("로컬 로그아웃 - userId: {}", userId);
     }
 
     /** 아이디 중복 확인 (true = 중복) */

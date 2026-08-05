@@ -18,6 +18,9 @@ public class User extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
+    @Column(nullable = false, unique = true, length = 255)
+    private String email;
+
     @Column(nullable = false, length = 40)
     private String nickname;
 
@@ -31,12 +34,10 @@ public class User extends BaseEntity {
     private Long kakaoId;
 
     @Column(nullable = false)
-    @Builder.Default
-    private boolean kakaoSync = false;
+    private boolean kakaoSync;
 
     @Column(nullable = false)
-    @Builder.Default
-    private boolean notifyAgree = true;
+    private boolean notifyAgree;
 
     /** 소프트 삭제 */
     public void delete() {

@@ -30,9 +30,13 @@ public enum ErrorStatus implements BaseStatus {
      * User
      */
     USER_NOT_FOUND("USER_404", HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
+    USER_NOT_FOUND_BY_INFO("USER_404", HttpStatus.NOT_FOUND, "이름 또는 이메일이 일치하는 사용자가 없습니다."),
     DUPLICATE_EMAIL("USER_409", HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다."),
     DUPLICATE_ID("USER_409", HttpStatus.CONFLICT, "이미 사용 중인 아이디입니다."),
     PASSWORD_MISMATCH("USER_400", HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
+    INVALID_VERIFICATION_CODE("AUTH_400", HttpStatus.BAD_REQUEST, "인증코드가 올바르지 않거나 만료되었습니다."),
+    EMAIL_SEND_FAILED("COMM_500", HttpStatus.INTERNAL_SERVER_ERROR, "이메일 발송에 실패했습니다."),
+    TOO_MANY_REQUESTS("COMM_429", HttpStatus.TOO_MANY_REQUESTS, "요청이 너무 많습니다. 잠시 후 다시 시도해주세요."),
 
     /**
      * CATEGORY

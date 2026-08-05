@@ -1,9 +1,12 @@
 package yooze.withme.domain.auth.controller.docs;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,7 +18,7 @@ import yooze.withme.domain.auth.dto.request.SignUpRequest;
 import yooze.withme.domain.auth.dto.response.LoginResponse;
 import yooze.withme.domain.auth.dto.response.SignUpResponse;
 
-@Tag(name = "인증", description = "회원가입 / 로그인 / 아이디 중복 확인 API")
+@Tag(name = "인증", description = "회원가입 / 로그인 / 아이디 중복 확인 / 로그아웃 API")
 public interface AuthControllerDocs {
 
     @Operation(summary = "회원가입", description = "아이디, 비밀번호으로 신규 회원을 등록한다.")
@@ -41,5 +44,14 @@ public interface AuthControllerDocs {
     @GetMapping("/id-check")
     ResponseEntity<ApiResponse<Void>> getIdCheck(
             @Valid @ModelAttribute IdCheckRequest idCheckRequest
+    );
+
+    @Operation(summary = "로그아웃", description = "로그인한 사용자의 리프레시 토큰을 삭제한다.")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "로그아웃 성공")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    @SecurityRequirement(name = "bearerAuth")
+    @PostMapping("/logout")
+    ResponseEntity<ApiResponse<Void>> postLogout(
+            @Parameter(hidden = true) UserDetails userDetails
     );
 }
