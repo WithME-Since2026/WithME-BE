@@ -19,7 +19,9 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 @SpringBootTest(properties = {
         "management.endpoints.web.exposure.include=health,prometheus",
         // 테스트에는 Redis 가 없어 health 가 503 이 된다. 여기서 볼 것은 인증 여부지 Redis 상태가 아니다.
-        "management.health.redis.enabled=false"})
+        "management.health.redis.enabled=false",
+        // 메일도 마찬가지. 켜두면 CI 에서 smtp.gmail.com 접속 실패로 health 가 503 이 된다.
+        "management.health.mail.enabled=false"})
 @AutoConfigureMockMvc
 class ActuatorEndpointSecurityTest {
 
@@ -28,7 +30,7 @@ class ActuatorEndpointSecurityTest {
 
     @Test
     @DisplayName("health 는 인증 없이 열리고, prometheus 는 인증 없이는 막힌다")
-    void actuator_노출_범위() throws Exception {
+    void actuatorExposure() throws Exception {
         int health = mockMvc.perform(MockMvcRequestBuilders.get("/actuator/health"))
                 .andReturn().getResponse().getStatus();
         assertThat(health).isEqualTo(HttpStatus.OK.value());

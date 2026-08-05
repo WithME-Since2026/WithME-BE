@@ -19,7 +19,7 @@ import yooze.withme.common.status.ErrorStatus;
 class DiscordWebhookSmokeTest {
 
     @Test
-    void 실제_웹훅으로_전송된다() {
+    void sendsToRealWebhook() {
         String url = System.getenv("DISCORD_WEBHOOK_URL");
         RestClient restClient = DiscordNotificationConfig.createRestClient();
         Map<String, Object> payload = new DiscordErrorNotifier(

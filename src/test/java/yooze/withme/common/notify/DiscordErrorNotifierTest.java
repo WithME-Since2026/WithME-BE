@@ -25,7 +25,7 @@ class DiscordErrorNotifierTest {
 
     @Test
     @DisplayName("같은 에러가 쿨다운 안에 반복되면 첫 건만 전송하고 나머지는 억제 건수로 수집")
-    void 쿨다운_동안_중복_전송을_막는다() throws Exception {
+    void suppressesDuplicatesWithinCooldown() throws Exception {
         DiscordErrorNotifier notifier = notifier(Duration.ofMillis(50));
         String key = "java.lang.IllegalStateException#boom";
 
@@ -40,13 +40,13 @@ class DiscordErrorNotifierTest {
 
     @Test
     @DisplayName("스택트레이스가 Discord field 한계(1024자) 안으로 자름")
-    void 스택트레이스를_자른다() {
+    void truncatesStackTrace() {
         assertThat(DiscordErrorNotifier.truncate("x".repeat(2000), 1000)).hasSize(1000);
     }
 
     @Test
     @DisplayName("억제된 건수가 있으면 본문에 표시")
-    void 억제_건수를_본문에_담는다() {
+    void includesSuppressedCountInBody() {
         Map<String, Object> payload = notifier(Duration.ofMinutes(5))
                 .buildPayload(ErrorStatus.INTERNAL_SERVER_ERROR, new IllegalStateException("boom"), "GET /a", 7);
 
@@ -55,7 +55,7 @@ class DiscordErrorNotifierTest {
 
     @Test
     @DisplayName("url 이 비면 알림을 시도하지 않는다 (예외도 던지지 않는다)")
-    void url이_없으면_아무것도_하지_않는다() {
+    void doesNothingWhenUrlIsBlank() {
         DiscordErrorNotifier notifier = new DiscordErrorNotifier(
                 new DiscordWebhookProperties("", true, Duration.ofMinutes(5)),
                 RestClient.create(),
@@ -71,7 +71,7 @@ class DiscordErrorNotifierTest {
 
     @Test
     @DisplayName("Discord 전송 작업은 주입된 전용 executor에 제출")
-    void 주입된_executor를_사용한다() {
+    void usesInjectedExecutor() {
         AtomicBoolean submitted = new AtomicBoolean();
         DiscordErrorNotifier notifier = new DiscordErrorNotifier(
                 new DiscordWebhookProperties("https://discord.test/webhook", true, Duration.ofMinutes(5)),
