@@ -17,6 +17,8 @@ import yooze.withme.domain.group.dto.response.GroupRoundResponse;
 import yooze.withme.domain.group.service.GroupCommandService;
 import yooze.withme.domain.group.service.GroupQueryService;
 
+// TODO: 이 클래스의 Long.parseLong(userDetails.getUsername()) 패턴은 TodoController에서 시작한
+// userId 전달 방식(전역 통일 예정)으로 추후 함께 변경 필요.
 @RestController
 @RequestMapping("/api/v1/group-rounds")
 @RequiredArgsConstructor
