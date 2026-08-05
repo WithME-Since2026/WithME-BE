@@ -6,8 +6,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import yooze.withme.common.response.ApiResponse;
 import yooze.withme.domain.todo.dto.request.CreateTodoRequest;
@@ -24,7 +24,7 @@ public interface TodoControllerDocs {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "존재하지 않는 카테고리")
     @PostMapping
     ResponseEntity<ApiResponse<TodoResponse>> createTodo(
-            @Parameter(hidden = true) UserDetails userDetails,
+            @Parameter(hidden = true) @RequestAttribute("userId") Long userId,
             @Valid @RequestBody CreateTodoRequest request
     );
 }

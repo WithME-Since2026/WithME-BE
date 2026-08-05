@@ -3,9 +3,8 @@ package yooze.withme.domain.todo.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,10 +24,9 @@ public class TodoController implements TodoControllerDocs {
 
     @Override
     public ResponseEntity<ApiResponse<TodoResponse>> createTodo(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestAttribute("userId") Long userId,
             @Valid @RequestBody CreateTodoRequest request
     ) {
-        Long userId = Long.parseLong(userDetails.getUsername());
         TodoResponse response = todoCommandService.createTodo(userId, request);
         return ApiResponse.success(SuccessStatus.CREATE_TODO_SUCCESS, response);
     }
