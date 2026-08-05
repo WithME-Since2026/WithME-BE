@@ -20,6 +20,7 @@
 | `DB_PASSWORD` | DB 비밀번호                                                  |
 | `JWT_SECRET` | JWT 서명 키                                                 |
 | `DISCORD_WEBHOOK_URL` | (선택) 5xx 알림용 Discord 웹훅 URL. 미등록이면 알림만 꺼지고 배포는 정상 진행. |
+| `DISCORD_WEBHOOK_ENABLED` | (선택) 미등록이면 `true`. 웹훅 URL 은 두고 알림만 끄고 싶을 때 `false` 로 등록. |
 
 `GITHUB_TOKEN` 은 자동 제공되므로 등록하지 않는다.
 
