@@ -13,22 +13,26 @@ import org.springframework.web.client.RestClient;
 import yooze.withme.common.properties.DiscordWebhookProperties;
 import yooze.withme.common.status.ErrorStatus;
 
-/** 실제 Discord 로 메시지를 보내는 수동 확인용. DISCORD_WEBHOOK_URL 이 있을 때만 실행된다. */
+/** 실제 Discord 로 메시지를 보내는 수동 확인용.
+ * DISCORD_WEBHOOK_URL 이 있을 때만 실행 */
 @EnabledIfEnvironmentVariable(named = "DISCORD_WEBHOOK_URL", matches = ".+")
 class DiscordWebhookSmokeTest {
 
     @Test
     void 실제_웹훅으로_전송된다() {
         String url = System.getenv("DISCORD_WEBHOOK_URL");
+        RestClient restClient = DiscordNotificationConfig.createRestClient();
         Map<String, Object> payload = new DiscordErrorNotifier(
-                new DiscordWebhookProperties(url, true, Duration.ofMinutes(5)))
+                new DiscordWebhookProperties(url, true, Duration.ofMinutes(5)),
+                restClient,
+                Runnable::run)
                 .buildPayload(
                         ErrorStatus.INTERNAL_SERVER_ERROR,
                         new IllegalStateException("smoke test"),
                         "GET /smoke-test",
                         3);
 
-        ResponseEntity<Void> response = RestClient.create().post()
+        ResponseEntity<Void> response = restClient.post()
                 .uri(url).body(payload).retrieve().toBodilessEntity();
 
         System.out.println("[SMOKE] Discord 응답: " + response.getStatusCode());

@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.TransactionSystemException;
+import org.springframework.web.client.RestClient;
 import yooze.withme.common.notify.DiscordErrorNotifier;
 import yooze.withme.common.properties.DiscordWebhookProperties;
 import yooze.withme.common.response.ApiResponse;
@@ -17,7 +18,10 @@ class GeneralExceptionAdviceTest {
 
     // url 이 비어 있으면 알림은 no-op 이라 별도 mock 이 필요 없음.
     private final GeneralExceptionAdvice advice = new GeneralExceptionAdvice(
-            new DiscordErrorNotifier(new DiscordWebhookProperties(null, false, null)));
+            new DiscordErrorNotifier(
+                    new DiscordWebhookProperties(null, false, null),
+                    RestClient.create(),
+                    Runnable::run));
 
     @Test
     void commitTimeSortOrderViolationBecomesConflict() {

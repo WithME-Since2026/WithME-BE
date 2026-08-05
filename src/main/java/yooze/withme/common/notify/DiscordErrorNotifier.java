@@ -11,7 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.context.request.RequestAttributes;
@@ -40,14 +42,20 @@ public class DiscordErrorNotifier {
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.of("Asia/Seoul"));
 
     private final DiscordWebhookProperties properties;
-    private final RestClient restClient = RestClient.create();
+    private final RestClient restClient;
+    private final Executor executor;
 
     // 인스턴스 로컬 쿨다운. 다중 인스턴스로 늘리면 Redis로 옮김.
     // 키는 예외 종류 단위라 코드 크기에 비례해 상한이 있으므로 만료 정리는 두지 않음.
     private final Map<String, Cooldown> cooldowns = new ConcurrentHashMap<>();
 
-    public DiscordErrorNotifier(DiscordWebhookProperties properties) {
+    public DiscordErrorNotifier(
+            DiscordWebhookProperties properties,
+            @Qualifier("discordRestClient") RestClient restClient,
+            @Qualifier("discordNotificationExecutor") Executor executor) {
         this.properties = properties;
+        this.restClient = restClient;
+        this.executor = executor;
     }
 
     public void notify(BaseStatus status, Throwable e) {
@@ -61,7 +69,7 @@ public class DiscordErrorNotifier {
             }
             // 요청 정보는 요청 스레드에서만 읽을 수 있으므로 비동기 전송 전에 문자열로 뽑아둠
             Map<String, Object> payload = buildPayload(status, e, currentRequest(), suppressed);
-            CompletableFuture.runAsync(() -> send(payload));
+            CompletableFuture.runAsync(() -> send(payload), executor);
         } catch (Exception notifyFailure) {
             log.warn("[*] Discord 알림 준비 실패 : {}", notifyFailure.getMessage());
         }
@@ -151,7 +159,7 @@ public class DiscordErrorNotifier {
         return "(요청 정보 없음)";
     }
 
-    /** 접근은 전부 synchronized(cooldown) 안에서만 일어남 */
+    /** 접근은 전부 synchronized(cooldown) 안에서만 발생 */
     private static final class Cooldown {
         private long lastSentAt;
         private int suppressed;
