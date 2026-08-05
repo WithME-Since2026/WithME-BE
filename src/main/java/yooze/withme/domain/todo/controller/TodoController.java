@@ -22,6 +22,8 @@ public class TodoController implements TodoControllerDocs {
 
     private final TodoCommandService todoCommandService;
 
+    // 다른 컨트롤러와 달리 userDetails.getUsername()을 파싱하지 않고 JwtAuthenticationFilter가
+    // 심어둔 request attribute로 userId를 받는다. 인증 사용자 식별 방식이 전역 통일되면 함께 정리 예정.
     @Override
     public ResponseEntity<ApiResponse<TodoResponse>> createTodo(
             @RequestAttribute("userId") Long userId,

@@ -37,6 +37,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (jwtTokenProvider.validateToken(token) && jwtTokenProvider.isAccessToken(token)) {
                     Long userId = jwtTokenProvider.getUserIdFromToken(token);
                     UserDetails userDetails = userDetailsService.loadUserByUsername(userId.toString());
+                    // TodoController가 username 파싱 대신 이 값을 직접 쓰기 위한 임시 통로.
+                    // 인증 사용자 식별 방식이 전역 통일되면 함께 제거될 수 있음.
                     request.setAttribute("userId", userId);
 
                     UsernamePasswordAuthenticationToken authentication =
