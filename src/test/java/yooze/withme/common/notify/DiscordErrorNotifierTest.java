@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.DisplayName;
@@ -81,6 +82,36 @@ class DiscordErrorNotifierTest {
         notifier.notify(ErrorStatus.INTERNAL_SERVER_ERROR, new IllegalStateException("boom"));
 
         assertThat(submitted).isTrue();
+    }
+
+    @Test
+    @DisplayName("executor 가 작업을 거부하면 쿨다운을 소비하지 않는다 (같은 에러가 다시 전송 후보)")
+    void doesNotConsumeCooldownWhenExecutorRejects() {
+        DiscordErrorNotifier notifier = new DiscordErrorNotifier(
+                new DiscordWebhookProperties("https://discord.test/webhook", true, Duration.ofMinutes(5)),
+                RestClient.create(),
+                task -> {
+                    throw new RejectedExecutionException("queue full");
+                });
+
+        Exception boom = new IllegalStateException("boom");
+        notifier.notify(ErrorStatus.INTERNAL_SERVER_ERROR, boom);
+
+        // 전송이 시작되지 못했으므로 다음 같은 에러는 여전히 전송 후보여야 함.
+        String key = boom.getClass().getName() + "#" + boom.getStackTrace()[0];
+        assertThat(notifier.claimSend(key)).isZero();
+    }
+
+    @Test
+    @DisplayName("거부된 전송이 들고 있던 억제 건수는 다음 전송이 보고함")
+    void carriesSuppressedCountOverRejectedSend() {
+        DiscordErrorNotifier notifier = notifier(Duration.ofMinutes(5));
+        String key = "java.lang.IllegalStateException#boom";
+
+        assertThat(notifier.claimSend(key)).isZero();
+        notifier.releaseSend(key, 3);
+
+        assertThat(notifier.claimSend(key)).isEqualTo(3);
     }
 
     @SuppressWarnings("unchecked")

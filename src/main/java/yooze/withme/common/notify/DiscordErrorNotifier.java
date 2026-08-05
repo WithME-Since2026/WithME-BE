@@ -62,15 +62,19 @@ public class DiscordErrorNotifier {
         if (!properties.isUsable()) {
             return;
         }
+        String key = cooldownKey(e);
+        int suppressed = claimSend(key);
+        if (suppressed < 0) {
+            return;
+        }
         try {
-            int suppressed = claimSend(cooldownKey(e));
-            if (suppressed < 0) {
-                return;
-            }
             // 요청 정보는 요청 스레드에서만 읽을 수 있으므로 비동기 전송 전에 문자열로 뽑아둠
             Map<String, Object> payload = buildPayload(status, e, currentRequest(), suppressed);
             CompletableFuture.runAsync(() -> send(payload), executor);
         } catch (Exception notifyFailure) {
+            // executor 포화(RejectedExecution) 등으로 전송이 시작조차 못 했으면
+            // 쿨다운을 먹은 채로 두면 안 된다. 다음 같은 에러가 다시 전송 후보가 되어야 한다.
+            releaseSend(key, suppressed);
             log.warn("[*] Discord 알림 준비 실패 : {}", notifyFailure.getMessage());
         }
     }
@@ -103,6 +107,18 @@ public class DiscordErrorNotifier {
             int suppressed = cooldown.suppressed;
             cooldown.suppressed = 0;
             return suppressed;
+        }
+    }
+
+    /** claimSend 로 잡은 전송 권한을 되돌린다. 억제 건수도 다음 전송이 보고하도록 되돌려 놓는다. */
+    void releaseSend(String key, int suppressed) {
+        Cooldown cooldown = cooldowns.get(key);
+        if (cooldown == null) {
+            return;
+        }
+        synchronized (cooldown) {
+            cooldown.lastSentAt = 0;
+            cooldown.suppressed += suppressed;
         }
     }
 
