@@ -48,6 +48,12 @@ public enum ErrorStatus implements BaseStatus {
             "다른 요청과 동시에 처리되어 카테고리 순서가 충돌했습니다. 다시 시도해주세요."),
 
     /**
+     * TODO
+     */
+    TODO_NOT_FOUND("TODO_404", HttpStatus.NOT_FOUND, "존재하지 않는 todo입니다."),
+    TODO_FORBIDDEN("TODO_403", HttpStatus.FORBIDDEN, "본인의 todo만 수정할 수 있습니다."),
+
+    /**
      * Group
      */
     GROUP_NOT_FOUND("GROUP_404", HttpStatus.NOT_FOUND, "존재하지 않는 모임입니다."),
