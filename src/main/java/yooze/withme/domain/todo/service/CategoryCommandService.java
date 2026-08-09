@@ -15,6 +15,7 @@ import yooze.withme.domain.todo.dto.request.UpdateCategoryRequest;
 import yooze.withme.domain.todo.dto.response.CategoryResponse;
 import yooze.withme.domain.todo.entity.Category;
 import yooze.withme.domain.todo.repository.CategoryRepository;
+import yooze.withme.domain.todo.repository.TodoRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +24,7 @@ public class CategoryCommandService {
 
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
+    private final TodoRepository todoRepository;
 
     public CategoryResponse createCategory(Long userId, CreateCategoryRequest request) {
         // sortOrder 계산은 "현재 목록을 읽고 → 다음 값을 정해서 → 저장"하는 읽기-수정-쓰기다.
@@ -98,6 +100,19 @@ public class CategoryCommandService {
         }
 
         return CategoryResponse.from(category);
+    }
+
+    /** 카테고리 삭제: 이 카테고리를 쓰던 todo는 삭제되지 않고 카테고리만 해제된다 */
+    public void deleteCategory(Long userId, Long categoryId) {
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.CATEGORY_NOT_FOUND));
+
+        if (!category.getUser().getUserId().equals(userId)) {
+            throw new GeneralException(ErrorStatus.CATEGORY_FORBIDDEN);
+        }
+
+        todoRepository.clearCategory(categoryId);
+        categoryRepository.delete(category);
     }
 
     /**

@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -56,5 +57,15 @@ public class CategoryController implements CategoryControllerDocs {
         Long userId = Long.parseLong(userDetails.getUsername());
         List<CategoryDetailResponse> response = categoryQueryService.getCategories(userId);
         return ApiResponse.success(SuccessStatus.GET_CATEGORIES_SUCCESS, response);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<Void>> deleteCategory(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long categoryId
+    ) {
+        Long userId = Long.parseLong(userDetails.getUsername());
+        categoryCommandService.deleteCategory(userId, categoryId);
+        return ApiResponse.success(SuccessStatus.DELETE_CATEGORY_SUCCESS);
     }
 }
