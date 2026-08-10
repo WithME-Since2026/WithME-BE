@@ -111,12 +111,16 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "docker-compose.yml,scripts/deploy.sh"
+          # withme.conf 는 서버에서 라이브 색을 담는 상태 파일이므로 보내지 않는다.
+          # .default 만 보내고, deploy.sh 가 서버에 파일이 없을 때만 복사한다.
+          # 매 배포마다 덮어쓰면 upstream 이 blue 로 리셋된다.
+          source: "docker-compose.yml,scripts/deploy.sh,scripts/switch.sh,nginx/withme.conf.default"
           target: /home/${{ secrets.EC2_USER }}/withme
 
-      # 새 설정은 .env.new 로 전달하고, 기존 .env 는 deploy.sh 가
-      # .env.rollback 으로 보관한다. 검증 실패 시 이 파일로 되돌린다.
-      - name: Deploy with health check and rollback
+      # 색과 무관한 설정만 .env.new 로 전달한다.
+      # 어느 색에 배포할지는 서버의 nginx 설정이 정하므로 워크플로는 색을 모르고,
+      # APP_IMAGE_<색> 갱신은 deploy.sh 가 IMAGE_REF 로 수행한다.
+      - name: Deploy with health check and blue-green switch
         if: steps.guard.outputs.stale != 'true'
         uses: appleboy/ssh-action@v1.2.0
         # 비밀값을 script 본문에 ${{ }} 로 끼워 넣으면 따옴표/개행/$(...) 같은 문자가
@@ -193,7 +197,6 @@ jobs:
 
             umask 077
             {
-              write_env APP_IMAGE "$IMAGE_REF"
               write_env DDL_AUTO "$DDL_AUTO"
               write_env FLYWAY_ENABLED "$FLYWAY_ENABLED"
               write_env DB_URL "$DB_URL"
@@ -209,5 +212,5 @@ jobs:
 
             printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
 
-            chmod +x scripts/deploy.sh
+            chmod +x scripts/deploy.sh scripts/switch.sh
             bash scripts/deploy.sh
