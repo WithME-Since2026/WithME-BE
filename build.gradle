@@ -1,3 +1,12 @@
+/*
+ * WithME
+ * Copyright © 2026 WithME Team (대표자 : 양도영)
+ *
+ * Licensed under the Apache License, Version 2.0 with the
+ * "Commons Clause" License Condition v1.0.
+ * You may not Sell the Software. See LICENSE.txt for the full text.
+ */
+
 plugins {
     id 'java'
     id 'org.springframework.boot' version '4.1.0'
