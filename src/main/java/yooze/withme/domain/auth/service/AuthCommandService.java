@@ -43,6 +43,10 @@ public class AuthCommandService {
             throw new GeneralException(ErrorStatus.DUPLICATE_ID);
         }
 
+        if (userQueryService.existsByEmail(signUpRequest.email())) {
+            throw new GeneralException(ErrorStatus.DUPLICATE_EMAIL);
+        }
+
         if (!signUpRequest.password().equals(signUpRequest.passwordConfirm())) {
             throw new GeneralException(ErrorStatus.PASSWORD_MISMATCH);
         }
