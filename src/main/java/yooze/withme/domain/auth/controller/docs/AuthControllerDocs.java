@@ -11,14 +11,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import yooze.withme.common.response.ApiResponse;
 import yooze.withme.domain.auth.dto.request.IdCheckRequest;
 import yooze.withme.domain.auth.dto.request.LoginRequest;
 import yooze.withme.domain.auth.dto.request.SignUpRequest;
+import yooze.withme.domain.auth.dto.response.KakaoLoginResponse;
 import yooze.withme.domain.auth.dto.response.LoginResponse;
 import yooze.withme.domain.auth.dto.response.SignUpResponse;
 
-@Tag(name = "인증", description = "회원가입 / 로그인 / 아이디 중복 확인 / 로그아웃 API")
+@Tag(name = "인증", description = "회원가입 / 로그인 / 아이디 중복 확인 / 로그아웃 / 카카오 로그인 API")
 public interface AuthControllerDocs {
 
     @Operation(summary = "회원가입", description = "아이디, 비밀번호으로 신규 회원을 등록한다.")
@@ -36,6 +38,20 @@ public interface AuthControllerDocs {
     @PostMapping("/login")
     ResponseEntity<ApiResponse<LoginResponse>> postLogin(
             @Valid @RequestBody LoginRequest loginRequest
+    );
+
+    @Operation(
+            summary = "카카오 로그인",
+            description = "프론트에서 전달받은 카카오 인가 코드(authorization code)로 로그인한다. "
+                    + "기존에 연동된 계정이 없으면 자동으로 회원가입 후 로그인한다."
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "카카오 로그인 성공")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "카카오 계정에 이메일 제공 동의 필요")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "카카오 인가 코드가 유효하지 않음")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "502", description = "카카오 사용자 정보 조회 실패")
+    @PostMapping("/kakao/callback")
+    ResponseEntity<ApiResponse<KakaoLoginResponse>> postKakaoCallback(
+            @Parameter(description = "카카오 인가 코드", required = true) @RequestParam String code
     );
 
     @Operation(summary = "아이디 중복 확인", description = "사용하려는 아이디가 이미 존재하는지 확인한다. 중복이면 409, 사용 가능하면 200을 반환한다.")

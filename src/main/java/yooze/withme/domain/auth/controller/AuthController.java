@@ -13,6 +13,7 @@ import yooze.withme.domain.auth.controller.docs.AuthControllerDocs;
 import yooze.withme.domain.auth.dto.request.IdCheckRequest;
 import yooze.withme.domain.auth.dto.request.LoginRequest;
 import yooze.withme.domain.auth.dto.request.SignUpRequest;
+import yooze.withme.domain.auth.dto.response.KakaoLoginResponse;
 import yooze.withme.domain.auth.dto.response.LoginResponse;
 import yooze.withme.domain.auth.dto.response.SignUpResponse;
 import yooze.withme.domain.auth.service.AuthCommandService;
@@ -38,6 +39,14 @@ public class AuthController implements AuthControllerDocs {
     ) {
         LoginResponse loginResponse = authCommandService.login(loginRequest);
         return ApiResponse.success(SuccessStatus.LOGIN_SUCCESS, loginResponse);
+    }
+
+    @PostMapping("/kakao/callback")
+    public ResponseEntity<ApiResponse<KakaoLoginResponse>> postKakaoCallback(
+            @RequestParam String code
+    ) {
+        KakaoLoginResponse kakaoLoginResponse = authCommandService.kakaoLogin(code);
+        return ApiResponse.success(SuccessStatus.KAKAO_LOGIN_SUCCESS, kakaoLoginResponse);
     }
 
     @GetMapping("/id-check")

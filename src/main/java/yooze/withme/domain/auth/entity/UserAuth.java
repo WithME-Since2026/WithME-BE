@@ -34,10 +34,12 @@ public class UserAuth {
     @Column
     private Long providerUserId;
 
-    @Column(name = "login_id", nullable = false, length = 255)
+    /** LOCAL 로그인 전용. 카카오 사용자는 null */
+    @Column(name = "login_id", length = 255)
     private String localId;
 
-    @Column(nullable = false, length = 255)
+    /** LOCAL 로그인 전용. 카카오 사용자는 null */
+    @Column(length = 255)
     private String password;
 
     /** 비밀번호 변경 */

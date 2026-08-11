@@ -32,6 +32,20 @@ public class UserCommandService {
         return savedUser;
     }
 
+    /** 카카오 신규 사용자 생성 */
+    public User registerKakaoUser(String nickname, String email, Long kakaoId) {
+        User user = User.builder()
+                .nickname(nickname)
+                .email(email)
+                .kakaoId(kakaoId)
+                .kakaoSync(true)
+                .notifyAgree(false)
+                .build();
+
+        User savedUser = userRepository.save(user);
+        return savedUser;
+    }
+
     /** 닉네임(이름) 변경 */
     public ProfileResponse updateNickname(Long userId, String nickname) {
         User user = userRepository.findById(userId)

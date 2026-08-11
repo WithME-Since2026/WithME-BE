@@ -39,6 +39,7 @@ public class SecurityConfig {
                                 "/api/v1/auth/sign-up",
                                 "/api/v1/auth/login",
                                 "/api/v1/auth/id-check",
+                                "/api/v1/auth/kakao/callback",
                                 "/api/v1/auth/find-id/send-code",
                                 "/api/v1/auth/find-id/verify",
                                 "/api/v1/auth/find-password/send-code",

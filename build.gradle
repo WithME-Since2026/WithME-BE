@@ -26,6 +26,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    // Spring Boot 4.1부터 RestClient.Builder 자동설정이 starter-web에서 분리됨 (KakaoAuthClient에서 사용)
+    implementation 'org.springframework.boot:spring-boot-starter-restclient'
 
     // JWT
     implementation 'io.jsonwebtoken:jjwt-api:0.12.6'

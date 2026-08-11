@@ -40,6 +40,11 @@ public class UserQueryService {
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
     }
 
+    /** 이메일 존재 여부 확인 */
+    public boolean existsByEmail(String email) {
+        return userRepository.findByEmail(email).isPresent();
+    }
+
     /** 내 프로필 조회 */
     public ProfileResponse getUserProfile(Long userId) {
         User user = getUserByUserId(userId);

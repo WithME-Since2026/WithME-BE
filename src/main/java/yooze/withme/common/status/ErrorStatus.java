@@ -25,6 +25,9 @@ public enum ErrorStatus implements BaseStatus {
     INVALID_CREDENTIALS("AUTH_401", HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 올바르지 않습니다."),
     INVALID_TOKEN("AUTH_401", HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
     EXPIRED_TOKEN("AUTH_401", HttpStatus.UNAUTHORIZED, "만료된 토큰입니다."),
+    KAKAO_TOKEN_REQUEST_FAILED("AUTH_401", HttpStatus.UNAUTHORIZED, "카카오 인증에 실패했습니다."),
+    KAKAO_USER_INFO_REQUEST_FAILED("AUTH_502", HttpStatus.BAD_GATEWAY, "카카오 사용자 정보 조회에 실패했습니다."),
+    KAKAO_EMAIL_REQUIRED("AUTH_400", HttpStatus.BAD_REQUEST, "카카오 계정에 이메일 제공 동의가 필요합니다."),
 
     /**
      * User
