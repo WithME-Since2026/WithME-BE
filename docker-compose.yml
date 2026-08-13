@@ -1,42 +1,71 @@
+# Blue-Green 배포. 앱은 blue/green 두 개로 존재하고, 외부에 포트를 여는 것은 nginx 뿐이다.
+# 라이브 색의 단일 진실 공급원은 nginx/withme.conf 의 upstream 한 줄이다.
+x-app: &app
+  restart: unless-stopped
+  # Docker 기본값은 10초라 앱의 graceful shutdown(20초)보다 짧다.
+  # 그대로 두면 요청을 다 처리하기 전에 SIGKILL 로 강제 종료된다.
+  stop_grace_period: 30s
+  # 두 JVM 이 동시에 떠 있으므로 상한을 명시한다.
+  # 없으면 각자 호스트 메모리의 75% 를 잡으려 든다.
+  mem_limit: 700m
+  environment:
+    SPRING_PROFILES_ACTIVE: prod
+    DDL_AUTO: ${DDL_AUTO:-validate}
+    FLYWAY_ENABLED: ${FLYWAY_ENABLED:-true}
+    DB_URL: ${DB_URL}
+    DB_USERNAME: ${DB_USERNAME}
+    DB_PASSWORD: ${DB_PASSWORD}
+    JWT_SECRET: ${JWT_SECRET}
+    # 인증코드 메일 발송 계정. 없으면 앱이 기동하지 않는다.
+    MAIL_USERNAME: ${MAIL_USERNAME}
+    MAIL_PASSWORD: ${MAIL_PASSWORD}
+    # 카카오 로그인. 없으면 앱이 기동하지 않는다.
+    KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID}
+    KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET}
+    KAKAO_REDIRECT_URI: ${KAKAO_REDIRECT_URI}
+    # 선택값. 비어 있으면 5xx Discord 알림 발송 X
+    DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
+    # 빈 문자열을 그대로 넘기면 boolean 바인딩이 깨지므로 여기서 기본값을 채운다.
+    DISCORD_WEBHOOK_ENABLED: ${DISCORD_WEBHOOK_ENABLED:-true}
+    # 앱 컨테이너 기준 Redis 는 서비스명으로 접근한다. localhost 로 두면 자기 자신을 가리킨다.
+    REDIS_HOST: redis
+    REDIS_PORT: 6379
+  depends_on:
+    redis:
+      condition: service_healthy
+  # 배포 성공 판정의 기준. DB 연결이 끊겨 있으면 actuator가 503을 반환하므로
+  # 컨테이너가 떴다는 사실이 아니라 실제로 서비스 가능한 상태인지를 검증한다.
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+    interval: 10s
+    timeout: 5s
+    retries: 5
+    start_period: 40s
+
 services:
-  app:
-    image: ${APP_IMAGE}
-    container_name: withme-app
+  # 기본값 빈 문자열은 최초 배포에서 한쪽 색 변수가 아직 없을 때
+  # compose 가 파싱 단계에서 죽지 않게 하려는 것이다.
+  # (deploy.sh 는 두 색 변수를 항상 함께 기록하므로 정상 경로에서는 비지 않는다.)
+  app-blue:
+    <<: *app
+    image: ${APP_IMAGE_BLUE:-}
+    container_name: withme-app-blue
+
+  app-green:
+    <<: *app
+    image: ${APP_IMAGE_GREEN:-}
+    container_name: withme-app-green
+
+  # 외부 노출 지점. 앱 컨테이너는 compose 내부 네트워크에서만 접근한다.
+  # 보안그룹은 8080 그대로라 변경 없음.
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: withme-nginx
     restart: unless-stopped
-    # Docker 기본값은 10초라 앱의 graceful shutdown(20초)보다 짧다.
-    # 그대로 두면 요청을 다 처리하기 전에 SIGKILL 로 강제 종료된다.
-    stop_grace_period: 30s
     ports:
-      - "8080:8080"
-    environment:
-      SPRING_PROFILES_ACTIVE: prod
-      DDL_AUTO: ${DDL_AUTO:-validate}
-      FLYWAY_ENABLED: ${FLYWAY_ENABLED:-true}
-      DB_URL: ${DB_URL}
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
-      # 인증코드 메일 발송 계정. 없으면 앱이 기동하지 않는다.
-      MAIL_USERNAME: ${MAIL_USERNAME}
-      MAIL_PASSWORD: ${MAIL_PASSWORD}
-      # 선택값. 비어 있으면 5xx Discord 알림 발송 X
-      DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
-      # 빈 문자열을 그대로 넘기면 boolean 바인딩이 깨지므로 여기서 기본값을 채운다.
-      DISCORD_WEBHOOK_ENABLED: ${DISCORD_WEBHOOK_ENABLED:-true}
-      # 앱 컨테이너 기준 Redis 는 서비스명으로 접근한다. localhost 로 두면 자기 자신을 가리킨다.
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-    depends_on:
-      redis:
-        condition: service_healthy
-    # 배포 성공 판정의 기준. DB 연결이 끊겨 있으면 actuator가 503을 반환하므로
-    # 컨테이너가 떴다는 사실이 아니라 실제로 서비스 가능한 상태인지를 검증한다.
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 40s
+      - "8080:80"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d:ro
 
   redis:
     image: redis:7-alpine

@@ -1,0 +1,24 @@
+# 서버의 nginx/withme.conf 초기값.
+#
+# 이 파일은 .default 로만 배포된다. 서버의 withme.conf 가 라이브 색을 담는
+# 상태 파일이므로, 매 배포마다 덮어쓰면 upstream 이 blue 로 리셋된다.
+# deploy.sh 는 withme.conf 가 없을 때만 이 파일을 복사한다.
+#
+# conf.d 의 nginx include 는 *.conf 만 잡으므로 .default 는 로드되지 않는다.
+
+upstream withme {
+    server withme-app-blue:8080;   # switch.sh 가 이 줄만 바꾼다
+}
+
+server {
+    listen 80;
+
+    location / {
+        proxy_pass http://withme;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 60s;
+    }
+}
