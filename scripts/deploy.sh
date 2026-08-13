@@ -201,14 +201,15 @@ rm -f .env.new
 log "배포 대상 이미지: ${IMAGE_REF}"
 
 # compose 명령을 조건문 안에서 실행한다. 그냥 나열하면 set -e 가
-# pull/up 실패 시 즉시 종료시켜 진단 출력도 대기 색 정리도 하지 못한다.
+# 실패 시 즉시 종료시켜 진단 출력도 대기 색 정리도 하지 못한다.
+# nginx 기동과 전환도 같은 이유로 then 블록이 아니라 조건절에 둔다.
+# (nginx 는 최초 배포에서만 실제로 기동한다. 이미 떠 있으면 no-op.
+#  대상 앱이 healthy 가 된 뒤에 올려야 upstream resolve 에 실패하지 않는다.)
 if docker compose pull "app-${TARGET}" \
   && docker compose up -d --remove-orphans "app-${TARGET}" \
-  && wait_healthy; then
-  # nginx 는 최초 배포에서만 실제로 기동한다. 이미 떠 있으면 no-op.
-  # 대상 앱이 healthy 가 된 뒤에 올려야 upstream resolve 에 실패하지 않는다.
-  docker compose up -d nginx
-  bash scripts/switch.sh "$TARGET"
+  && wait_healthy \
+  && docker compose up -d nginx \
+  && bash scripts/switch.sh "$TARGET"; then
   log "배포 성공. 라이브: ${TARGET}"
   cleanup_old_images
   exit 0
