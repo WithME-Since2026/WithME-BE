@@ -34,6 +34,13 @@ esac
 cp "$CONF" "$CONF.bak"
 sed -i "s/withme-app-[a-z]*:8080/withme-app-$1:8080/" "$CONF"
 
+# 방금 기동한 nginx 는 아직 PID 파일을 쓰기 전일 수 있다.
+# 그 상태로 reload 하면 invalid PID number "" 로 실패한다. 파일이 채워질 때까지 기다린다.
+for _ in $(seq 20); do
+  docker exec withme-nginx test -s /run/nginx.pid && break
+  sleep 0.5
+done
+
 if docker exec withme-nginx nginx -t && docker exec withme-nginx nginx -s reload; then
   rm -f "$CONF.bak"
   echo "[switch] -> $1"
