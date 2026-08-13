@@ -19,6 +19,10 @@ x-app: &app
     # 인증코드 메일 발송 계정. 없으면 앱이 기동하지 않는다.
     MAIL_USERNAME: ${MAIL_USERNAME}
     MAIL_PASSWORD: ${MAIL_PASSWORD}
+    # 카카오 로그인. 없으면 앱이 기동하지 않는다.
+    KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID}
+    KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET}
+    KAKAO_REDIRECT_URI: ${KAKAO_REDIRECT_URI}
     # 선택값. 비어 있으면 5xx Discord 알림 발송 X
     DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
     # 빈 문자열을 그대로 넘기면 boolean 바인딩이 깨지므로 여기서 기본값을 채운다.

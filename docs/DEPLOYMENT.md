@@ -23,6 +23,9 @@
 | `JWT_SECRET` | JWT 서명 키                                                 |
 | `MAIL_USERNAME` | 인증코드 발송 계정 (Gmail 주소)                                  |
 | `MAIL_PASSWORD` | 해당 계정의 앱 비밀번호. 일반 로그인 비밀번호로는 SMTP 인증이 안 된다.        |
+| `KAKAO_CLIENT_ID` | 카카오 앱 REST API 키                                          |
+| `KAKAO_CLIENT_SECRET` | 카카오 앱 Client Secret                                      |
+| `KAKAO_REDIRECT_URI` | 카카오 로그인 Redirect URI. 카카오 개발자 콘솔에 등록한 값과 정확히 같아야 한다.      |
 | `DISCORD_WEBHOOK_URL` | (선택) 5xx 알림용 Discord 웹훅 URL. 미등록이면 알림만 꺼지고 배포는 정상 진행. |
 | `DISCORD_WEBHOOK_ENABLED` | (선택) 미등록이면 `true`. 웹훅 URL 은 두고 알림만 끄고 싶을 때 `false` 로 등록. |
 
