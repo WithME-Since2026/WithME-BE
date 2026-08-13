@@ -6,10 +6,6 @@ import tools.jackson.databind.annotation.JsonNaming;
 
 /**
  * 카카오 사용자 정보 조회 API(GET https://kapi.kakao.com/v2/user/me) 응답
- * 필요한 필드만 매핑하고 나머지는 무시한다.
- *
- * Spring Boot 4.1의 Jackson 3(tools.jackson.*) 기준 @JsonNaming/PropertyNamingStrategies 패키지 사용.
- * (KakaoTokenResponse 참고)
  */
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
