@@ -4,21 +4,30 @@
 
 - CI: PR(`main`, `develop`) 시 빌드 + 테스트 (H2 인메모리)
 - CD: `develop` push 또는 수동 실행 시 GHCR 이미지 빌드 → EC2 배포
-- 배포 검증: `/actuator/health` 기반 컨테이너 healthcheck, 실패 시 직전 이미지로 자동 롤백
+- 배포 방식: Blue-Green 무중단. nginx(8080)가 `withme-app-blue` / `withme-app-green` 중
+  한쪽만 바라보고, 새 색이 healthy 가 된 뒤 upstream 을 전환한다. 자세한 내용은 [BLUE_GREEN.md](./BLUE_GREEN.md)
+- 배포 검증: `/actuator/health` 기반 컨테이너 healthcheck. 실패하면 전환하지 않으므로 라이브는 무손상
 
 ## GitHub 설정
 
 ### Secrets
 
-| 이름 | 설명 |
-|---|---|
-| `EC2_HOST` | EC2 퍼블릭 IP 또는 도메인 |
-| `EC2_USER` | `ubuntu` 또는 `ec2-user` |
-| `EC2_SSH_KEY` | `.pem` 파일 전체 내용 |
+| 이름 | 설명                                                       |
+|---|----------------------------------------------------------|
+| `EC2_HOST` | EC2 퍼블릭 IP 또는 도메인                                        |
+| `EC2_USER` | `ubuntu` 또는 `ec2-user`                                   |
+| `EC2_SSH_KEY` | `.pem` 파일 전체 내용                                          |
 | `DB_URL` | **완전한 JDBC URL** (`jdbc:postgresql://<host>:5432/withme`) |
-| `DB_USERNAME` | DB 계정 |
-| `DB_PASSWORD` | DB 비밀번호 |
-| `JWT_SECRET` | JWT 서명 키 |
+| `DB_USERNAME` | DB 계정                                                    |
+| `DB_PASSWORD` | DB 비밀번호                                                  |
+| `JWT_SECRET` | JWT 서명 키                                                 |
+| `MAIL_USERNAME` | 인증코드 발송 계정 (Gmail 주소)                                  |
+| `MAIL_PASSWORD` | 해당 계정의 앱 비밀번호. 일반 로그인 비밀번호로는 SMTP 인증이 안 된다.        |
+| `KAKAO_CLIENT_ID` | 카카오 앱 REST API 키                                          |
+| `KAKAO_CLIENT_SECRET` | 카카오 앱 Client Secret                                      |
+| `KAKAO_REDIRECT_URI` | 카카오 로그인 Redirect URI. 카카오 개발자 콘솔에 등록한 값과 정확히 같아야 한다.      |
+| `DISCORD_WEBHOOK_URL` | (선택) 5xx 알림용 Discord 웹훅 URL. 미등록이면 알림만 꺼지고 배포는 정상 진행. |
+| `DISCORD_WEBHOOK_ENABLED` | (선택) 미등록이면 `true`. 웹훅 URL 은 두고 알림만 끄고 싶을 때 `false` 로 등록. |
 
 `GITHUB_TOKEN` 은 자동 제공되므로 등록하지 않는다.
 
@@ -98,21 +107,34 @@ sudo usermod -aG docker $USER   # 재로그인 필요
 mkdir -p ~/withme
 ```
 
-보안그룹: 8080 인바운드 오픈. DB 인스턴스는 EC2 사설 IP 에서만 5432 허용.
+보안그룹: 8080 인바운드 오픈(nginx). DB 인스턴스는 EC2 사설 IP 에서만 5432 허용.
+
+인스턴스 타입은 **최소 2GB(`t3.small`)** 여야 한다.
+Blue-Green 은 전환 구간에 JVM 두 개가 동시에 떠 있으므로 `t3.micro`(1GB)에서는 성립하지 않는다.
+(`docker-compose.yml` 의 `mem_limit: 700m` 이 각 앱의 상한이다.)
 
 ## 롤백
 
-배포 실패 시 `scripts/deploy.sh` 가 자동으로 직전 이미지로 되돌린다.
-수동 롤백이 필요하면 EC2 에서:
+Blue-Green 이므로 직전 버전 컨테이너가 반대 색으로 그대로 살아 있다.
+전환은 nginx upstream 한 줄이라 1초 미만이다.
 
 ```bash
 cd ~/withme
-cp .env.rollback .env
-docker compose up -d
+./scripts/switch.sh          # 현재 라이브 색 확인
+./scripts/switch.sh blue     # 직전 색으로 되돌리기 (또는 green)
 ```
 
-특정 커밋으로 되돌리려면 `.env` 의 `APP_IMAGE` 태그를 해당 SHA 로 바꾼 뒤
-`docker compose pull && docker compose up -d`.
+배포 **중** 검증에 실패한 경우에는 되돌릴 것이 없다.
+새 색이 healthy 가 된 뒤에야 트래픽이 넘어가므로 라이브는 한 번도 중단되지 않는다.
+`deploy.sh` 는 실패한 대기 색만 정지시킨다.
+
+특정 커밋으로 되돌리려면 `.env` 의 대기 색 변수(`APP_IMAGE_BLUE` 또는 `APP_IMAGE_GREEN`)를
+해당 SHA 로 바꾼 뒤 그 색을 띄우고 전환한다:
+
+```bash
+docker compose pull app-green && docker compose up -d app-green
+./scripts/switch.sh green
+```
 
 ## 로컬 실행
 

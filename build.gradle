@@ -1,3 +1,12 @@
+/*
+ * WithME
+ * Copyright © 2026 WithME Team (대표자 : 양도영)
+ *
+ * Licensed under the Apache License, Version 2.0 with the
+ * "Commons Clause" License Condition v1.0.
+ * You may not Sell the Software. See LICENSE.txt for the full text.
+ */
+
 plugins {
     id 'java'
     id 'org.springframework.boot' version '4.1.0'
@@ -21,6 +30,8 @@ repositories {
 dependencies {
     // 배포 헬스체크(/actuator/health). 빠지면 컨테이너가 영구 unhealthy 로 판정되어 배포가 롤백된다.
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    // Micrometer -> /actuator/prometheus. Actuator 가 이미 있어 추가 비용은 사실상 없다.
+    runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -52,6 +63,8 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    // Boot 4 부터 MockMvc 는 starter-test 에 딸려오지 않는다.
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testCompileOnly 'org.projectlombok:lombok'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

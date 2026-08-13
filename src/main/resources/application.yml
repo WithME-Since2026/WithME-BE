@@ -59,24 +59,35 @@ spring:
 server:
   shutdown: graceful
 
+# 5xx 발생 시 Discord 채널로 알림.
+# url 은 그 자체가 인증 수단이므로 환경변수로만 주입
+discord:
+  webhook:
+    url: ${DISCORD_WEBHOOK_URL:}
+    enabled: ${DISCORD_WEBHOOK_ENABLED:false}
+    # 장애 시 같은 에러가 초당 수백 건 나므로 종류별로 이 간격 안에서는 1건만 전송
+    cooldown: 5m
+
 jwt:
   secret: ${JWT_SECRET}
   access-token-expiration: 1800000      # 30분 (ms)
   refresh-token-expiration: 1209600000  # 14일 (ms)
 
-# 카카오 디벨로퍼스 > 내 애플리케이션 > 앱 키 / 카카오 로그인 > Redirect URI 에서 확인
+
+# 카카오
 kakao:
   client-id: ${KAKAO_CLIENT_ID}
   # 카카오 로그인 보안 강화(선택) 설정을 켰다면 필수, 아니면 비워둬도 됨
   client-secret: ${KAKAO_CLIENT_SECRET:}
   redirect-uri: ${KAKAO_REDIRECT_URI}
 
-# 배포 검증용 헬스체크 엔드포인트. health 외에는 노출X
+# 배포 검증용 헬스체크 + 지표 수집 엔드포인트. 그 외에는 노출X
+# ponytail: 관리 포트 분리는 실제 스크래퍼가 붙을 때. 지금은 인증만으로 충분하다.
 management:
   endpoints:
     web:
       exposure:
-        include: health
+        include: health,prometheus
   endpoint:
     health:
       show-details: never
