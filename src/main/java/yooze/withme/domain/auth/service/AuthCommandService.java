@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import yooze.withme.common.exception.GeneralException;
 import yooze.withme.common.jwt.JwtTokenProvider;
@@ -20,6 +21,7 @@ import yooze.withme.domain.auth.entity.User;
 import yooze.withme.domain.auth.entity.UserAuth;
 import yooze.withme.domain.auth.enums.ProviderType;
 import yooze.withme.domain.auth.repository.UserAuthRepository;
+import yooze.withme.domain.auth.service.UserCommandService.KakaoUserResult;
 
 import java.time.LocalDateTime;
 
@@ -92,8 +94,15 @@ public class AuthCommandService {
         return LoginResponse.of(accessToken, refreshToken);
     }
 
-    /** 카카오 로그인 — 기존 연동 유저면 로그인, 없으면 자동 회원가입 후 로그인 */
+    /**
+     * 카카오 로그인.
+     * 카카오 서버와의 HTTP 왕복(토큰 발급 + 사용자 정보 조회)이 끝난 뒤에
+     * DB 커넥션을 획득해야 하므로 트랜잭션을 열지 않는다.
+     * DB 작업은 userCommandService.findOrRegisterKakaoUser() 내부 트랜잭션에서 처리된다.
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public KakaoLoginResponse kakaoLogin(String authorizationCode) {
+        // 1. 외부 HTTP 호출 — 트랜잭션(DB 커넥션) 없이 실행
         KakaoTokenResponse kakaoToken = kakaoAuthClient.getToken(authorizationCode);
         KakaoUserInfoResponse kakaoUserInfo = kakaoAuthClient.getUserInfo(kakaoToken.accessToken());
 
@@ -102,50 +111,26 @@ public class AuthCommandService {
         if (email == null) {
             throw new GeneralException(ErrorStatus.KAKAO_EMAIL_REQUIRED);
         }
-
-        boolean isNewUser = false;
-        User user = userAuthRepository.findByProviderAndProviderUserId(ProviderType.KAKAO, kakaoId)
-                .map(UserAuth::getUser)
-                .orElse(null);
-
-        if (user == null) {
-            // 동일 이메일로 이미 가입된 계정이 있으면 명시적 에러 반환 (DB unique 위반 방지)
-            if (userQueryService.existsByEmail(email)) {
-                throw new GeneralException(ErrorStatus.DUPLICATE_EMAIL);
-            }
-            user = registerKakaoUser(kakaoUserInfo, kakaoId, email);
-            isNewUser = true;
-            log.info("카카오 회원가입 완료 - userId: {}, kakaoId: {}", user.getUserId(), kakaoId);
-        } else {
-            log.info("카카오 로그인 성공 - userId: {}, kakaoId: {}", user.getUserId(), kakaoId);
-        }
-
-        String accessToken = jwtTokenProvider.generateAccessToken(user.getUserId());
-        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getUserId());
-        LocalDateTime refreshExpiredAt = jwtTokenProvider.getRefreshTokenExpiredAt();
-
-        userTokenCommandService.issueToken(user, refreshToken, ProviderType.KAKAO, refreshExpiredAt);
-
-        return KakaoLoginResponse.of(user, accessToken, refreshToken, isNewUser);
-    }
-
-    /** 카카오 최초 로그인 사용자를 User + UserAuth로 등록 */
-    private User registerKakaoUser(KakaoUserInfoResponse kakaoUserInfo, Long kakaoId, String email) {
         String nickname = kakaoUserInfo.extractNickname() != null
                 ? kakaoUserInfo.extractNickname()
                 : "카카오사용자" + kakaoId;
 
-        User user = userCommandService.registerKakaoUser(nickname, email, kakaoId);
+        // 2. DB 조회·저장 — userCommandService 내부 @Transactional 에서 커넥션 획득·반환
+        KakaoUserResult result = userCommandService.findOrRegisterKakaoUser(kakaoId, email, nickname);
 
-        UserAuth userAuth = UserAuth.builder()
-                .user(user)
-                .provider(ProviderType.KAKAO)
-                .providerUserId(kakaoId)
-                // localId, password는 LOCAL 전용 컬럼 — 카카오 사용자는 null
-                .build();
-        userAuthRepository.save(userAuth);
+        if (result.isNewUser()) {
+            log.info("카카오 회원가입 완료 - userId: {}, kakaoId: {}", result.user().getUserId(), kakaoId);
+        } else {
+            log.info("카카오 로그인 성공 - userId: {}, kakaoId: {}", result.user().getUserId(), kakaoId);
+        }
 
-        return user;
+        // 3. JWT 발급 + Redis 저장 — 트랜잭션 불필요
+        String accessToken = jwtTokenProvider.generateAccessToken(result.user().getUserId());
+        String refreshToken = jwtTokenProvider.generateRefreshToken(result.user().getUserId());
+        LocalDateTime refreshExpiredAt = jwtTokenProvider.getRefreshTokenExpiredAt();
+        userTokenCommandService.issueToken(result.user(), refreshToken, ProviderType.KAKAO, refreshExpiredAt);
+
+        return KakaoLoginResponse.of(result.user(), accessToken, refreshToken, result.isNewUser());
     }
 
     /** 로그아웃 — Redis에서 모든 provider의 리프레시 토큰 삭제 */
