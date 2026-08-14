@@ -89,5 +89,5 @@ public class UserCommandService {
         return NotificationSettingsResponse.from(user);
     }
 
-    public record KakaoUserResult(User user, boolean isNewUser) {}
+    public record KakaoUserResult(User user, boolean newUser) {}
 }

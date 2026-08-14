@@ -7,10 +7,10 @@ public record KakaoLoginResponse(
         String nickname,
         String accessToken,
         String refreshToken,
-        boolean isNewUser
+        boolean newUser
 ) {
 
-    public static KakaoLoginResponse of(User user, String accessToken, String refreshToken, boolean isNewUser) {
-        return new KakaoLoginResponse(user.getUserId(), user.getNickname(), accessToken, refreshToken, isNewUser);
+    public static KakaoLoginResponse of(User user, String accessToken, String refreshToken, boolean newUser) {
+        return new KakaoLoginResponse(user.getUserId(), user.getNickname(), accessToken, refreshToken, newUser);
     }
 }

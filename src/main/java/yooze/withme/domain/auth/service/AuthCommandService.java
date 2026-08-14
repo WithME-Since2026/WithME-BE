@@ -118,7 +118,7 @@ public class AuthCommandService {
         // 2. DB 조회·저장 — userCommandService 내부 @Transactional 에서 커넥션 획득·반환
         KakaoUserResult result = userCommandService.findOrRegisterKakaoUser(kakaoId, email, nickname);
 
-        if (result.isNewUser()) {
+        if (result.newUser()) {
             log.info("카카오 회원가입 완료 - userId: {}, kakaoId: {}", result.user().getUserId(), kakaoId);
         } else {
             log.info("카카오 로그인 성공 - userId: {}, kakaoId: {}", result.user().getUserId(), kakaoId);
@@ -130,7 +130,7 @@ public class AuthCommandService {
         LocalDateTime refreshExpiredAt = jwtTokenProvider.getRefreshTokenExpiredAt();
         userTokenCommandService.issueToken(result.user(), refreshToken, ProviderType.KAKAO, refreshExpiredAt);
 
-        return KakaoLoginResponse.of(result.user(), accessToken, refreshToken, result.isNewUser());
+        return KakaoLoginResponse.of(result.user(), accessToken, refreshToken, result.newUser());
     }
 
     /** 로그아웃 — Redis에서 모든 provider의 리프레시 토큰 삭제 */
