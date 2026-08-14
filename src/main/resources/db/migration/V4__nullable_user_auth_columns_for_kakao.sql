@@ -10,3 +10,9 @@ ALTER TABLE user_auth DROP CONSTRAINT IF EXISTS uq_user_auth_provider_login_id;
 CREATE UNIQUE INDEX uq_user_auth_local_login_id
     ON user_auth (login_id)
     WHERE provider = 'LOCAL';
+
+-- 같은 소셜 계정(provider + provider_user_id)으로 user_auth 행이 중복 생성되는 것을 방지한다.
+-- provider_user_id가 null인 LOCAL 사용자는 제외한다.
+CREATE UNIQUE INDEX uq_user_auth_provider_user_id
+    ON user_auth (provider, provider_user_id)
+    WHERE provider_user_id IS NOT NULL;
