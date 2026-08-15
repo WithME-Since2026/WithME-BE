@@ -4,7 +4,6 @@ import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,6 +14,8 @@ import yooze.withme.common.status.SuccessStatus;
 import yooze.withme.domain.todo.controller.docs.TodoControllerDocs;
 import yooze.withme.domain.todo.dto.request.CompleteTodoRequest;
 import yooze.withme.domain.todo.dto.request.CreateTodoRequest;
+import yooze.withme.domain.todo.dto.request.DeleteTodoRequest;
+import yooze.withme.domain.todo.dto.request.UpdateTodoDateRequest;
 import yooze.withme.domain.todo.dto.request.UpdateTodoRequest;
 import yooze.withme.domain.todo.dto.response.TodoResponse;
 import yooze.withme.domain.todo.service.TodoCommandService;
@@ -48,40 +49,38 @@ public class TodoController implements TodoControllerDocs {
     }
 
     @Override
-    public ResponseEntity<ApiResponse<TodoResponse>> getTodo(
+    public ResponseEntity<ApiResponse<TodoResponse>> updateTodo(
             @RequestAttribute("userId") Long userId,
-            @PathVariable Long todoId
+            @Valid @RequestBody UpdateTodoRequest request
     ) {
-        TodoResponse response = todoQueryService.getTodo(userId, todoId);
-        return ApiResponse.success(SuccessStatus.GET_TODO_SUCCESS, response);
+        TodoResponse response = todoCommandService.updateTodo(userId, request);
+        return ApiResponse.success(SuccessStatus.UPDATE_TODO_SUCCESS, response);
     }
 
     @Override
-    public ResponseEntity<ApiResponse<TodoResponse>> updateTodo(
+    public ResponseEntity<ApiResponse<TodoResponse>> updateTodoDate(
             @RequestAttribute("userId") Long userId,
-            @PathVariable Long todoId,
-            @Valid @RequestBody UpdateTodoRequest request
+            @Valid @RequestBody UpdateTodoDateRequest request
     ) {
-        TodoResponse response = todoCommandService.updateTodo(userId, todoId, request);
-        return ApiResponse.success(SuccessStatus.UPDATE_TODO_SUCCESS, response);
+        TodoResponse response = todoCommandService.updateTodoDate(userId, request);
+        return ApiResponse.success(SuccessStatus.UPDATE_TODO_DATE_SUCCESS, response);
     }
 
     @Override
     public ResponseEntity<ApiResponse<TodoResponse>> completeTodo(
             @RequestAttribute("userId") Long userId,
-            @PathVariable Long todoId,
             @Valid @RequestBody CompleteTodoRequest request
     ) {
-        TodoResponse response = todoCommandService.completeTodo(userId, todoId, request);
+        TodoResponse response = todoCommandService.completeTodo(userId, request);
         return ApiResponse.success(SuccessStatus.COMPLETE_TODO_SUCCESS, response);
     }
 
     @Override
     public ResponseEntity<ApiResponse<Void>> deleteTodo(
             @RequestAttribute("userId") Long userId,
-            @PathVariable Long todoId
+            @Valid @RequestBody DeleteTodoRequest request
     ) {
-        todoCommandService.deleteTodo(userId, todoId);
+        todoCommandService.deleteTodo(userId, request);
         return ApiResponse.success(SuccessStatus.DELETE_TODO_SUCCESS);
     }
 }

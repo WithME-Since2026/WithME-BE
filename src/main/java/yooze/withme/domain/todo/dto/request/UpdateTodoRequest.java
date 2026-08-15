@@ -1,17 +1,16 @@
 package yooze.withme.domain.todo.dto.request;
 
-import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import java.time.LocalDate;
 
 public record UpdateTodoRequest(
+        @NotNull(message = "todo ID는 필수입니다.")
+        Long todoId,
+
         @Size(max = 255, message = "제목은 255자를 초과할 수 없습니다.")
         @Pattern(regexp = ".*\\S.*", message = "제목은 공백일 수 없습니다.")
         String title,
-
-        @FutureOrPresent(message = "마감일은 오늘 이후여야 합니다.")
-        LocalDate dueDate,
 
         Long categoryId,
 

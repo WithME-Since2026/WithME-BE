@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,6 +13,7 @@ import yooze.withme.common.response.ApiResponse;
 import yooze.withme.common.status.SuccessStatus;
 import yooze.withme.domain.todo.controller.docs.CategoryControllerDocs;
 import yooze.withme.domain.todo.dto.request.CreateCategoryRequest;
+import yooze.withme.domain.todo.dto.request.DeleteCategoryRequest;
 import yooze.withme.domain.todo.dto.request.UpdateCategoryRequest;
 import yooze.withme.domain.todo.dto.response.CategoryDetailResponse;
 import yooze.withme.domain.todo.dto.response.CategoryResponse;
@@ -62,10 +62,10 @@ public class CategoryController implements CategoryControllerDocs {
     @Override
     public ResponseEntity<ApiResponse<Void>> deleteCategory(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long categoryId
+            @Valid @RequestBody DeleteCategoryRequest request
     ) {
         Long userId = Long.parseLong(userDetails.getUsername());
-        categoryCommandService.deleteCategory(userId, categoryId);
+        categoryCommandService.deleteCategory(userId, request.categoryId());
         return ApiResponse.success(SuccessStatus.DELETE_CATEGORY_SUCCESS);
     }
 }
