@@ -48,7 +48,7 @@ class CategoryCommandServiceTest {
     void createCategoryUsesDefaultColorAndNextSortOrder() {
         User user = user();
         when(userRepository.findByIdForUpdate(USER_ID)).thenReturn(Optional.of(user));
-        when(categoryRepository.existsByUserUserIdAndCategoryName(USER_ID, "운동"))
+        when(categoryRepository.existsByUserUserIdAndCategoryNameAndDeletedAtIsNull(USER_ID, "운동"))
                 .thenReturn(false);
         when(categoryRepository.findMaxSortOrder(USER_ID)).thenReturn(Optional.of(2L));
         when(categoryRepository.saveAndFlush(any(Category.class)))
@@ -67,7 +67,7 @@ class CategoryCommandServiceTest {
     @Test
     void createCategoryTranslatesUniqueConstraintViolationToDuplicateName() {
         when(userRepository.findByIdForUpdate(USER_ID)).thenReturn(Optional.of(user()));
-        when(categoryRepository.existsByUserUserIdAndCategoryName(USER_ID, "운동"))
+        when(categoryRepository.existsByUserUserIdAndCategoryNameAndDeletedAtIsNull(USER_ID, "운동"))
                 .thenReturn(false);
         when(categoryRepository.findMaxSortOrder(USER_ID)).thenReturn(Optional.of(2L));
         when(categoryRepository.saveAndFlush(any(Category.class)))
@@ -85,7 +85,7 @@ class CategoryCommandServiceTest {
     @Test
     void createCategoryRethrowsUnrelatedConstraintViolation() {
         when(userRepository.findByIdForUpdate(USER_ID)).thenReturn(Optional.of(user()));
-        when(categoryRepository.existsByUserUserIdAndCategoryName(USER_ID, "운동"))
+        when(categoryRepository.existsByUserUserIdAndCategoryNameAndDeletedAtIsNull(USER_ID, "운동"))
                 .thenReturn(false);
         when(categoryRepository.findMaxSortOrder(USER_ID)).thenReturn(Optional.of(2L));
         when(categoryRepository.saveAndFlush(any(Category.class)))
@@ -103,7 +103,7 @@ class CategoryCommandServiceTest {
         Category category = category(10L, user(), "A", 0L);
         when(categoryRepository.findById(category.getCategoryId()))
                 .thenReturn(Optional.of(category));
-        when(categoryRepository.existsByUserUserIdAndCategoryNameAndCategoryIdNot(
+        when(categoryRepository.existsByUserUserIdAndCategoryNameAndCategoryIdNotAndDeletedAtIsNull(
                 USER_ID, "B", category.getCategoryId()
         )).thenReturn(false);
         doThrow(uniqueViolation(Category.UK_CATEGORY_USER_NAME))
@@ -142,7 +142,7 @@ class CategoryCommandServiceTest {
         when(userRepository.findByIdForUpdate(USER_ID)).thenReturn(Optional.of(user));
         when(categoryRepository.findById(categoryC.getCategoryId()))
                 .thenReturn(Optional.of(categoryC));
-        when(categoryRepository.findByUserUserIdOrderBySortOrderAsc(USER_ID))
+        when(categoryRepository.findByUserUserIdAndDeletedAtIsNullOrderBySortOrderAsc(USER_ID))
                 .thenReturn(categories);
 
         CategoryResponse response = categoryCommandService.updateCategory(
@@ -170,7 +170,7 @@ class CategoryCommandServiceTest {
         when(userRepository.findByIdForUpdate(USER_ID)).thenReturn(Optional.of(user));
         when(categoryRepository.findById(categoryA.getCategoryId()))
                 .thenReturn(Optional.of(categoryA));
-        when(categoryRepository.findByUserUserIdOrderBySortOrderAsc(USER_ID))
+        when(categoryRepository.findByUserUserIdAndDeletedAtIsNullOrderBySortOrderAsc(USER_ID))
                 .thenReturn(categories);
 
         CategoryResponse response = categoryCommandService.updateCategory(
@@ -193,7 +193,7 @@ class CategoryCommandServiceTest {
         when(userRepository.findByIdForUpdate(USER_ID)).thenReturn(Optional.of(user));
         when(categoryRepository.findById(categoryB.getCategoryId()))
                 .thenReturn(Optional.of(categoryB));
-        when(categoryRepository.findByUserUserIdOrderBySortOrderAsc(USER_ID))
+        when(categoryRepository.findByUserUserIdAndDeletedAtIsNullOrderBySortOrderAsc(USER_ID))
                 .thenReturn(new ArrayList<>(List.of(categoryA, categoryB)));
 
         categoryCommandService.updateCategory(
@@ -203,7 +203,7 @@ class CategoryCommandServiceTest {
 
         InOrder inOrder = inOrder(userRepository, categoryRepository);
         inOrder.verify(userRepository).findByIdForUpdate(USER_ID);
-        inOrder.verify(categoryRepository).findByUserUserIdOrderBySortOrderAsc(USER_ID);
+        inOrder.verify(categoryRepository).findByUserUserIdAndDeletedAtIsNullOrderBySortOrderAsc(USER_ID);
     }
 
     @Test
@@ -211,7 +211,7 @@ class CategoryCommandServiceTest {
         Category category = category(10L, user(), "A", 0L);
         when(categoryRepository.findById(category.getCategoryId()))
                 .thenReturn(Optional.of(category));
-        when(categoryRepository.existsByUserUserIdAndCategoryNameAndCategoryIdNot(
+        when(categoryRepository.existsByUserUserIdAndCategoryNameAndCategoryIdNotAndDeletedAtIsNull(
                 USER_ID, "B", category.getCategoryId()
         )).thenReturn(false);
 

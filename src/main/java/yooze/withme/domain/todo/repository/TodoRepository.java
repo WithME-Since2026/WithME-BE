@@ -23,7 +23,12 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
     List<Todo> findByUserIdAndNotDeleted(@Param("userId") Long userId);
 
     /** 카테고리 삭제 시 해당 카테고리를 쓰던 todo 전체를 카테고리 없음 상태로 해제한다 */
-    @Modifying
-    @Query("update Todo t set t.category = null where t.category.categoryId = :categoryId")
-    void clearCategory(@Param("categoryId") Long categoryId);
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+            update Todo t
+            set t.category = null
+            where t.category.categoryId = :categoryId
+              and t.user.userId = :userId
+            """)
+    void clearCategory(@Param("userId") Long userId, @Param("categoryId") Long categoryId);
 }

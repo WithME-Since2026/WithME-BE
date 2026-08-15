@@ -9,14 +9,14 @@ import yooze.withme.domain.todo.entity.Category;
 
 public interface CategoryRepository extends JpaRepository<Category, Long> {
 
-    List<Category> findByUserUserIdOrderBySortOrderAsc(Long userId);
+    List<Category> findByUserUserIdAndDeletedAtIsNullOrderBySortOrderAsc(Long userId);
 
-    @Query("select max(c.sortOrder) from Category c where c.user.userId = :userId")
+    @Query("select max(c.sortOrder) from Category c where c.user.userId = :userId and c.deletedAt is null")
     Optional<Long> findMaxSortOrder(@Param("userId") Long userId);
 
-    boolean existsByUserUserIdAndCategoryName(Long userId, String categoryName);
+    boolean existsByUserUserIdAndCategoryNameAndDeletedAtIsNull(Long userId, String categoryName);
 
-    boolean existsByUserUserIdAndCategoryNameAndCategoryIdNot(
+    boolean existsByUserUserIdAndCategoryNameAndCategoryIdNotAndDeletedAtIsNull(
             Long userId,
             String categoryName,
             Long categoryId
