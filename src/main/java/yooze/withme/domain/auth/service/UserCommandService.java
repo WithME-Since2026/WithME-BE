@@ -2,7 +2,7 @@ package yooze.withme.domain.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import yooze.withme.common.exception.GeneralException;
@@ -14,6 +14,8 @@ import yooze.withme.domain.auth.entity.UserAuth;
 import yooze.withme.domain.auth.enums.ProviderType;
 import yooze.withme.domain.auth.repository.UserAuthRepository;
 import yooze.withme.domain.auth.repository.UserRepository;
+
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -42,33 +44,41 @@ public class UserCommandService {
 
     /**
      * 카카오 로그인 — 기존 연동 사용자면 조회, 신규면 User + UserAuth 함께 등록.
-     * 외부 HTTP 호출(카카오 API) 이후에 실행되므로 이 메서드 자체가 트랜잭션 경계.
+     * 동시 요청으로 INSERT가 충돌하면 DataIntegrityViolationException을 잡아 재조회한다.
      *
-     * @return (user, isNewUser)
+     * @return (user, newUser)
      */
     public KakaoUserResult findOrRegisterKakaoUser(Long kakaoId, String email, String nickname) {
-        return userAuthRepository.findByProviderAndProviderUserId(ProviderType.KAKAO, kakaoId)
-                .map(auth -> new KakaoUserResult(auth.getUser(), false))
-                .orElseGet(() -> {
-                    if (userRepository.findByEmail(email).isPresent()) {
-                        throw new GeneralException(ErrorStatus.DUPLICATE_EMAIL);
-                    }
+        // 기존 카카오 연동 계정 확인
+        Optional<UserAuth> existing = userAuthRepository.findByProviderAndProviderUserId(ProviderType.KAKAO, kakaoId);
+        if (existing.isPresent()) {
+            return new KakaoUserResult(existing.get().getUser(), false);
+        }
 
-                    User user = userRepository.save(User.builder()
-                            .nickname(nickname)
-                            .email(email)
-                            .kakaoSync(true)
-                            .notifyAgree(false)
-                            .build());
+        // 신규 등록 시도
+        try {
+            User user = userRepository.save(User.builder()
+                    .nickname(nickname)
+                    .email(email)
+                    .kakaoSync(true)
+                    .notifyAgree(false)
+                    .build());
 
-                    userAuthRepository.save(UserAuth.builder()
-                            .user(user)
-                            .provider(ProviderType.KAKAO)
-                            .providerUserId(kakaoId)
-                            .build());
+            userAuthRepository.save(UserAuth.builder()
+                    .user(user)
+                    .provider(ProviderType.KAKAO)
+                    .providerUserId(kakaoId)
+                    .build());
 
-                    return new KakaoUserResult(user, true);
-                });
+            return new KakaoUserResult(user, true);
+
+        } catch (DataIntegrityViolationException e) {
+            // 동시 요청이 먼저 INSERT한 경우 → 재조회해서 기존 유저로 로그인
+            // 재조회에도 없으면 email이 다른 계정(로컬 등)에 이미 사용 중인 것
+            return userAuthRepository.findByProviderAndProviderUserId(ProviderType.KAKAO, kakaoId)
+                    .map(auth -> new KakaoUserResult(auth.getUser(), false))
+                    .orElseThrow(() -> new GeneralException(ErrorStatus.DUPLICATE_EMAIL));
+        }
     }
 
     /** 닉네임(이름) 변경 */
