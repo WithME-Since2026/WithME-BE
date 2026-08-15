@@ -15,6 +15,7 @@ import yooze.withme.domain.todo.dto.request.UpdateCategoryRequest;
 import yooze.withme.domain.todo.dto.response.CategoryResponse;
 import yooze.withme.domain.todo.entity.Category;
 import yooze.withme.domain.todo.repository.CategoryRepository;
+import yooze.withme.domain.todo.repository.TodoRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +24,7 @@ public class CategoryCommandService {
 
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
+    private final TodoRepository todoRepository;
 
     public CategoryResponse createCategory(Long userId, CreateCategoryRequest request) {
         // sortOrder 계산은 "현재 목록을 읽고 → 다음 값을 정해서 → 저장"하는 읽기-수정-쓰기다.
@@ -31,7 +33,7 @@ public class CategoryCommandService {
 
         // 선검사는 정상 케이스를 빠르게 걸러낼 뿐, 동시 요청에서는 양쪽 모두 통과 가능
         // 중복 여부의 최종 판정은 아래 flush 에서 발생하는 유니크 제약 위반으로 위임
-        if (categoryRepository.existsByUserUserIdAndCategoryName(userId, request.categoryName())) {
+        if (categoryRepository.existsByUserUserIdAndCategoryNameAndDeletedAtIsNull(userId, request.categoryName())) {
             throw new GeneralException(ErrorStatus.DUPLICATE_CATEGORY_NAME);
         }
 
@@ -76,7 +78,7 @@ public class CategoryCommandService {
 
         if (request.categoryName() != null
                 && !request.categoryName().equals(category.getCategoryName())
-                && categoryRepository.existsByUserUserIdAndCategoryNameAndCategoryIdNot(
+                && categoryRepository.existsByUserUserIdAndCategoryNameAndCategoryIdNotAndDeletedAtIsNull(
                         userId,
                         request.categoryName(),
                         category.getCategoryId()
@@ -100,6 +102,23 @@ public class CategoryCommandService {
         return CategoryResponse.from(category);
     }
 
+    /** 카테고리 삭제: 이 카테고리를 쓰던 todo는 삭제되지 않고 카테고리만 해제된다 */
+    public void deleteCategory(Long userId, Long categoryId) {
+        // createCategory/updateCategory와 동일하게, 삭제도 sortOrder 재계산(reorderCategories)과
+        // 동시에 발생하면 이미 지워진 행을 건드리거나 정렬 순서 제약과 충돌할 수 있어 사용자 행을 잠근다.
+        lockUser(userId);
+
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.CATEGORY_NOT_FOUND));
+
+        if (!category.getUser().getUserId().equals(userId)) {
+            throw new GeneralException(ErrorStatus.CATEGORY_FORBIDDEN);
+        }
+
+        todoRepository.clearCategory(userId, categoryId);
+        category.delete();
+    }
+
     /**
      * 사용자별 정렬 순서 재계산을 직렬화하기 위한 게이트.
      * 트랜잭션이 끝날 때까지 유지되므로 읽기-수정-쓰기 전체가 보호된다.
@@ -120,7 +139,7 @@ public class CategoryCommandService {
     }
 
     private void reorderCategories(Long userId, Category target, long requestedOrder) {
-        List<Category> categories = categoryRepository.findByUserUserIdOrderBySortOrderAsc(userId);
+        List<Category> categories = categoryRepository.findByUserUserIdAndDeletedAtIsNullOrderBySortOrderAsc(userId);
         categories.removeIf(category -> category.getCategoryId().equals(target.getCategoryId()));
 
         int targetIndex = (int) Math.min(requestedOrder, categories.size());

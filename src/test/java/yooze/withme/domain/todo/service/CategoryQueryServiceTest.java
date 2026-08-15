@@ -39,7 +39,7 @@ class CategoryQueryServiceTest {
         Category first = category(10L, user, "운동", 0L);
         Category second = category(11L, user, "공부", 1L);
 
-        when(categoryRepository.findByUserUserIdOrderBySortOrderAsc(USER_ID))
+        when(categoryRepository.findByUserUserIdAndDeletedAtIsNullOrderBySortOrderAsc(USER_ID))
                 .thenReturn(List.of(first, second));
         when(todoRepository.countTodosByCategory(USER_ID))
                 .thenReturn(List.of(new CategoryTodoCount(first.getCategoryId(), 5L)));

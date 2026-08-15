@@ -22,7 +22,7 @@ public class CategoryQueryService {
 
     public List<CategoryDetailResponse> getCategories(Long userId) {
         List<Category> categories =
-                categoryRepository.findByUserUserIdOrderBySortOrderAsc(userId);
+                categoryRepository.findByUserUserIdAndDeletedAtIsNullOrderBySortOrderAsc(userId);
         Map<Long, Long> todoCounts = todoRepository.countTodosByCategory(userId).stream()
                 .collect(Collectors.toMap(
                         CategoryTodoCount::categoryId,

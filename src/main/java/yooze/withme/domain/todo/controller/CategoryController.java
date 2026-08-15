@@ -13,6 +13,7 @@ import yooze.withme.common.response.ApiResponse;
 import yooze.withme.common.status.SuccessStatus;
 import yooze.withme.domain.todo.controller.docs.CategoryControllerDocs;
 import yooze.withme.domain.todo.dto.request.CreateCategoryRequest;
+import yooze.withme.domain.todo.dto.request.DeleteCategoryRequest;
 import yooze.withme.domain.todo.dto.request.UpdateCategoryRequest;
 import yooze.withme.domain.todo.dto.response.CategoryDetailResponse;
 import yooze.withme.domain.todo.dto.response.CategoryResponse;
@@ -56,5 +57,15 @@ public class CategoryController implements CategoryControllerDocs {
         Long userId = Long.parseLong(userDetails.getUsername());
         List<CategoryDetailResponse> response = categoryQueryService.getCategories(userId);
         return ApiResponse.success(SuccessStatus.GET_CATEGORIES_SUCCESS, response);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<Void>> deleteCategory(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody DeleteCategoryRequest request
+    ) {
+        Long userId = Long.parseLong(userDetails.getUsername());
+        categoryCommandService.deleteCategory(userId, request.categoryId());
+        return ApiResponse.success(SuccessStatus.DELETE_CATEGORY_SUCCESS);
     }
 }

@@ -32,11 +32,17 @@ public enum SuccessStatus implements BaseStatus {
     CREATE_CATEGORY_SUCCESS("CATEGORY_201", HttpStatus.CREATED, "카테고리 생성 성공"),
     UPDATE_CATEGORY_SUCCESS("CATEGORY_200", HttpStatus.OK, "카테고리 수정 성공"),
     GET_CATEGORIES_SUCCESS("CATEGORY_200", HttpStatus.OK, "카테고리 목록 조회 성공"),
+    DELETE_CATEGORY_SUCCESS("CATEGORY_200", HttpStatus.OK, "카테고리 삭제 성공"),
 
     /**
      * TODO
      */
     CREATE_TODO_SUCCESS("TODO_201", HttpStatus.CREATED, "todo 생성 성공"),
+    GET_TODOS_SUCCESS("TODO_200", HttpStatus.OK, "todo 목록 조회 성공"),
+    UPDATE_TODO_SUCCESS("TODO_200", HttpStatus.OK, "todo 수정 성공"),
+    UPDATE_TODO_DATE_SUCCESS("TODO_200", HttpStatus.OK, "todo 날짜 수정 성공"),
+    DELETE_TODO_SUCCESS("TODO_204", HttpStatus.NO_CONTENT, "todo 삭제 성공"),
+    COMPLETE_TODO_SUCCESS("TODO_200", HttpStatus.OK, "todo 완료 처리 성공"),
 
     /**
      * User
