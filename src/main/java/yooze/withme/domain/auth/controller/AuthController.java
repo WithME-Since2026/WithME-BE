@@ -11,6 +11,7 @@ import yooze.withme.common.status.ErrorStatus;
 import yooze.withme.common.status.SuccessStatus;
 import yooze.withme.domain.auth.controller.docs.AuthControllerDocs;
 import yooze.withme.domain.auth.dto.request.IdCheckRequest;
+import yooze.withme.domain.auth.dto.request.KakaoCallbackRequest;
 import yooze.withme.domain.auth.dto.request.LoginRequest;
 import yooze.withme.domain.auth.dto.request.SignUpRequest;
 import yooze.withme.domain.auth.dto.response.KakaoLoginResponse;
@@ -43,9 +44,9 @@ public class AuthController implements AuthControllerDocs {
 
     @PostMapping("/kakao/callback")
     public ResponseEntity<ApiResponse<KakaoLoginResponse>> postKakaoCallback(
-            @RequestParam String code
+            @Valid @RequestBody KakaoCallbackRequest request
     ) {
-        KakaoLoginResponse kakaoLoginResponse = authCommandService.kakaoLogin(code);
+        KakaoLoginResponse kakaoLoginResponse = authCommandService.kakaoLogin(request.code());
         return ApiResponse.success(SuccessStatus.KAKAO_LOGIN_SUCCESS, kakaoLoginResponse);
     }
 

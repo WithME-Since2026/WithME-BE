@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import yooze.withme.common.response.ApiResponse;
 import yooze.withme.domain.auth.dto.request.IdCheckRequest;
+import yooze.withme.domain.auth.dto.request.KakaoCallbackRequest;
 import yooze.withme.domain.auth.dto.request.LoginRequest;
 import yooze.withme.domain.auth.dto.request.SignUpRequest;
 import yooze.withme.domain.auth.dto.response.KakaoLoginResponse;
@@ -51,7 +52,7 @@ public interface AuthControllerDocs {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "502", description = "카카오 사용자 정보 조회 실패")
     @PostMapping("/kakao/callback")
     ResponseEntity<ApiResponse<KakaoLoginResponse>> postKakaoCallback(
-            @Parameter(description = "카카오 인가 코드", required = true) @RequestParam String code
+            @Valid @RequestBody KakaoCallbackRequest request
     );
 
     @Operation(summary = "아이디 중복 확인", description = "사용하려는 아이디가 이미 존재하는지 확인한다. 중복이면 409, 사용 가능하면 200을 반환한다.")
