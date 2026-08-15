@@ -1,8 +1,9 @@
 package yooze.withme.domain.todo.controller;
 
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import yooze.withme.common.response.ApiResponse;
+import yooze.withme.common.response.PageResponse;
 import yooze.withme.common.status.SuccessStatus;
 import yooze.withme.domain.todo.controller.docs.TodoControllerDocs;
 import yooze.withme.domain.todo.dto.request.CompleteTodoRequest;
@@ -41,10 +43,11 @@ public class TodoController implements TodoControllerDocs {
     }
 
     @Override
-    public ResponseEntity<ApiResponse<List<TodoResponse>>> getTodos(
-            @RequestAttribute("userId") Long userId
+    public ResponseEntity<ApiResponse<PageResponse<TodoResponse>>> getTodos(
+            @RequestAttribute("userId") Long userId,
+            @PageableDefault(size = 20, sort = "dueDate") Pageable pageable
     ) {
-        List<TodoResponse> response = todoQueryService.getTodos(userId);
+        PageResponse<TodoResponse> response = todoQueryService.getTodos(userId, pageable);
         return ApiResponse.success(SuccessStatus.GET_TODOS_SUCCESS, response);
     }
 

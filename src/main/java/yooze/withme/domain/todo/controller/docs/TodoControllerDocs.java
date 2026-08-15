@@ -5,7 +5,9 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import yooze.withme.common.response.ApiResponse;
+import yooze.withme.common.response.PageResponse;
 import yooze.withme.domain.todo.dto.request.CompleteTodoRequest;
 import yooze.withme.domain.todo.dto.request.CreateTodoRequest;
 import yooze.withme.domain.todo.dto.request.DeleteTodoRequest;
@@ -36,11 +39,12 @@ public interface TodoControllerDocs {
             @Valid @RequestBody CreateTodoRequest request
     );
 
-    @Operation(summary = "todo 목록 조회", description = "삭제되지 않은 본인 todo를 마감일 오름차순으로 조회한다.")
+    @Operation(summary = "todo 목록 조회", description = "삭제되지 않은 본인 todo를 페이지 단위로 조회한다. 기본 정렬은 마감일 오름차순이다.")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "todo 목록 조회 성공")
     @GetMapping("/list")
-    ResponseEntity<ApiResponse<List<TodoResponse>>> getTodos(
-            @Parameter(hidden = true) @RequestAttribute("userId") Long userId
+    ResponseEntity<ApiResponse<PageResponse<TodoResponse>>> getTodos(
+            @Parameter(hidden = true) @RequestAttribute("userId") Long userId,
+            @ParameterObject @PageableDefault(size = 20, sort = "dueDate") Pageable pageable
     );
 
     @Operation(summary = "todo 수정", description = "제목/카테고리/알림 여부를 수정한다. null인 필드는 기존 값을 유지한다. categoryId 지정 시 본인 소유 카테고리여야 한다.")

@@ -1,6 +1,8 @@
 package yooze.withme.domain.todo.repository;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -19,8 +21,7 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
             """)
     List<CategoryTodoCount> countTodosByCategory(@Param("userId") Long userId);
 
-    @Query("select t from Todo t where t.user.userId = :userId and t.deletedAt is null order by t.dueDate asc")
-    List<Todo> findByUserIdAndNotDeleted(@Param("userId") Long userId);
+    Page<Todo> findByUserUserIdAndDeletedAtIsNull(Long userId, Pageable pageable);
 
     /** 카테고리 삭제 시 해당 카테고리를 쓰던 todo 전체를 카테고리 없음 상태로 해제한다 */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
