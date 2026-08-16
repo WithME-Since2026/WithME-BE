@@ -40,9 +40,9 @@ public class UserQueryService {
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
     }
 
-    /** 이메일 존재 여부 확인 */
+    /** 이메일 존재 여부 확인 (탈퇴 회원 제외) */
     public boolean existsByEmail(String email) {
-        return userRepository.findByEmail(email).isPresent();
+        return userRepository.findByEmailAndDeletedAtIsNull(email).isPresent();
     }
 
     /** 내 프로필 조회 */

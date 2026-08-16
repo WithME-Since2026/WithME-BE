@@ -52,7 +52,12 @@ public class UserCommandService {
         // 기존 카카오 연동 계정 확인
         Optional<UserAuth> existing = userAuthRepository.findByProviderAndProviderUserId(ProviderType.KAKAO, kakaoId);
         if (existing.isPresent()) {
-            return new KakaoUserResult(existing.get().getUser(), false);
+            User user = existing.get().getUser();
+            if (user.getDeletedAt() != null) {
+                // TODO: 탈퇴 회원 재로그인/재가입 정책 논의 필요
+                throw new GeneralException(ErrorStatus.DELETED_USER);
+            }
+            return new KakaoUserResult(user, false);
         }
 
         // 신규 등록 시도
@@ -76,6 +81,7 @@ public class UserCommandService {
             // 동시 요청이 먼저 INSERT한 경우 → 재조회해서 기존 유저로 로그인
             // 재조회에도 없으면 email이 다른 계정(로컬 등)에 이미 사용 중인 것
             return userAuthRepository.findByProviderAndProviderUserId(ProviderType.KAKAO, kakaoId)
+                    .filter(auth -> auth.getUser().getDeletedAt() == null)
                     .map(auth -> new KakaoUserResult(auth.getUser(), false))
                     .orElseThrow(() -> new GeneralException(ErrorStatus.EMAIL_ALREADY_REGISTERED));
         }
