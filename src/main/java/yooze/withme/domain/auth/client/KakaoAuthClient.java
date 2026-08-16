@@ -55,12 +55,18 @@ public class KakaoAuthClient {
         }
 
         try {
-            return restClient.post()
+            KakaoTokenResponse response = restClient.post()
                     .uri(TOKEN_URI)
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .body(body)
                     .retrieve()
                     .body(KakaoTokenResponse.class);
+
+            if (response == null || !StringUtils.hasText(response.accessToken())) {
+                log.warn("[*] 카카오 토큰 발급 응답이 비어있음");
+                throw new GeneralException(ErrorStatus.KAKAO_TOKEN_REQUEST_FAILED);
+            }
+            return response;
         } catch (RestClientException e) {
             log.warn("[*] 카카오 토큰 발급 실패 : {}", e.getMessage());
             throw new GeneralException(ErrorStatus.KAKAO_TOKEN_REQUEST_FAILED);
@@ -70,11 +76,17 @@ public class KakaoAuthClient {
     /** 카카오 access token으로 사용자 정보 조회 */
     public KakaoUserInfoResponse getUserInfo(String kakaoAccessToken) {
         try {
-            return restClient.get()
+            KakaoUserInfoResponse response = restClient.get()
                     .uri(USER_INFO_URI)
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + kakaoAccessToken)
                     .retrieve()
                     .body(KakaoUserInfoResponse.class);
+
+            if (response == null || response.id() == null) {
+                log.warn("[*] 카카오 사용자 정보 응답이 비어있음");
+                throw new GeneralException(ErrorStatus.KAKAO_USER_INFO_REQUEST_FAILED);
+            }
+            return response;
         } catch (RestClientException e) {
             log.warn("[*] 카카오 사용자 정보 조회 실패 : {}", e.getMessage());
             throw new GeneralException(ErrorStatus.KAKAO_USER_INFO_REQUEST_FAILED);
