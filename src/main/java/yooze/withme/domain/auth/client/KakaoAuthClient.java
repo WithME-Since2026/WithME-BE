@@ -10,6 +10,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 import yooze.withme.common.exception.GeneralException;
 import yooze.withme.common.properties.KakaoProperties;
 import yooze.withme.common.status.ErrorStatus;
@@ -67,9 +68,16 @@ public class KakaoAuthClient {
                 throw new GeneralException(ErrorStatus.KAKAO_TOKEN_REQUEST_FAILED);
             }
             return response;
+        } catch (RestClientResponseException e) {
+            if (e.getStatusCode().is4xxClientError()) {
+                log.warn("[*] 카카오 토큰 발급 실패 - 잘못된 인가 코드 : {}", e.getMessage());
+                throw new GeneralException(ErrorStatus.KAKAO_TOKEN_REQUEST_FAILED);
+            }
+            log.warn("[*] 카카오 토큰 발급 실패 - 카카오 서버 오류 : {}", e.getMessage());
+            throw new GeneralException(ErrorStatus.KAKAO_SERVER_ERROR);
         } catch (RestClientException e) {
-            log.warn("[*] 카카오 토큰 발급 실패 : {}", e.getMessage());
-            throw new GeneralException(ErrorStatus.KAKAO_TOKEN_REQUEST_FAILED);
+            log.warn("[*] 카카오 토큰 발급 실패 - 네트워크 오류 : {}", e.getMessage());
+            throw new GeneralException(ErrorStatus.KAKAO_SERVER_ERROR);
         }
     }
 
@@ -87,9 +95,16 @@ public class KakaoAuthClient {
                 throw new GeneralException(ErrorStatus.KAKAO_USER_INFO_REQUEST_FAILED);
             }
             return response;
+        } catch (RestClientResponseException e) {
+            if (e.getStatusCode().is4xxClientError()) {
+                log.warn("[*] 카카오 사용자 정보 조회 실패 - 권한 없음 : {}", e.getMessage());
+                throw new GeneralException(ErrorStatus.KAKAO_USER_INFO_REQUEST_FAILED);
+            }
+            log.warn("[*] 카카오 사용자 정보 조회 실패 - 카카오 서버 오류 : {}", e.getMessage());
+            throw new GeneralException(ErrorStatus.KAKAO_SERVER_ERROR);
         } catch (RestClientException e) {
-            log.warn("[*] 카카오 사용자 정보 조회 실패 : {}", e.getMessage());
-            throw new GeneralException(ErrorStatus.KAKAO_USER_INFO_REQUEST_FAILED);
+            log.warn("[*] 카카오 사용자 정보 조회 실패 - 네트워크 오류 : {}", e.getMessage());
+            throw new GeneralException(ErrorStatus.KAKAO_SERVER_ERROR);
         }
     }
 }
