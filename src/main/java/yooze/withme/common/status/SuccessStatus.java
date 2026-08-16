@@ -39,6 +39,14 @@ public enum SuccessStatus implements BaseStatus {
     CREATE_TODO_SUCCESS("TODO_201", HttpStatus.CREATED, "todo 생성 성공"),
 
     /**
+     * Schedule
+     */
+    CREATE_SCHEDULE_SUCCESS("SCHEDULE_201", HttpStatus.CREATED, "일정 생성 성공"),
+    GET_SCHEDULE_SUCCESS("SCHEDULE_200", HttpStatus.OK, "일정 조회 성공"),
+    UPDATE_SCHEDULE_SUCCESS("SCHEDULE_200", HttpStatus.OK, "일정 수정 성공"),
+    DELETE_SCHEDULE_SUCCESS("SCHEDULE_200", HttpStatus.OK, "일정 삭제 성공"),
+
+    /**
      * User
      */
     GET_PROFILE_SUCCESS("USER_200", HttpStatus.OK, "프로필 조회 성공"),
