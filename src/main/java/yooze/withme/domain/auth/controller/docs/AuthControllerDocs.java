@@ -17,6 +17,8 @@ import yooze.withme.domain.auth.dto.request.IdCheckRequest;
 import yooze.withme.domain.auth.dto.request.KakaoCallbackRequest;
 import yooze.withme.domain.auth.dto.request.LoginRequest;
 import yooze.withme.domain.auth.dto.request.SignUpRequest;
+import yooze.withme.domain.auth.dto.request.TokenReissueRequest;
+import yooze.withme.domain.auth.dto.response.TokenReissueResponse;
 import yooze.withme.domain.auth.dto.response.KakaoLoginResponse;
 import yooze.withme.domain.auth.dto.response.LoginResponse;
 import yooze.withme.domain.auth.dto.response.SignUpResponse;
@@ -53,6 +55,14 @@ public interface AuthControllerDocs {
     @PostMapping("/kakao/callback")
     ResponseEntity<ApiResponse<KakaoLoginResponse>> postKakaoCallback(
             @Valid @RequestBody KakaoCallbackRequest request
+    );
+
+    @Operation(summary = "토큰 재발급", description = "리프레시 토큰으로 액세스 토큰과 리프레시 토큰을 재발급한다.")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "토큰 재발급 성공")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "유효하지 않거나 만료된 리프레시 토큰")
+    @PostMapping("/reissue")
+    ResponseEntity<ApiResponse<TokenReissueResponse>> postReissue(
+            @Valid @RequestBody TokenReissueRequest request
     );
 
     @Operation(summary = "아이디 중복 확인", description = "사용하려는 아이디가 이미 존재하는지 확인한다. 중복이면 409, 사용 가능하면 200을 반환한다.")

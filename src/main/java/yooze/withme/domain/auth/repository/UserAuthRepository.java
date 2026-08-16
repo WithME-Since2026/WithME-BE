@@ -5,6 +5,7 @@ import yooze.withme.domain.auth.entity.User;
 import yooze.withme.domain.auth.entity.UserAuth;
 import yooze.withme.domain.auth.enums.ProviderType;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UserAuthRepository extends JpaRepository<UserAuth, Long> {
@@ -18,4 +19,6 @@ public interface UserAuthRepository extends JpaRepository<UserAuth, Long> {
     Optional<UserAuth> findByUser_EmailAndProvider(String email, ProviderType provider);
 
     Optional<UserAuth> findByProviderAndProviderUserId(ProviderType provider, Long providerUserId);
+
+    List<UserAuth> findAllByUser(User user);
 }

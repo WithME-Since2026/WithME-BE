@@ -14,6 +14,8 @@ import yooze.withme.domain.auth.dto.request.IdCheckRequest;
 import yooze.withme.domain.auth.dto.request.KakaoCallbackRequest;
 import yooze.withme.domain.auth.dto.request.LoginRequest;
 import yooze.withme.domain.auth.dto.request.SignUpRequest;
+import yooze.withme.domain.auth.dto.request.TokenReissueRequest;
+import yooze.withme.domain.auth.dto.response.TokenReissueResponse;
 import yooze.withme.domain.auth.dto.response.KakaoLoginResponse;
 import yooze.withme.domain.auth.dto.response.LoginResponse;
 import yooze.withme.domain.auth.dto.response.SignUpResponse;
@@ -59,6 +61,14 @@ public class AuthController implements AuthControllerDocs {
             return ApiResponse.error(ErrorStatus.DUPLICATE_ID);
         }
         return ApiResponse.success(SuccessStatus.SUCCESS_200);
+    }
+
+    @PostMapping("/reissue")
+    public ResponseEntity<ApiResponse<TokenReissueResponse>> postReissue(
+            @Valid @RequestBody TokenReissueRequest request
+    ) {
+        TokenReissueResponse response = authCommandService.reissueToken(request.refreshToken());
+        return ApiResponse.success(SuccessStatus.CREATE_TOKEN_SUCCESS, response);
     }
 
     @PostMapping("/logout")

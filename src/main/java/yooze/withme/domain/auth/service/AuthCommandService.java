@@ -17,6 +17,7 @@ import yooze.withme.domain.auth.dto.request.SignUpRequest;
 import yooze.withme.domain.auth.dto.response.KakaoLoginResponse;
 import yooze.withme.domain.auth.dto.response.LoginResponse;
 import yooze.withme.domain.auth.dto.response.SignUpResponse;
+import yooze.withme.domain.auth.dto.response.TokenReissueResponse;
 import yooze.withme.domain.auth.entity.User;
 import yooze.withme.domain.auth.entity.UserAuth;
 import yooze.withme.domain.auth.enums.ProviderType;
@@ -64,7 +65,7 @@ public class AuthCommandService {
         userAuthRepository.save(userAuth);
 
         String accessToken = jwtTokenProvider.generateAccessToken(user.getUserId());
-        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getUserId());
+        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getUserId(), ProviderType.LOCAL);
         LocalDateTime refreshExpiredAt = jwtTokenProvider.getRefreshTokenExpiredAt();
 
         userTokenCommandService.issueToken(user, refreshToken, ProviderType.LOCAL, refreshExpiredAt);
@@ -85,7 +86,7 @@ public class AuthCommandService {
         User user = userAuth.getUser();
 
         String accessToken = jwtTokenProvider.generateAccessToken(user.getUserId());
-        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getUserId());
+        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getUserId(), ProviderType.LOCAL);
         LocalDateTime refreshExpiredAt = jwtTokenProvider.getRefreshTokenExpiredAt();
 
         userTokenCommandService.issueToken(user, refreshToken, ProviderType.LOCAL, refreshExpiredAt);
@@ -126,20 +127,45 @@ public class AuthCommandService {
 
         // 3. JWT 발급 + Redis 저장 — 트랜잭션 불필요
         String accessToken = jwtTokenProvider.generateAccessToken(result.user().getUserId());
-        String refreshToken = jwtTokenProvider.generateRefreshToken(result.user().getUserId());
+        String refreshToken = jwtTokenProvider.generateRefreshToken(result.user().getUserId(), ProviderType.KAKAO);
         LocalDateTime refreshExpiredAt = jwtTokenProvider.getRefreshTokenExpiredAt();
         userTokenCommandService.issueToken(result.user(), refreshToken, ProviderType.KAKAO, refreshExpiredAt);
 
         return KakaoLoginResponse.of(result.user(), accessToken, refreshToken, result.newUser());
     }
 
-    /** 로그아웃 — Redis에서 모든 provider의 리프레시 토큰 삭제 */
+    /** 로그아웃 — 해당 유저의 실제 provider만 Redis에서 삭제 */
     public void logout(Long userId) {
         User user = userQueryService.getUserByUserId(userId);
-        for (ProviderType provider : ProviderType.values()) {
-            userTokenCommandService.revokeToken(user, provider);
-        }
+        userAuthRepository.findAllByUser(user)
+                .forEach(auth -> userTokenCommandService.revokeToken(user, auth.getProvider()));
         log.info("로그아웃 - userId: {}", userId);
+    }
+
+    /** 리프레시 토큰으로 액세스 토큰 재발급 (토큰 로테이션) */
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
+    public TokenReissueResponse reissueToken(String refreshToken) {
+        jwtTokenProvider.validateToken(refreshToken);
+        if (jwtTokenProvider.isAccessToken(refreshToken)) {
+            throw new GeneralException(ErrorStatus.INVALID_TOKEN);
+        }
+
+        Long userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
+        ProviderType provider = jwtTokenProvider.getProviderFromToken(refreshToken);
+
+        if (!userTokenCommandService.matchesToken(userId, provider, refreshToken)) {
+            throw new GeneralException(ErrorStatus.INVALID_TOKEN);
+        }
+
+        User user = userQueryService.getUserByUserId(userId);
+
+        String newAccessToken = jwtTokenProvider.generateAccessToken(userId);
+        String newRefreshToken = jwtTokenProvider.generateRefreshToken(userId, provider);
+        LocalDateTime refreshExpiredAt = jwtTokenProvider.getRefreshTokenExpiredAt();
+        userTokenCommandService.issueToken(user, newRefreshToken, provider, refreshExpiredAt);
+
+        log.info("토큰 재발급 - userId: {}, provider: {}", userId, provider);
+        return new TokenReissueResponse(newAccessToken, newRefreshToken);
     }
 
     /** 아이디 중복 확인 (true = 중복) */
