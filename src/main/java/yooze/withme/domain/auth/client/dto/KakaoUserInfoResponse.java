@@ -18,6 +18,7 @@ public record KakaoUserInfoResponse(
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record KakaoAccount(
             String email,
+            Boolean isEmailVerified,
             Profile profile
     ) {
     }
@@ -33,6 +34,11 @@ public record KakaoUserInfoResponse(
     /** 이메일 안전 추출 (동의 안 했으면 kakaoAccount 자체가 없을 수 있음) */
     public String extractEmail() {
         return kakaoAccount != null ? kakaoAccount.email() : null;
+    }
+
+    /** 이메일 인증 여부 (미인증 이메일은 본인 소유를 보장할 수 없음) */
+    public boolean isEmailVerified() {
+        return kakaoAccount != null && Boolean.TRUE.equals(kakaoAccount.isEmailVerified());
     }
 
     /** 닉네임 안전 추출 */

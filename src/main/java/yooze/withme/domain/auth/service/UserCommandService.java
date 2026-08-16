@@ -77,7 +77,7 @@ public class UserCommandService {
             // 재조회에도 없으면 email이 다른 계정(로컬 등)에 이미 사용 중인 것
             return userAuthRepository.findByProviderAndProviderUserId(ProviderType.KAKAO, kakaoId)
                     .map(auth -> new KakaoUserResult(auth.getUser(), false))
-                    .orElseThrow(() -> new GeneralException(ErrorStatus.DUPLICATE_EMAIL));
+                    .orElseThrow(() -> new GeneralException(ErrorStatus.EMAIL_ALREADY_REGISTERED));
         }
     }
 

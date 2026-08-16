@@ -108,7 +108,7 @@ public class AuthCommandService {
 
         Long kakaoId = kakaoUserInfo.id();
         String email = kakaoUserInfo.extractEmail();
-        if (email == null) {
+        if (email == null || !kakaoUserInfo.isEmailVerified()) {
             throw new GeneralException(ErrorStatus.KAKAO_EMAIL_REQUIRED);
         }
         String nickname = kakaoUserInfo.extractNickname() != null
