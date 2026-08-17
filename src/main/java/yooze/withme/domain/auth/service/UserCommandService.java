@@ -14,6 +14,8 @@ import yooze.withme.domain.auth.enums.ProviderType;
 import yooze.withme.domain.auth.repository.UserAuthRepository;
 import yooze.withme.domain.auth.repository.UserRepository;
 
+import java.util.Optional;
+
 
 @Slf4j
 @Service
