@@ -32,4 +32,12 @@ public class UserTokenCommandService {
         refreshTokenRedisRepository.deleteById(id);
         log.info("리프레시 토큰 삭제 - userId: {}, provider: {}", user.getUserId(), provider);
     }
+
+    /** Redis에 저장된 리프레시 토큰과 일치 여부 확인 */
+    public boolean matchesToken(Long userId, ProviderType provider, String token) {
+        String id = userId + ":" + provider.name();
+        return refreshTokenRedisRepository.findById(id)
+                .map(stored -> stored.equals(token))
+                .orElse(false);
+    }
 }

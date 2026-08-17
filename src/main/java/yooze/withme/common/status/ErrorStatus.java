@@ -25,13 +25,20 @@ public enum ErrorStatus implements BaseStatus {
     INVALID_CREDENTIALS("AUTH_401", HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 올바르지 않습니다."),
     INVALID_TOKEN("AUTH_401", HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
     EXPIRED_TOKEN("AUTH_401", HttpStatus.UNAUTHORIZED, "만료된 토큰입니다."),
+    KAKAO_TOKEN_REQUEST_FAILED("AUTH_401", HttpStatus.UNAUTHORIZED, "카카오 인증에 실패했습니다. 인가 코드를 확인해 주세요."),
+    KAKAO_USER_INFO_REQUEST_FAILED("AUTH_401", HttpStatus.UNAUTHORIZED, "카카오 사용자 정보 조회 권한이 없습니다."),
+    KAKAO_SERVER_ERROR("AUTH_502", HttpStatus.BAD_GATEWAY, "카카오 서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."),
+    KAKAO_EMAIL_REQUIRED("AUTH_400", HttpStatus.BAD_REQUEST, "카카오 계정에 이메일 제공 동의가 필요합니다."),
+    INVALID_OAUTH_STATE("AUTH_400", HttpStatus.BAD_REQUEST, "유효하지 않거나 만료된 state 값입니다. 다시 로그인해 주세요."),
 
     /**
      * User
      */
     USER_NOT_FOUND("USER_404", HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
+    DELETED_USER("USER_403", HttpStatus.FORBIDDEN, "탈퇴한 계정입니다."),
     USER_NOT_FOUND_BY_INFO("USER_404", HttpStatus.NOT_FOUND, "이름 또는 이메일이 일치하는 사용자가 없습니다."),
     DUPLICATE_EMAIL("USER_409", HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다."),
+    EMAIL_ALREADY_REGISTERED("AUTH_409", HttpStatus.CONFLICT, "이미 가입된 이메일입니다. 아이디로 로그인 후 마이페이지에서 카카오를 연동해 주세요."),
     DUPLICATE_ID("USER_409", HttpStatus.CONFLICT, "이미 사용 중인 아이디입니다."),
     PASSWORD_MISMATCH("USER_400", HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
     INVALID_VERIFICATION_CODE("AUTH_400", HttpStatus.BAD_REQUEST, "인증코드가 올바르지 않거나 만료되었습니다."),

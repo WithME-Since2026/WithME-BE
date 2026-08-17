@@ -73,6 +73,14 @@ jwt:
   access-token-expiration: 1800000      # 30분 (ms)
   refresh-token-expiration: 1209600000  # 14일 (ms)
 
+
+# 카카오
+kakao:
+  client-id: ${KAKAO_CLIENT_ID}
+  # 카카오 로그인 보안 강화(선택) 설정을 켰다면 필수, 아니면 비워둬도 됨
+  client-secret: ${KAKAO_CLIENT_SECRET:}
+  redirect-uri: ${KAKAO_REDIRECT_URI}
+
 # 배포 검증용 헬스체크 + 지표 수집 엔드포인트. 그 외에는 노출X
 # ponytail: 관리 포트 분리는 실제 스크래퍼가 붙을 때. 지금은 인증만으로 충분하다.
 management:
