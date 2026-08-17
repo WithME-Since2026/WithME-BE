@@ -15,10 +15,11 @@ import yooze.withme.domain.auth.dto.request.KakaoCallbackRequest;
 import yooze.withme.domain.auth.dto.request.LoginRequest;
 import yooze.withme.domain.auth.dto.request.SignUpRequest;
 import yooze.withme.domain.auth.dto.request.TokenReissueRequest;
-import yooze.withme.domain.auth.dto.response.TokenReissueResponse;
 import yooze.withme.domain.auth.dto.response.KakaoLoginResponse;
+import yooze.withme.domain.auth.dto.response.KakaoStateResponse;
 import yooze.withme.domain.auth.dto.response.LoginResponse;
 import yooze.withme.domain.auth.dto.response.SignUpResponse;
+import yooze.withme.domain.auth.dto.response.TokenReissueResponse;
 import yooze.withme.domain.auth.service.AuthCommandService;
 
 @RestController
@@ -44,11 +45,17 @@ public class AuthController implements AuthControllerDocs {
         return ApiResponse.success(SuccessStatus.LOGIN_SUCCESS, loginResponse);
     }
 
+    @GetMapping("/kakao/state")
+    public ResponseEntity<ApiResponse<KakaoStateResponse>> getKakaoState() {
+        KakaoStateResponse response = authCommandService.generateKakaoState();
+        return ApiResponse.success(SuccessStatus.SUCCESS_200, response);
+    }
+
     @PostMapping("/kakao/callback")
     public ResponseEntity<ApiResponse<KakaoLoginResponse>> postKakaoCallback(
             @Valid @RequestBody KakaoCallbackRequest request
     ) {
-        KakaoLoginResponse kakaoLoginResponse = authCommandService.kakaoLogin(request.code());
+        KakaoLoginResponse kakaoLoginResponse = authCommandService.kakaoLogin(request.code(), request.state());
         return ApiResponse.success(SuccessStatus.KAKAO_LOGIN_SUCCESS, kakaoLoginResponse);
     }
 

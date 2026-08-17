@@ -6,13 +6,5 @@ ALTER TABLE user_auth ALTER COLUMN password DROP NOT NULL;
 -- 기존 unique constraint (provider, login_id) 는 NULL을 NULL != NULL 로 처리하므로
 -- 카카오 사용자가 여럿이어도 중복 위반이 발생하지 않는다.
 -- LOCAL 사용자에 한해 중복을 막기 위해 partial unique index로 교체한다.
+-- (인덱스 생성은 잠금 최소화를 위해 V5에서 CONCURRENTLY로 수행한다.)
 ALTER TABLE user_auth DROP CONSTRAINT IF EXISTS uq_user_auth_provider_login_id;
-CREATE UNIQUE INDEX uq_user_auth_local_login_id
-    ON user_auth (login_id)
-    WHERE provider = 'LOCAL';
-
--- 같은 소셜 계정(provider + provider_user_id)으로 user_auth 행이 중복 생성되는 것을 방지한다.
--- provider_user_id가 null인 LOCAL 사용자는 제외한다.
-CREATE UNIQUE INDEX uq_user_auth_provider_user_id
-    ON user_auth (provider, provider_user_id)
-    WHERE provider_user_id IS NOT NULL;

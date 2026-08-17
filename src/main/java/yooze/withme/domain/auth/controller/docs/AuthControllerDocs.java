@@ -18,10 +18,11 @@ import yooze.withme.domain.auth.dto.request.KakaoCallbackRequest;
 import yooze.withme.domain.auth.dto.request.LoginRequest;
 import yooze.withme.domain.auth.dto.request.SignUpRequest;
 import yooze.withme.domain.auth.dto.request.TokenReissueRequest;
-import yooze.withme.domain.auth.dto.response.TokenReissueResponse;
 import yooze.withme.domain.auth.dto.response.KakaoLoginResponse;
+import yooze.withme.domain.auth.dto.response.KakaoStateResponse;
 import yooze.withme.domain.auth.dto.response.LoginResponse;
 import yooze.withme.domain.auth.dto.response.SignUpResponse;
+import yooze.withme.domain.auth.dto.response.TokenReissueResponse;
 
 @Tag(name = "인증", description = "회원가입 / 로그인 / 아이디 중복 확인 / 로그아웃 / 카카오 로그인 API")
 public interface AuthControllerDocs {
@@ -44,14 +45,26 @@ public interface AuthControllerDocs {
     );
 
     @Operation(
-            summary = "카카오 로그인",
-            description = "프론트에서 전달받은 카카오 인가 코드(authorization code)로 로그인한다. "
+            summary = "카카오 로그인 시작 (state 발급)",
+            description = "CSRF 방지용 state를 생성하고 카카오 로그인 URL을 반환한다. "
+                    + "프론트는 kakaoLoginUrl로 리다이렉트하고, 카카오가 돌려준 code·state를 "
+                    + "/kakao/callback 으로 그대로 전달해야 한다. state는 10분간 유효하다."
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "state 및 로그인 URL 발급 성공")
+    @GetMapping("/kakao/state")
+    ResponseEntity<ApiResponse<KakaoStateResponse>> getKakaoState();
+
+    @Operation(
+            summary = "카카오 로그인 콜백",
+            description = "카카오에서 전달받은 인가 코드(code)와 state로 로그인한다. "
+                    + "state가 유효하지 않으면 400을 반환한다. "
                     + "기존에 연동된 계정이 없으면 자동으로 회원가입 후 로그인한다."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "카카오 로그인 성공")
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "카카오 계정에 이메일 제공 동의 필요")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "유효하지 않은 state 또는 이메일 제공 동의 필요")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "카카오 인가 코드가 유효하지 않음")
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "502", description = "카카오 사용자 정보 조회 실패")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "이미 해당 이메일로 로컬 계정이 존재함 — 아이디 로그인 후 마이페이지에서 카카오 연동 필요")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "502", description = "카카오 서버 오류")
     @PostMapping("/kakao/callback")
     ResponseEntity<ApiResponse<KakaoLoginResponse>> postKakaoCallback(
             @Valid @RequestBody KakaoCallbackRequest request
