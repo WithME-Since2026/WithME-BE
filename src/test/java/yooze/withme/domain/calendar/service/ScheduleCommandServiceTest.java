@@ -19,6 +19,7 @@ import yooze.withme.domain.auth.entity.User;
 import yooze.withme.domain.auth.service.UserQueryService;
 import yooze.withme.domain.calendar.dto.request.CreateScheduleRequest;
 import yooze.withme.domain.calendar.dto.request.RecurrenceRequest;
+import yooze.withme.domain.calendar.dto.request.UpdateOccurrenceRequest;
 import yooze.withme.domain.calendar.dto.request.UpdateScheduleRequest;
 import yooze.withme.domain.calendar.dto.response.RecurrenceResponse;
 import yooze.withme.domain.calendar.dto.response.ScheduleResponse;
@@ -230,6 +231,34 @@ class ScheduleCommandServiceTest {
 
         assertThat(schedule.deleted()).isTrue();
         verify(recurrenceCommandService).delete(RecurrenceOwnerType.SCHEDULE, SCHEDULE_ID);
+    }
+
+    @Test
+    void deleteOccurrenceSkipsOnlyThatOccurrence() {
+        when(scheduleQueryService.getOwnedSchedule(USER_ID, SCHEDULE_ID))
+                .thenReturn(timedSchedule(user(USER_ID)));
+
+        scheduleCommandService.deleteOccurrence(USER_ID, SCHEDULE_ID, DATE.plusWeeks(1));
+
+        verify(recurrenceCommandService).skip(
+                RecurrenceOwnerType.SCHEDULE,
+                SCHEDULE_ID,
+                DATE,
+                DATE.plusWeeks(1)
+        );
+    }
+
+    @Test
+    void updateOccurrenceRejectsCompletedFlag() {
+        assertThatThrownBy(() -> scheduleCommandService.updateOccurrence(
+                USER_ID,
+                SCHEDULE_ID,
+                DATE,
+                new UpdateOccurrenceRequest(null, null, null, null, true)
+        ))
+                .isInstanceOf(GeneralException.class)
+                .extracting(e -> ((GeneralException) e).getErrorStatus())
+                .isEqualTo(ErrorStatus.INVALID_OCCURRENCE);
     }
 
     private Schedule timedSchedule(User user) {

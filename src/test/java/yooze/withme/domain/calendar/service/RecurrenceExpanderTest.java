@@ -8,8 +8,11 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import yooze.withme.common.exception.GeneralException;
 import yooze.withme.common.status.ErrorStatus;
+import yooze.withme.domain.calendar.dto.response.OccurrenceResponse;
 import yooze.withme.domain.calendar.entity.Recurrence;
+import yooze.withme.domain.calendar.entity.RecurrenceException;
 import yooze.withme.domain.calendar.enums.RecurrenceEndType;
+import yooze.withme.domain.calendar.enums.RecurrenceExceptionType;
 import yooze.withme.domain.calendar.enums.RecurrenceFreq;
 import yooze.withme.domain.calendar.enums.RecurrenceOwnerType;
 
@@ -107,6 +110,70 @@ class RecurrenceExpanderTest {
                 RecurrenceEndType.COUNT, null, 1001);
 
         assertInvalid(rule);
+    }
+
+    @Test
+    void appliesSkipAndOverrideToExpandedDates() {
+        List<LocalDate> dates = List.of(
+                LocalDate.of(2026, 1, 1),
+                LocalDate.of(2026, 1, 2),
+                LocalDate.of(2026, 1, 3)
+        );
+
+        List<OccurrenceResponse> occurrences = expander.applyExceptions(
+                dates,
+                List.of(
+                        skip(LocalDate.of(2026, 1, 2)),
+                        override(LocalDate.of(2026, 1, 3), null, "옮긴 제목")
+                ),
+                LocalDate.of(2026, 1, 1),
+                LocalDate.of(2026, 1, 31)
+        );
+
+        assertThat(occurrences).extracting(OccurrenceResponse::date)
+                .containsExactly(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 3));
+        assertThat(occurrences.get(1).title()).isEqualTo("옮긴 제목");
+    }
+
+    @Test
+    void movesOccurrenceOutOfAndIntoRange() {
+        List<OccurrenceResponse> movedOut = expander.applyExceptions(
+                List.of(LocalDate.of(2026, 1, 5)),
+                List.of(override(LocalDate.of(2026, 1, 5), LocalDate.of(2026, 2, 20), null)),
+                LocalDate.of(2026, 1, 1),
+                LocalDate.of(2026, 1, 31)
+        );
+        assertThat(movedOut).isEmpty();
+
+        List<OccurrenceResponse> movedIn = expander.applyExceptions(
+                List.of(),
+                List.of(override(LocalDate.of(2025, 12, 20), LocalDate.of(2026, 1, 10), null)),
+                LocalDate.of(2026, 1, 1),
+                LocalDate.of(2026, 1, 31)
+        );
+        assertThat(movedIn).extracting(OccurrenceResponse::date)
+                .containsExactly(LocalDate.of(2026, 1, 10));
+        assertThat(movedIn.get(0).occurrenceDate()).isEqualTo(LocalDate.of(2025, 12, 20));
+    }
+
+    private RecurrenceException skip(LocalDate occurrenceDate) {
+        return RecurrenceException.builder()
+                .occurrenceDate(occurrenceDate)
+                .exceptionType(RecurrenceExceptionType.SKIP)
+                .build();
+    }
+
+    private RecurrenceException override(
+            LocalDate occurrenceDate,
+            LocalDate overrideDate,
+            String title
+    ) {
+        return RecurrenceException.builder()
+                .occurrenceDate(occurrenceDate)
+                .exceptionType(RecurrenceExceptionType.OVERRIDE)
+                .overrideDate(overrideDate)
+                .overrideTitle(title)
+                .build();
     }
 
     private void assertInvalid(Recurrence rule) {
