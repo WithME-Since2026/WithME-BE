@@ -28,6 +28,8 @@
 | `KAKAO_REDIRECT_URI` | 카카오 로그인 Redirect URI. 카카오 개발자 콘솔에 등록한 값과 정확히 같아야 한다.      |
 | `DISCORD_WEBHOOK_URL` | (선택) 5xx 알림용 Discord 웹훅 URL. 미등록이면 알림만 꺼지고 배포는 정상 진행. |
 | `DISCORD_WEBHOOK_ENABLED` | (선택) 미등록이면 `true`. 웹훅 URL 은 두고 알림만 끄고 싶을 때 `false` 로 등록. |
+| `HOLIDAY_API_KEY` | (선택) 공공데이터포털 특일 정보 인증키(Encoding 키). 미등록이면 공휴일 동기화만 건너뛰고 기동은 정상. |
+| `HOLIDAY_SYNC_ENABLED` | (선택) 미등록이면 `true`. 키는 두고 동기화만 끄고 싶을 때 `false` 로 등록. |
 
 `GITHUB_TOKEN` 은 자동 제공되므로 등록하지 않는다.
 
