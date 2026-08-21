@@ -43,6 +43,8 @@ public enum SuccessStatus implements BaseStatus {
     UPDATE_TODO_SUCCESS("TODO_200", HttpStatus.OK, "todo 수정 성공"),
     UPDATE_TODO_DATE_SUCCESS("TODO_200", HttpStatus.OK, "todo 날짜 수정 성공"),
     DELETE_TODO_SUCCESS("TODO_204", HttpStatus.NO_CONTENT, "todo 삭제 성공"),
+    UPDATE_TODO_OCCURRENCE_SUCCESS("TODO_200", HttpStatus.OK, "todo 회차 수정 성공"),
+    DELETE_TODO_OCCURRENCE_SUCCESS("TODO_200", HttpStatus.OK, "todo 회차 삭제 성공"),
     COMPLETE_TODO_SUCCESS("TODO_200", HttpStatus.OK, "todo 완료 처리 성공"),
 
     /**

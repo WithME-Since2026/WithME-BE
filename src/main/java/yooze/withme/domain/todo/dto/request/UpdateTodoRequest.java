@@ -1,8 +1,10 @@
 package yooze.withme.domain.todo.dto.request;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import yooze.withme.domain.calendar.dto.request.RecurrenceRequest;
 
 public record UpdateTodoRequest(
         @NotNull(message = "todo ID는 필수입니다.")
@@ -14,11 +16,26 @@ public record UpdateTodoRequest(
 
         Long categoryId,
 
-        Boolean notificationStatus
+        Boolean notificationStatus,
+
+        /** null 은 반복 설정 유지, false 는 반복 해제, true 는 recurrence 규칙 적용 */
+        Boolean recurring,
+
+        @Valid
+        RecurrenceRequest recurrence
 ) {
 
     /** 생성과 동일하게 앞뒤 공백을 제거한다. null 은 변경하지 않음을 뜻한다 */
     public UpdateTodoRequest {
         title = title == null ? null : title.strip();
+    }
+
+    public UpdateTodoRequest(
+            Long todoId,
+            String title,
+            Long categoryId,
+            Boolean notificationStatus
+    ) {
+        this(todoId, title, categoryId, notificationStatus, null, null);
     }
 }

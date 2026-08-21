@@ -13,11 +13,14 @@ import org.springframework.web.bind.annotation.RestController;
 import yooze.withme.common.response.ApiResponse;
 import yooze.withme.common.response.PageResponse;
 import yooze.withme.common.status.SuccessStatus;
+import yooze.withme.domain.calendar.dto.response.OccurrenceResponse;
 import yooze.withme.domain.todo.controller.docs.TodoControllerDocs;
 import yooze.withme.domain.todo.dto.request.CompleteTodoRequest;
 import yooze.withme.domain.todo.dto.request.CreateTodoRequest;
+import yooze.withme.domain.todo.dto.request.DeleteTodoOccurrenceRequest;
 import yooze.withme.domain.todo.dto.request.DeleteTodoRequest;
 import yooze.withme.domain.todo.dto.request.UpdateTodoDateRequest;
+import yooze.withme.domain.todo.dto.request.UpdateTodoOccurrenceRequest;
 import yooze.withme.domain.todo.dto.request.UpdateTodoRequest;
 import yooze.withme.domain.todo.dto.response.TodoResponse;
 import yooze.withme.domain.todo.service.TodoCommandService;
@@ -76,6 +79,24 @@ public class TodoController implements TodoControllerDocs {
     ) {
         TodoResponse response = todoCommandService.completeTodo(userId, request);
         return ApiResponse.success(SuccessStatus.COMPLETE_TODO_SUCCESS, response);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<OccurrenceResponse>> updateTodoOccurrence(
+            @RequestAttribute("userId") Long userId,
+            @Valid @RequestBody UpdateTodoOccurrenceRequest request
+    ) {
+        OccurrenceResponse response = todoCommandService.updateOccurrence(userId, request);
+        return ApiResponse.success(SuccessStatus.UPDATE_TODO_OCCURRENCE_SUCCESS, response);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<Void>> deleteTodoOccurrence(
+            @RequestAttribute("userId") Long userId,
+            @Valid @RequestBody DeleteTodoOccurrenceRequest request
+    ) {
+        todoCommandService.deleteOccurrence(userId, request);
+        return ApiResponse.success(SuccessStatus.DELETE_TODO_OCCURRENCE_SUCCESS);
     }
 
     @Override

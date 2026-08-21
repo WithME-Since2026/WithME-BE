@@ -1,12 +1,17 @@
 package yooze.withme.domain.calendar.service;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import yooze.withme.domain.calendar.dto.response.OccurrenceResponse;
 import yooze.withme.domain.calendar.dto.response.RecurrenceResponse;
+import yooze.withme.domain.calendar.entity.Recurrence;
 import yooze.withme.domain.calendar.enums.RecurrenceOwnerType;
 import yooze.withme.domain.calendar.repository.RecurrenceExceptionRepository;
 import yooze.withme.domain.calendar.repository.RecurrenceRepository;
@@ -25,6 +30,22 @@ public class RecurrenceQueryService {
         return recurrenceRepository.findByOwnerTypeAndOwnerId(ownerType, ownerId)
                 .map(RecurrenceResponse::from)
                 .orElse(null);
+    }
+
+    /** 여러 원본의 반복 규칙을 한 번에 찾는다. 반복이 아닌 id 는 결과에 들어가지 않는다. */
+    public Map<Long, RecurrenceResponse> findAll(
+            RecurrenceOwnerType ownerType,
+            Collection<Long> ownerIds
+    ) {
+        if (ownerIds.isEmpty()) {
+            return Map.of();
+        }
+        return recurrenceRepository.findByOwnerTypeAndOwnerIdIn(ownerType, ownerIds).stream()
+                .collect(Collectors.toMap(
+                        Recurrence::getOwnerId,
+                        RecurrenceResponse::from,
+                        (first, second) -> first
+                ));
     }
 
     /** 조회 구간 안의 회차를 예외까지 적용해 전개한다. 반복이 아니면 빈 목록. */
