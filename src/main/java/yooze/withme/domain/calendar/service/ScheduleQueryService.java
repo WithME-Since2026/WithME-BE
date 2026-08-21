@@ -7,6 +7,7 @@ import yooze.withme.common.exception.GeneralException;
 import yooze.withme.common.status.ErrorStatus;
 import yooze.withme.domain.calendar.dto.response.ScheduleResponse;
 import yooze.withme.domain.calendar.entity.Schedule;
+import yooze.withme.domain.calendar.enums.RecurrenceOwnerType;
 import yooze.withme.domain.calendar.repository.ScheduleRepository;
 
 @Service
@@ -15,10 +16,15 @@ import yooze.withme.domain.calendar.repository.ScheduleRepository;
 public class ScheduleQueryService {
 
     private final ScheduleRepository scheduleRepository;
+    private final RecurrenceQueryService recurrenceQueryService;
 
     /** 본인 소유의 삭제되지 않은 개인 일정 상세를 조회한다. */
     public ScheduleResponse getSchedule(Long userId, Long scheduleId) {
-        return ScheduleResponse.from(getOwnedSchedule(userId, scheduleId));
+        Schedule schedule = getOwnedSchedule(userId, scheduleId);
+        return ScheduleResponse.from(
+                schedule,
+                recurrenceQueryService.find(RecurrenceOwnerType.SCHEDULE, scheduleId)
+        );
     }
 
     /**

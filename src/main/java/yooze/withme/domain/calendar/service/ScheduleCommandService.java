@@ -11,8 +11,10 @@ import yooze.withme.domain.auth.entity.User;
 import yooze.withme.domain.auth.service.UserQueryService;
 import yooze.withme.domain.calendar.dto.request.CreateScheduleRequest;
 import yooze.withme.domain.calendar.dto.request.UpdateScheduleRequest;
+import yooze.withme.domain.calendar.dto.response.RecurrenceResponse;
 import yooze.withme.domain.calendar.dto.response.ScheduleResponse;
 import yooze.withme.domain.calendar.entity.Schedule;
+import yooze.withme.domain.calendar.enums.RecurrenceOwnerType;
 import yooze.withme.domain.calendar.repository.ScheduleRepository;
 
 @Service
@@ -22,9 +24,10 @@ public class ScheduleCommandService {
 
     private final ScheduleRepository scheduleRepository;
     private final ScheduleQueryService scheduleQueryService;
+    private final RecurrenceCommandService recurrenceCommandService;
     private final UserQueryService userQueryService;
 
-    /** 반복 없는 개인 일정을 생성한다. */
+    /** 개인 일정과 선택적인 반복 규칙을 함께 생성한다. */
     public ScheduleResponse createSchedule(Long userId, CreateScheduleRequest request) {
         User user = userQueryService.getUserByUserId(userId);
         boolean allDay = request.allDay();
@@ -42,7 +45,15 @@ public class ScheduleCommandService {
                 .endTime(endTime)
                 .build());
 
-        return ScheduleResponse.from(schedule);
+        RecurrenceResponse recurrence = request.recurrence() == null
+                ? null
+                : recurrenceCommandService.upsert(
+                        RecurrenceOwnerType.SCHEDULE,
+                        schedule.getScheduleId(),
+                        schedule.getStartDate(),
+                        request.recurrence()
+                );
+        return ScheduleResponse.from(schedule, recurrence);
     }
 
     /** 전달된 필드만 변경하고 병합된 전체 기간을 다시 검증한다. */
@@ -89,12 +100,39 @@ public class ScheduleCommandService {
 
         validatePeriod(allDay, startDate, startTime, endDate, endTime);
         schedule.update(title, allDay, startDate, startTime, endDate, endTime);
-        return ScheduleResponse.from(schedule);
+
+        RecurrenceResponse recurrence = request.recurring() == null
+                ? recurrenceCommandService.validateExisting(
+                        RecurrenceOwnerType.SCHEDULE,
+                        scheduleId,
+                        startDate
+                )
+                : updateRecurrence(scheduleId, startDate, request);
+        return ScheduleResponse.from(schedule, recurrence);
     }
 
     /** 본인 소유 일정을 소프트 삭제한다. */
     public void deleteSchedule(Long userId, Long scheduleId) {
-        scheduleQueryService.getOwnedSchedule(userId, scheduleId).delete();
+        Schedule schedule = scheduleQueryService.getOwnedSchedule(userId, scheduleId);
+        recurrenceCommandService.delete(RecurrenceOwnerType.SCHEDULE, scheduleId);
+        schedule.delete();
+    }
+
+    private RecurrenceResponse updateRecurrence(
+            Long scheduleId,
+            LocalDate anchorDate,
+            UpdateScheduleRequest request
+    ) {
+        if (Boolean.FALSE.equals(request.recurring())) {
+            recurrenceCommandService.delete(RecurrenceOwnerType.SCHEDULE, scheduleId);
+            return null;
+        }
+        return recurrenceCommandService.upsert(
+                RecurrenceOwnerType.SCHEDULE,
+                scheduleId,
+                anchorDate,
+                request.recurrence()
+        );
     }
 
     private void validatePeriod(

@@ -22,21 +22,24 @@ import yooze.withme.domain.calendar.dto.response.ScheduleResponse;
 @SecurityRequirement(name = "bearerAuth")
 public interface ScheduleControllerDocs {
 
-    @Operation(summary = "개인 일정 생성")
+    @Operation(summary = "개인 일정 생성", description = "recurrence를 보내면 반복 일정으로 생성합니다.")
     @PostMapping
     ResponseEntity<ApiResponse<ScheduleResponse>> createSchedule(
             @Parameter(hidden = true) @RequestAttribute("userId") Long userId,
             @Valid @RequestBody CreateScheduleRequest request
     );
 
-    @Operation(summary = "개인 일정 상세 조회")
+    @Operation(summary = "개인 일정 상세 조회", description = "반복 일정이면 recurrence 규칙을 포함합니다.")
     @GetMapping("/{scheduleId}")
     ResponseEntity<ApiResponse<ScheduleResponse>> getSchedule(
             @Parameter(hidden = true) @RequestAttribute("userId") Long userId,
             @PathVariable Long scheduleId
     );
 
-    @Operation(summary = "개인 일정 부분 수정")
+    @Operation(
+            summary = "개인 일정 부분 수정",
+            description = "recurring은 null이면 유지, false이면 해제, true이면 recurrence 규칙을 적용합니다."
+    )
     @PatchMapping("/{scheduleId}")
     ResponseEntity<ApiResponse<ScheduleResponse>> updateSchedule(
             @Parameter(hidden = true) @RequestAttribute("userId") Long userId,

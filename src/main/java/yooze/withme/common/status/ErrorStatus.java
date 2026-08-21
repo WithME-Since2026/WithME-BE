@@ -53,6 +53,7 @@ public enum ErrorStatus implements BaseStatus {
     SCHEDULE_NOT_FOUND("SCHEDULE_404", HttpStatus.NOT_FOUND, "존재하지 않는 일정입니다."),
     SCHEDULE_FORBIDDEN("SCHEDULE_403", HttpStatus.FORBIDDEN, "본인의 일정만 접근할 수 있습니다."),
     INVALID_SCHEDULE_PERIOD("SCHEDULE_400", HttpStatus.BAD_REQUEST, "일정 기간이 올바르지 않습니다."),
+    INVALID_RECURRENCE("RECURRENCE_400", HttpStatus.BAD_REQUEST, "반복 규칙이 올바르지 않습니다."),
 
     /**
      * Group
