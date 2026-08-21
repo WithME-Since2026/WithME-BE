@@ -5,6 +5,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.time.LocalDate;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,7 +17,9 @@ import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import yooze.withme.common.response.ApiResponse;
 import yooze.withme.domain.calendar.dto.request.CreateScheduleRequest;
+import yooze.withme.domain.calendar.dto.request.UpdateOccurrenceRequest;
 import yooze.withme.domain.calendar.dto.request.UpdateScheduleRequest;
+import yooze.withme.domain.calendar.dto.response.OccurrenceResponse;
 import yooze.withme.domain.calendar.dto.response.ScheduleResponse;
 
 @Tag(name = "Schedule", description = "개인 일정 생성/조회/수정/삭제 API")
@@ -45,6 +49,27 @@ public interface ScheduleControllerDocs {
             @Parameter(hidden = true) @RequestAttribute("userId") Long userId,
             @PathVariable Long scheduleId,
             @Valid @RequestBody UpdateScheduleRequest request
+    );
+
+    @Operation(
+            summary = "반복 일정 회차 수정",
+            description = "occurrenceDate는 규칙이 만들어낸 원본 회차 날짜입니다. "
+                    + "date를 보내면 그 회차만 다른 날로 옮깁니다."
+    )
+    @PatchMapping("/{scheduleId}/occurrences/{occurrenceDate}")
+    ResponseEntity<ApiResponse<OccurrenceResponse>> updateOccurrence(
+            @Parameter(hidden = true) @RequestAttribute("userId") Long userId,
+            @PathVariable Long scheduleId,
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate occurrenceDate,
+            @Valid @RequestBody UpdateOccurrenceRequest request
+    );
+
+    @Operation(summary = "반복 일정 회차 삭제", description = "해당 회차만 건너뜁니다.")
+    @DeleteMapping("/{scheduleId}/occurrences/{occurrenceDate}")
+    ResponseEntity<ApiResponse<Void>> deleteOccurrence(
+            @Parameter(hidden = true) @RequestAttribute("userId") Long userId,
+            @PathVariable Long scheduleId,
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate occurrenceDate
     );
 
     @Operation(summary = "개인 일정 삭제")
