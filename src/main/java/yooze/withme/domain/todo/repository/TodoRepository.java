@@ -1,5 +1,6 @@
 package yooze.withme.domain.todo.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +23,27 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
     List<CategoryTodoCount> countTodosByCategory(@Param("userId") Long userId);
 
     Page<Todo> findByUserUserIdAndDeletedAtIsNull(Long userId, Pageable pageable);
+
+    /**
+     * 캘린더 구간에 걸리는 todo.
+     * 비반복은 마감일이 구간 안일 때만, 반복은 마감일이 구간 종료일 이전이면 모두 가져온다
+     * (마감일이 한참 전이어도 회차는 구간 안에 들어올 수 있다).
+     */
+    @Query("""
+            select t from Todo t
+            where t.user.userId = :userId
+              and t.deletedAt is null
+              and t.dueDate <= :to
+              and (t.dueDate >= :from
+                   or exists (select 1 from Recurrence r
+                              where r.ownerType = yooze.withme.domain.calendar.enums.RecurrenceOwnerType.TODO
+                                and r.ownerId = t.todoId))
+            """)
+    List<Todo> findForCalendar(
+            @Param("userId") Long userId,
+            @Param("from") LocalDate from,
+            @Param("to") LocalDate to
+    );
 
     /** 카테고리 삭제 시 해당 카테고리를 쓰던 todo 전체를 카테고리 없음 상태로 해제한다 */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
