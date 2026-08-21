@@ -3,6 +3,7 @@ package yooze.withme.domain.calendar.dto.request;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -21,10 +22,24 @@ public record CreateScheduleRequest(
         @NotNull(message = "종료일은 필수입니다.")
         LocalDate endDate,
 
-        LocalTime endTime
+        LocalTime endTime,
+
+        @Valid
+        RecurrenceRequest recurrence
 ) {
 
     public CreateScheduleRequest {
         title = title == null ? null : title.strip();
+    }
+
+    public CreateScheduleRequest(
+            String title,
+            boolean allDay,
+            LocalDate startDate,
+            LocalTime startTime,
+            LocalDate endDate,
+            LocalTime endTime
+    ) {
+        this(title, allDay, startDate, startTime, endDate, endTime, null);
     }
 }

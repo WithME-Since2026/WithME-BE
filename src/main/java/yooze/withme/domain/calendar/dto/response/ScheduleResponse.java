@@ -11,7 +11,8 @@ public record ScheduleResponse(
         LocalDate startDate,
         LocalTime startTime,
         LocalDate endDate,
-        LocalTime endTime
+        LocalTime endTime,
+        RecurrenceResponse recurrence
 ) {
 
     public static ScheduleResponse from(Schedule schedule) {
@@ -22,7 +23,24 @@ public record ScheduleResponse(
                 schedule.getStartDate(),
                 schedule.getStartTime(),
                 schedule.getEndDate(),
-                schedule.getEndTime()
+                schedule.getEndTime(),
+                null
+        );
+    }
+
+    public static ScheduleResponse from(
+            Schedule schedule,
+            RecurrenceResponse recurrence
+    ) {
+        return new ScheduleResponse(
+                schedule.getScheduleId(),
+                schedule.getTitle(),
+                schedule.isAllDay(),
+                schedule.getStartDate(),
+                schedule.getStartTime(),
+                schedule.getEndDate(),
+                schedule.getEndTime(),
+                recurrence
         );
     }
 }
