@@ -3,6 +3,7 @@ package yooze.withme.domain.auth.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import yooze.withme.common.base.BaseEntity;
+import yooze.withme.domain.auth.enums.UserRole;
 
 import java.time.LocalDateTime;
 
@@ -38,6 +39,11 @@ public class User extends BaseEntity {
 
     @Column(nullable = false)
     private boolean notifyAgree;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private UserRole role = UserRole.USER;
 
     /** 소프트 삭제 */
     public void delete() {

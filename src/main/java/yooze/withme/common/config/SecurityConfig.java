@@ -48,6 +48,8 @@ public class SecurityConfig {
                         // 배포 헬스체크용. 인증을 걸면 컨테이너가 항상 unhealthy 로 판정되어 배포가 롤백된다.
                         // application.yml 에서 health 외의 actuator 엔드포인트는 노출하지 않는다.
                         .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                        // anyRequest 앞에 와야 admin 경로가 일반 인증으로 통과되지 않는다
+                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(
