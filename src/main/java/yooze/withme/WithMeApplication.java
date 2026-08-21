@@ -7,12 +7,14 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import yooze.withme.common.properties.DiscordWebhookProperties;
 import yooze.withme.common.properties.HolidayProperties;
 import yooze.withme.common.properties.JwtProperties;
+import yooze.withme.common.properties.KakaoProperties;
 
 @SpringBootApplication
 @EnableScheduling
 @EnableConfigurationProperties({
         JwtProperties.class,
         DiscordWebhookProperties.class,
+        KakaoProperties.class,
         HolidayProperties.class
 })
 public class WithMeApplication {

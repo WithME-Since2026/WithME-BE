@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import yooze.withme.common.exception.GeneralException;
 import yooze.withme.common.properties.JwtProperties;
 import yooze.withme.common.status.ErrorStatus;
+import yooze.withme.domain.auth.enums.ProviderType;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -32,6 +33,7 @@ public class JwtTokenProvider {
     }
 
     private static final String TOKEN_TYPE_CLAIM = "type";
+    private static final String PROVIDER_CLAIM = "provider";
     private static final String ACCESS_TOKEN_TYPE = "access";
     private static final String REFRESH_TOKEN_TYPE = "refresh";
 
@@ -46,15 +48,25 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    /** RefreshToken 생성 */
-    public String generateRefreshToken(Long userId) {
+    /** RefreshToken 생성 (provider 클레임 포함 — 재발급 시 Redis 키 조회에 사용) */
+    public String generateRefreshToken(Long userId, ProviderType provider) {
         return Jwts.builder()
                 .subject(userId.toString())
                 .claim(TOKEN_TYPE_CLAIM, REFRESH_TOKEN_TYPE)
+                .claim(PROVIDER_CLAIM, provider.name())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + refreshTokenExpiration))
                 .signWith(secretKey)
                 .compact();
+    }
+
+    /** RefreshToken에서 provider 추출 */
+    public ProviderType getProviderFromToken(String token) {
+        String providerName = getClaims(token).get(PROVIDER_CLAIM, String.class);
+        if (providerName == null) {
+            throw new GeneralException(ErrorStatus.INVALID_TOKEN);
+        }
+        return ProviderType.valueOf(providerName);
     }
 
     /** AccessToken 여부 확인 */

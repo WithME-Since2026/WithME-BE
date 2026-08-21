@@ -9,7 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,13 +19,7 @@ import yooze.withme.common.base.BaseEntity;
 import yooze.withme.domain.auth.entity.User;
 
 @Entity
-@Table(
-        name = "categories",
-        uniqueConstraints = @UniqueConstraint(
-                name = Category.UK_CATEGORY_USER_NAME,
-                columnNames = {"user_id", "category_name"}
-        )
-)
+@Table(name = "categories")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -36,7 +30,9 @@ public class Category extends BaseEntity {
 
     /**
      * 사용자별 카테고리 이름 유니크 제약.
-     * 이름 중복의 최종 판정 기준
+     * 삭제된(deleted_at IS NOT NULL) 카테고리는 이름을 계속 점유하면 안 되므로
+     * {@code @Table(uniqueConstraints)} 로는 표현 못 하는 부분(partial) 유니크 인덱스로
+     * Flyway(V4)에서 생성한다. 이름 중복의 최종 판정 기준이며,
      * 제약 위반을 DUPLICATE_CATEGORY_NAME 으로 변환할 때 이 상수를 사용.
      */
     public static final String UK_CATEGORY_USER_NAME = "uk_category_user_name";
@@ -69,6 +65,9 @@ public class Category extends BaseEntity {
     @Column(name = "sort_order", nullable = false)
     private Long sortOrder;
 
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
     public void update(String categoryName, String categoryColor, Long sortOrder) {
         if (categoryName != null) {
             this.categoryName = categoryName;
@@ -79,5 +78,21 @@ public class Category extends BaseEntity {
         if (sortOrder != null) {
             this.sortOrder = sortOrder;
         }
+    }
+
+    /**
+     * 소프트 삭제.
+     * sortOrder 를 -categoryId(항상 음수, 카테고리별로 유일)로 밀어내는 이유:
+     * 활성 목록의 재정렬(reorderCategories)은 0..n-1 범위만 사용하므로,
+     * 삭제된 행이 예전 sortOrder 값을 그대로 들고 있으면 나중에 활성 카테고리가
+     * 같은 값으로 재정렬될 때 uk_category_user_sort_order 와 충돌한다.
+     */
+    public void delete() {
+        this.deletedAt = LocalDateTime.now();
+        this.sortOrder = -this.categoryId;
+    }
+
+    public boolean deleted() {
+        return this.deletedAt != null;
     }
 }
