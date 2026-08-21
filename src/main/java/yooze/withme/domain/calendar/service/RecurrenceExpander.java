@@ -6,12 +6,19 @@ import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.springframework.stereotype.Service;
 import yooze.withme.common.exception.GeneralException;
 import yooze.withme.common.status.ErrorStatus;
+import yooze.withme.domain.calendar.dto.response.OccurrenceResponse;
 import yooze.withme.domain.calendar.entity.Recurrence;
+import yooze.withme.domain.calendar.entity.RecurrenceException;
+import yooze.withme.domain.calendar.enums.RecurrenceExceptionType;
 import yooze.withme.domain.calendar.enums.RecurrenceEndType;
 import yooze.withme.domain.calendar.enums.RecurrenceFreq;
 
@@ -42,6 +49,55 @@ public class RecurrenceExpander {
             case WEEKLY -> expandWeekly(rule, anchorDate, from, effectiveTo);
             case MONTHLY -> expandMonthly(rule, anchorDate, from, effectiveTo);
         };
+    }
+
+    /**
+     * 전개된 원본 회차에 예외를 적용한다. SKIP은 제거하고, OVERRIDE는 값을 덮어쓰되
+     * 옮겨진 날짜가 구간 밖으로 나가면 제거하고 밖에서 안으로 들어오면 추가한다.
+     */
+    public List<OccurrenceResponse> applyExceptions(
+            List<LocalDate> dates,
+            Collection<RecurrenceException> exceptions,
+            LocalDate from,
+            LocalDate to
+    ) {
+        Map<LocalDate, RecurrenceException> byDate = new HashMap<>();
+        for (RecurrenceException exception : exceptions) {
+            byDate.put(exception.getOccurrenceDate(), exception);
+        }
+
+        List<OccurrenceResponse> occurrences = new ArrayList<>();
+        for (LocalDate date : dates) {
+            RecurrenceException exception = byDate.remove(date);
+            if (exception == null) {
+                occurrences.add(OccurrenceResponse.of(date));
+            } else if (exception.getExceptionType() == RecurrenceExceptionType.OVERRIDE) {
+                addIfWithin(occurrences, OccurrenceResponse.from(exception), from, to);
+            }
+        }
+
+        // 원본 날짜가 구간 밖이지만 옮겨진 날짜가 구간 안으로 들어오는 회차
+        for (RecurrenceException exception : byDate.values()) {
+            if (exception.getExceptionType() == RecurrenceExceptionType.OVERRIDE
+                    && exception.getOverrideDate() != null) {
+                addIfWithin(occurrences, OccurrenceResponse.from(exception), from, to);
+            }
+        }
+
+        occurrences.sort(Comparator.comparing(OccurrenceResponse::date)
+                .thenComparing(OccurrenceResponse::occurrenceDate));
+        return occurrences;
+    }
+
+    private void addIfWithin(
+            List<OccurrenceResponse> occurrences,
+            OccurrenceResponse occurrence,
+            LocalDate from,
+            LocalDate to
+    ) {
+        if (!occurrence.date().isBefore(from) && !occurrence.date().isAfter(to)) {
+            occurrences.add(occurrence);
+        }
     }
 
     private List<LocalDate> expandDaily(

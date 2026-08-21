@@ -10,7 +10,9 @@ import yooze.withme.common.status.ErrorStatus;
 import yooze.withme.domain.auth.entity.User;
 import yooze.withme.domain.auth.service.UserQueryService;
 import yooze.withme.domain.calendar.dto.request.CreateScheduleRequest;
+import yooze.withme.domain.calendar.dto.request.UpdateOccurrenceRequest;
 import yooze.withme.domain.calendar.dto.request.UpdateScheduleRequest;
+import yooze.withme.domain.calendar.dto.response.OccurrenceResponse;
 import yooze.withme.domain.calendar.dto.response.RecurrenceResponse;
 import yooze.withme.domain.calendar.dto.response.ScheduleResponse;
 import yooze.withme.domain.calendar.entity.Schedule;
@@ -109,6 +111,38 @@ public class ScheduleCommandService {
                 )
                 : updateRecurrence(scheduleId, startDate, request);
         return ScheduleResponse.from(schedule, recurrence);
+    }
+
+    /** 반복 일정의 특정 회차만 덮어쓴다. 원본과 나머지 회차는 그대로 둔다. */
+    public OccurrenceResponse updateOccurrence(
+            Long userId,
+            Long scheduleId,
+            LocalDate occurrenceDate,
+            UpdateOccurrenceRequest request
+    ) {
+        // completed는 반복 Todo 전용 필드라 개인 일정에는 의미가 없다
+        if (request != null && request.completed() != null) {
+            throw new GeneralException(ErrorStatus.INVALID_OCCURRENCE);
+        }
+        Schedule schedule = scheduleQueryService.getOwnedSchedule(userId, scheduleId);
+        return recurrenceCommandService.override(
+                RecurrenceOwnerType.SCHEDULE,
+                scheduleId,
+                schedule.getStartDate(),
+                occurrenceDate,
+                request
+        );
+    }
+
+    /** 반복 일정의 특정 회차만 건너뛴다. */
+    public void deleteOccurrence(Long userId, Long scheduleId, LocalDate occurrenceDate) {
+        Schedule schedule = scheduleQueryService.getOwnedSchedule(userId, scheduleId);
+        recurrenceCommandService.skip(
+                RecurrenceOwnerType.SCHEDULE,
+                scheduleId,
+                schedule.getStartDate(),
+                occurrenceDate
+        );
     }
 
     /** 본인 소유 일정을 소프트 삭제한다. */
