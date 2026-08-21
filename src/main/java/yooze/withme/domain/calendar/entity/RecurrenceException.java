@@ -65,4 +65,30 @@ public class RecurrenceException {
 
     @Column(name = "override_completed")
     private Boolean overrideCompleted;
+
+    /** 이 회차를 건너뛴다. 덮어쓰기 값은 모두 버린다. */
+    public void skip() {
+        this.exceptionType = RecurrenceExceptionType.SKIP;
+        this.overrideDate = null;
+        this.overrideTitle = null;
+        this.overrideStartTime = null;
+        this.overrideEndTime = null;
+        this.overrideCompleted = null;
+    }
+
+    /** 이 회차만 덮어쓴다. null인 필드는 원본 값을 그대로 쓴다는 뜻이므로 그대로 저장한다. */
+    public void override(
+            LocalDate overrideDate,
+            String overrideTitle,
+            LocalTime overrideStartTime,
+            LocalTime overrideEndTime,
+            Boolean overrideCompleted
+    ) {
+        this.exceptionType = RecurrenceExceptionType.OVERRIDE;
+        this.overrideDate = overrideDate;
+        this.overrideTitle = overrideTitle;
+        this.overrideStartTime = overrideStartTime;
+        this.overrideEndTime = overrideEndTime;
+        this.overrideCompleted = overrideCompleted;
+    }
 }
