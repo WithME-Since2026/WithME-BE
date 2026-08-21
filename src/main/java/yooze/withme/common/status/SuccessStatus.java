@@ -47,6 +47,7 @@ public enum SuccessStatus implements BaseStatus {
     DELETE_SCHEDULE_SUCCESS("SCHEDULE_200", HttpStatus.OK, "일정 삭제 성공"),
     UPDATE_OCCURRENCE_SUCCESS("SCHEDULE_200", HttpStatus.OK, "일정 회차 수정 성공"),
     DELETE_OCCURRENCE_SUCCESS("SCHEDULE_200", HttpStatus.OK, "일정 회차 삭제 성공"),
+    SYNC_HOLIDAY_SUCCESS("HOLIDAY_200", HttpStatus.OK, "공휴일 동기화 성공"),
 
     /**
      * User

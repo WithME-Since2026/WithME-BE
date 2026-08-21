@@ -56,6 +56,7 @@ public enum ErrorStatus implements BaseStatus {
     INVALID_RECURRENCE("RECURRENCE_400", HttpStatus.BAD_REQUEST, "반복 규칙이 올바르지 않습니다."),
     OCCURRENCE_NOT_FOUND("OCCURRENCE_404", HttpStatus.NOT_FOUND, "존재하지 않는 반복 회차입니다."),
     INVALID_OCCURRENCE("OCCURRENCE_400", HttpStatus.BAD_REQUEST, "회차 수정 요청이 올바르지 않습니다."),
+    HOLIDAY_SYNC_FAILED("HOLIDAY_500", HttpStatus.INTERNAL_SERVER_ERROR, "공휴일 동기화에 실패했습니다."),
 
     /**
      * Group
