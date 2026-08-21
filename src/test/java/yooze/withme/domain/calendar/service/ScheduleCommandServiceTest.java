@@ -3,6 +3,7 @@ package yooze.withme.domain.calendar.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
@@ -17,9 +18,14 @@ import yooze.withme.common.status.ErrorStatus;
 import yooze.withme.domain.auth.entity.User;
 import yooze.withme.domain.auth.service.UserQueryService;
 import yooze.withme.domain.calendar.dto.request.CreateScheduleRequest;
+import yooze.withme.domain.calendar.dto.request.RecurrenceRequest;
 import yooze.withme.domain.calendar.dto.request.UpdateScheduleRequest;
+import yooze.withme.domain.calendar.dto.response.RecurrenceResponse;
 import yooze.withme.domain.calendar.dto.response.ScheduleResponse;
 import yooze.withme.domain.calendar.entity.Schedule;
+import yooze.withme.domain.calendar.enums.RecurrenceEndType;
+import yooze.withme.domain.calendar.enums.RecurrenceFreq;
+import yooze.withme.domain.calendar.enums.RecurrenceOwnerType;
 import yooze.withme.domain.calendar.repository.ScheduleRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,6 +40,9 @@ class ScheduleCommandServiceTest {
 
     @Mock
     private ScheduleQueryService scheduleQueryService;
+
+    @Mock
+    private RecurrenceCommandService recurrenceCommandService;
 
     @Mock
     private UserQueryService userQueryService;
@@ -85,6 +94,56 @@ class ScheduleCommandServiceTest {
         assertThat(response.allDay()).isTrue();
         assertThat(response.startTime()).isNull();
         assertThat(response.endTime()).isNull();
+    }
+
+    @Test
+    void createScheduleReturnsSavedRecurrence() {
+        RecurrenceRequest rule = new RecurrenceRequest(
+                RecurrenceFreq.WEEKLY,
+                1,
+                "THU",
+                RecurrenceEndType.NEVER,
+                null,
+                null
+        );
+        RecurrenceResponse savedRule = new RecurrenceResponse(
+                RecurrenceFreq.WEEKLY,
+                1,
+                "THU",
+                RecurrenceEndType.NEVER,
+                null,
+                null
+        );
+        when(userQueryService.getUserByUserId(USER_ID)).thenReturn(user(USER_ID));
+        when(scheduleRepository.save(any(Schedule.class)))
+                .thenReturn(timedSchedule(user(USER_ID)));
+        when(recurrenceCommandService.upsert(
+                RecurrenceOwnerType.SCHEDULE,
+                SCHEDULE_ID,
+                DATE,
+                rule
+        )).thenReturn(savedRule);
+
+        ScheduleResponse response = scheduleCommandService.createSchedule(
+                USER_ID,
+                new CreateScheduleRequest(
+                        "치과",
+                        false,
+                        DATE,
+                        LocalTime.of(14, 0),
+                        DATE,
+                        LocalTime.of(15, 0),
+                        rule
+                )
+        );
+
+        assertThat(response.recurrence()).isEqualTo(savedRule);
+        verify(recurrenceCommandService).upsert(
+                RecurrenceOwnerType.SCHEDULE,
+                SCHEDULE_ID,
+                DATE,
+                rule
+        );
     }
 
     @Test
@@ -170,6 +229,7 @@ class ScheduleCommandServiceTest {
         scheduleCommandService.deleteSchedule(USER_ID, SCHEDULE_ID);
 
         assertThat(schedule.deleted()).isTrue();
+        verify(recurrenceCommandService).delete(RecurrenceOwnerType.SCHEDULE, SCHEDULE_ID);
     }
 
     private Schedule timedSchedule(User user) {

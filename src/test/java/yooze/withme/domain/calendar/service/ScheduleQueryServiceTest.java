@@ -29,6 +29,9 @@ class ScheduleQueryServiceTest {
     @Mock
     private ScheduleRepository scheduleRepository;
 
+    @Mock
+    private RecurrenceQueryService recurrenceQueryService;
+
     @InjectMocks
     private ScheduleQueryService scheduleQueryService;
 
