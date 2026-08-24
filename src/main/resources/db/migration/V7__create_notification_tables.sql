@@ -16,8 +16,10 @@ CREATE INDEX idx_notifications_user_unread ON notifications (user_id) WHERE read
 CREATE TABLE fcm_tokens
 (
     token_id   BIGSERIAL PRIMARY KEY,
-    user_id    BIGINT       NOT NULL UNIQUE REFERENCES users (user_id),
+    user_id    BIGINT       NOT NULL REFERENCES users (user_id),
+    device_id  VARCHAR(128) NOT NULL,
     token      VARCHAR(512) NOT NULL,
     created_at TIMESTAMP    NOT NULL DEFAULT now(),
-    updated_at TIMESTAMP    NOT NULL DEFAULT now()
+    updated_at TIMESTAMP    NOT NULL DEFAULT now(),
+    CONSTRAINT uq_fcm_tokens_user_device UNIQUE (user_id, device_id)
 );
