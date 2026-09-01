@@ -10,6 +10,7 @@ import yooze.withme.common.response.ApiResponse;
 import yooze.withme.common.status.SuccessStatus;
 import yooze.withme.domain.auth.entity.User;
 import yooze.withme.domain.auth.service.UserQueryService;
+import yooze.withme.domain.notification.controller.docs.NotificationControllerDocs;
 import yooze.withme.domain.notification.dto.request.FcmTokenRequest;
 import yooze.withme.domain.notification.dto.response.NotificationResponse;
 import yooze.withme.domain.notification.service.NotificationCommandService;
@@ -21,7 +22,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/notifications")
 @RequiredArgsConstructor
-public class NotificationController {
+public class NotificationController implements NotificationControllerDocs {
 
     private final NotificationQueryService notificationQueryService;
     private final NotificationCommandService notificationCommandService;

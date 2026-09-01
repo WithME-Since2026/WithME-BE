@@ -24,7 +24,7 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
 
     Page<Todo> findByUserUserIdAndDeletedAtIsNull(Long userId, Pageable pageable);
 
-    /** 스케줄러용 — 특정 날짜 마감이고 알림 설정된 미완료 todo (user fetch join) */
+    /** 스케줄러용 — 특정 날짜 마감이고 알림 설정된 미완료 투두 (user fetch join) */
     @Query("""
             SELECT t FROM Todo t JOIN FETCH t.user
             WHERE t.dueDate = :dueDate
@@ -34,7 +34,7 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
             """)
     List<Todo> findDueTodosForNotification(@Param("dueDate") LocalDate dueDate);
 
-    /** 카테고리 삭제 시 해당 카테고리를 쓰던 todo 전체를 카테고리 없음 상태로 해제한다 */
+    /** 카테고리 삭제 시 해당 카테고리를 쓰던 투두 전체를 카테고리 없음 상태로 해제한다 */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
             update Todo t

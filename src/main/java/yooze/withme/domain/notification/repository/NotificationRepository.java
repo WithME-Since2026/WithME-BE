@@ -18,6 +18,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     /** 유저의 전체 알림 읽음 처리 */
     @Modifying
-    @Query("UPDATE Notification n SET n.readAt = now() WHERE n.user.userId = :userId AND n.readAt IS NULL")
+    @Query("UPDATE Notification n SET n.readAt = CURRENT_TIMESTAMP WHERE n.user.userId = :userId AND n.readAt IS NULL")
     void markAllAsRead(@Param("userId") Long userId);
 }

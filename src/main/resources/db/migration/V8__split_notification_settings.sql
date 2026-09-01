@@ -1,0 +1,7 @@
+ALTER TABLE users
+    ADD COLUMN "notifyGroupRemind"  BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN "notifyTodoDeadline" BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN "notifyGroupInvite"  BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE users
+    DROP COLUMN "notifyAgree";

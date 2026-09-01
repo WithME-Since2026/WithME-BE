@@ -55,8 +55,8 @@ public class NotificationScheduler {
     }
 
     /**
-     * Todo 마감 알림 — 매일 오전 9시 실행.
-     * 내일 마감이고 알림 설정된 미완료 todo의 담당자에게 알림을 발송한다.
+     * 투두 마감 알림 — 매일 오전 9시 실행.
+     * 내일 마감이고 알림 설정된 미완료 투두의 담당자에게 알림을 발송한다.
      */
     @Scheduled(cron = "0 0 9 * * *")
     public void sendTodoDeadlineNotifications() {

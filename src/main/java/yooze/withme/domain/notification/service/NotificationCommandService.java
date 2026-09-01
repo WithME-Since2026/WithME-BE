@@ -37,9 +37,14 @@ public class NotificationCommandService {
                 .body(body)
                 .build());
 
-        // 2. FCM 푸시 (알림 동의 + 토큰 있을 때만)
-        if (!user.isNotifyAgree()) {
-            log.debug("[*] 알림 수신 비동의 - userId: {}", user.getUserId());
+        // 2. FCM 푸시 (알림 설정 + 토큰 있을 때만)
+        boolean agreed = switch (type) {
+            case GROUP_REMINDER -> user.isNotifyGroupRemind();
+            case TODO_DEADLINE -> user.isNotifyTodoDeadline();
+            case GROUP_INVITE -> user.isNotifyGroupInvite();
+        };
+        if (!agreed) {
+            log.debug("[*] 알림 수신 비동의 - userId: {}, type: {}", user.getUserId(), type);
             return;
         }
 

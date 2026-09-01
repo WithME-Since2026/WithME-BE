@@ -11,7 +11,7 @@ public interface GroupRoundRepository extends JpaRepository<GroupRound, Long> {
 
     List<GroupRound> findByGroupIdOrderByRoundDateAscRoundTimeAsc(Long groupId);
 
-    /** D-1 리마인더용 — 특정 날짜에 예정된 모든 회차 (group fetch join) */
+    /** D-1 리마인더용 — 특정 날짜에 예정된 모든 회차 */
     @Query("SELECT gr FROM GroupRound gr JOIN FETCH gr.group WHERE gr.roundDate = :date")
     List<GroupRound> findByRoundDateWithGroup(@Param("date") LocalDate date);
 }
