@@ -53,7 +53,13 @@ public class NotificationCommandService {
             log.debug("[*] FCM 토큰 없음 - userId: {}", user.getUserId());
             return;
         }
-        tokens.forEach(t -> fcmClient.send(t.getToken(), title, body));
+        tokens.forEach(t -> {
+            boolean valid = fcmClient.send(t.getToken(), title, body);
+            if (!valid) {
+                log.info("[*] 만료된 FCM 토큰 삭제 - deviceId: {}", t.getDeviceId());
+                fcmTokenRepository.delete(t);
+            }
+        });
     }
 
     /** FCM 토큰 등록 또는 갱신 — 기기 단위 upsert */
@@ -69,9 +75,10 @@ public class NotificationCommandService {
                 );
     }
 
-    /** 단건 읽음 처리 */
-    public void markAsRead(Long notificationId) {
+    /** 단건 읽음 처리 (본인 알림인지 확인) */
+    public void markAsRead(Long userId, Long notificationId) {
         notificationRepository.findById(notificationId)
+                .filter(n -> n.getUser().getUserId().equals(userId))
                 .ifPresent(Notification::markAsRead);
     }
 

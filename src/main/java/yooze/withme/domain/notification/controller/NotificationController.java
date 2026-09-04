@@ -54,9 +54,11 @@ public class NotificationController implements NotificationControllerDocs {
     /** 단건 읽음 처리 */
     @PatchMapping("/{notificationId}/read")
     public ResponseEntity<ApiResponse<Void>> markAsRead(
+            @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long notificationId
     ) {
-        notificationCommandService.markAsRead(notificationId);
+        Long userId = Long.parseLong(userDetails.getUsername());
+        notificationCommandService.markAsRead(userId, notificationId);
         return ApiResponse.success(SuccessStatus.MARK_AS_READ_SUCCESS);
     }
 
