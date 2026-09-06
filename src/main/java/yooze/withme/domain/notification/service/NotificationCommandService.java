@@ -2,17 +2,15 @@ package yooze.withme.domain.notification.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import yooze.withme.domain.auth.entity.User;
-import yooze.withme.domain.notification.client.FcmClient;
-import yooze.withme.domain.notification.entity.FcmToken;
 import yooze.withme.domain.notification.entity.Notification;
 import yooze.withme.domain.notification.enums.NotificationType;
+import yooze.withme.domain.notification.event.FcmPushEvent;
 import yooze.withme.domain.notification.repository.FcmTokenRepository;
 import yooze.withme.domain.notification.repository.NotificationRepository;
-
-import java.util.List;
 
 @Slf4j
 @Service
@@ -22,11 +20,12 @@ public class NotificationCommandService {
 
     private final NotificationRepository notificationRepository;
     private final FcmTokenRepository fcmTokenRepository;
-    private final FcmClient fcmClient;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
-     * 알림 저장 + FCM 푸시 발송.
-     * notifyAgree가 false인 유저는 DB 저장은 하되 푸시는 건너뛴다.
+     * 알림 DB 저장 후 FCM 푸시 이벤트 발행.
+     * FCM 발송은 트랜잭션 커밋 완료 후 실행되므로
+     * DB 저장 실패 시 푸시가 나가지 않는다.
      */
     public void send(User user, NotificationType type, String title, String body) {
         // 1. DB 저장
@@ -37,7 +36,7 @@ public class NotificationCommandService {
                 .body(body)
                 .build());
 
-        // 2. FCM 푸시 (알림 설정 + 토큰 있을 때만)
+        // 2. 알림 설정 확인 후 이벤트 발행 (FCM은 커밋 후 처리)
         boolean agreed = switch (type) {
             case GROUP_REMINDER -> user.isNotifyGroupRemind();
             case TODO_DEADLINE -> user.isNotifyTodoDeadline();
@@ -48,31 +47,12 @@ public class NotificationCommandService {
             return;
         }
 
-        List<FcmToken> tokens = fcmTokenRepository.findAllByUser(user);
-        if (tokens.isEmpty()) {
-            log.debug("[*] FCM 토큰 없음 - userId: {}", user.getUserId());
-            return;
-        }
-        tokens.forEach(t -> {
-            boolean valid = fcmClient.send(t.getToken(), title, body);
-            if (!valid) {
-                log.info("[*] 만료된 FCM 토큰 삭제 - deviceId: {}", t.getDeviceId());
-                fcmTokenRepository.delete(t);
-            }
-        });
+        eventPublisher.publishEvent(new FcmPushEvent(user.getUserId(), title, body));
     }
 
-    /** FCM 토큰 등록 또는 갱신 — 기기 단위 upsert */
+    /** FCM 토큰 등록 또는 갱신 — 기기 단위 원자적 upsert */
     public void registerFcmToken(User user, String deviceId, String token) {
-        fcmTokenRepository.findByUserAndDeviceId(user, deviceId)
-                .ifPresentOrElse(
-                        fcmToken -> fcmToken.updateToken(token),
-                        () -> fcmTokenRepository.save(FcmToken.builder()
-                                .user(user)
-                                .deviceId(deviceId)
-                                .token(token)
-                                .build())
-                );
+        fcmTokenRepository.upsert(user.getUserId(), deviceId, token);
     }
 
     /** 단건 읽음 처리 (본인 알림인지 확인) */
