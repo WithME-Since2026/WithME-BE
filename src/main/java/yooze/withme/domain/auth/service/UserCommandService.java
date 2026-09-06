@@ -104,13 +104,17 @@ public class UserCommandService {
         return ProfileResponse.from(user);
     }
 
-    /** 알림 설정 변경 */
+    /** 알림 설정 변경 — null 필드는 기존 값을 유지한다 (하위 호환) */
     public NotificationSettingsResponse updateNotificationSettings(
-            Long userId, boolean notifyGroupRemind, boolean notifyTodoDeadline, boolean notifyGroupInvite) {
+            Long userId, Boolean notifyGroupRemind, Boolean notifyTodoDeadline, Boolean notifyGroupInvite) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
 
-        user.updateNotificationSettings(notifyGroupRemind, notifyTodoDeadline, notifyGroupInvite);
+        user.updateNotificationSettings(
+                notifyGroupRemind  != null ? notifyGroupRemind  : user.isNotifyGroupRemind(),
+                notifyTodoDeadline != null ? notifyTodoDeadline : user.isNotifyTodoDeadline(),
+                notifyGroupInvite  != null ? notifyGroupInvite  : user.isNotifyGroupInvite()
+        );
         return NotificationSettingsResponse.from(user);
     }
 
