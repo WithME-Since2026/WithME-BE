@@ -38,10 +38,10 @@ public class FcmClient {
             MessagingErrorCode errorCode = e.getMessagingErrorCode();
             if (errorCode == MessagingErrorCode.UNREGISTERED
                     || errorCode == MessagingErrorCode.INVALID_ARGUMENT) {
-                log.info("[*] FCM 토큰 만료/무효 - token: {}", fcmToken);
+                log.info("[*] FCM 토큰 만료/무효 - token: {}..., errorCode: {}", fcmToken.substring(0, Math.min(10, fcmToken.length())), errorCode);
                 return false;
             }
-            log.warn("[*] FCM 발송 실패 - token: {}, error: {}", fcmToken, e.getMessage());
+            log.warn("[*] FCM 발송 실패 - errorCode: {}, error: {}", errorCode, e.getMessage());
             return true;
         }
     }
