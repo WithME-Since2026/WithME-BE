@@ -35,11 +35,12 @@ public interface NotificationControllerDocs {
             @Parameter(hidden = true) UserDetails userDetails
     );
 
-    @Operation(summary = "단건 읽음 처리", description = "특정 알림 하나를 읽음 처리한다.")
+    @Operation(summary = "단건 읽음 처리", description = "특정 알림 하나를 읽음 처리한다. 본인 알림만 처리된다.")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "읽음 처리 성공")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     @PatchMapping("/{notificationId}/read")
     ResponseEntity<ApiResponse<Void>> markAsRead(
+            @Parameter(hidden = true) UserDetails userDetails,
             @Parameter(description = "알림 ID", required = true) @PathVariable Long notificationId
     );
 
