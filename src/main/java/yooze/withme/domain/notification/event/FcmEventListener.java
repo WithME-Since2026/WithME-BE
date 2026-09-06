@@ -31,7 +31,7 @@ public class FcmEventListener {
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Transactional
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
     public void handleFcmPush(FcmPushEvent event) {
         User user = userRepository.findById(event.userId()).orElse(null);
         if (user == null) return;
