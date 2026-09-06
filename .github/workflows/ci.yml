@@ -32,6 +32,11 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
+      - name: Create Firebase service account key
+        run: |
+          mkdir -p src/main/resources/firebase
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}' > src/main/resources/firebase/service-account-key.json
+
       # 테스트는 src/test/resources/application.yml의 H2 인메모리 DB를 사용하므로
       # 별도의 DB 서비스 컨테이너나 시크릿이 필요하지 않다.
       - name: Build & Test

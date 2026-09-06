@@ -74,6 +74,13 @@ jwt:
   refresh-token-expiration: 1209600000  # 14일 (ms)
 
 
+# Firebase (FCM 푸시 알림)
+# 서비스 계정 키 JSON 파일을 src/main/resources/firebase/ 에 위치시키고
+# 환경변수 FIREBASE_SERVICE_ACCOUNT_KEY_PATH 로 경로를 주입한다.
+# 예) firebase/withme-firebase-adminsdk.json
+firebase:
+  service-account-key-path: ${FIREBASE_SERVICE_ACCOUNT_KEY_PATH:firebase/service-account-key.json}
+
 # 카카오
 kakao:
   client-id: ${KAKAO_CLIENT_ID}

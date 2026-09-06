@@ -55,6 +55,14 @@ public enum SuccessStatus implements BaseStatus {
     GET_MY_GROUPS_SUCCESS("USER_200", HttpStatus.OK, "참여 모임 목록 조회 성공"),
 
     /**
+     * Notification
+     */
+    GET_NOTIFICATIONS_SUCCESS("NOTIFICATION_200", HttpStatus.OK, "알림 목록 조회 성공"),
+    GET_UNREAD_COUNT_SUCCESS("NOTIFICATION_200", HttpStatus.OK, "안읽은 알림 수 조회 성공"),
+    MARK_AS_READ_SUCCESS("NOTIFICATION_200", HttpStatus.OK, "알림 읽음 처리 성공"),
+    REGISTER_FCM_TOKEN_SUCCESS("NOTIFICATION_200", HttpStatus.OK, "FCM 토큰 등록 성공"),
+
+    /**
      * Group
      */
     CREATE_GROUP_SUCCESS("GROUP_201", HttpStatus.CREATED, "모임 생성 성공"),

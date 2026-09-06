@@ -47,3 +47,11 @@ jwt:
   secret: test-only-secret-key-for-context-loading-not-used-in-production
   access-token-expiration: 1800000
   refresh-token-expiration: 1209600000
+
+firebase:
+  service-account-key-path: firebase/service-account-key.json
+
+kakao:
+  client-id: dummy-kakao-client-id
+  client-secret: dummy-kakao-client-secret
+  redirect-uri: http://localhost:8080/api/v1/auth/kakao/callback
