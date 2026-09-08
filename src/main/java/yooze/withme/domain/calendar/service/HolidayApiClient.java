@@ -52,12 +52,23 @@ public class HolidayApiClient {
         return parse(response, type);
     }
 
+    /** 정상 코드는 "00". 인증키 오류 등은 2xx 로 오면서 본문에만 코드가 실린다. */
+    private static final String RESULT_CODE_OK = "00";
+
     /** 응답 형태(빈 결과, 단건 객체, 배열)를 흡수하는 지점이라 패키지 공개로 두고 직접 테스트한다. */
     static List<Holiday> parse(JsonNode response, HolidayType type) {
-        List<Holiday> holidays = new ArrayList<>();
+        // 오류 본문도 200 으로 오므로 결과 코드를 확인하지 않으면 빈 목록과 구분되지 않는다
         if (response == null) {
-            return holidays;
+            throw new IllegalStateException("공휴일 API 응답 본문이 비어 있습니다");
         }
+        JsonNode header = response.path("response").path("header");
+        String resultCode = header.path("resultCode").asText("");
+        if (!RESULT_CODE_OK.equals(resultCode)) {
+            throw new IllegalStateException("공휴일 API 오류 응답 : resultCode=%s, msg=%s"
+                    .formatted(resultCode, header.path("resultMsg").asText("")));
+        }
+
+        List<Holiday> holidays = new ArrayList<>();
         // 결과가 없으면 items 가 객체가 아니라 빈 문자열로 온다
         JsonNode items = response.path("response").path("body").path("items").path("item");
         if (items.isMissingNode() || items.isNull()) {
