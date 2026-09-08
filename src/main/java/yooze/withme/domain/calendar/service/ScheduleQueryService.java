@@ -37,8 +37,9 @@ public class ScheduleQueryService {
         if (schedule.deleted()) {
             throw new GeneralException(ErrorStatus.SCHEDULE_NOT_FOUND);
         }
+        // 남의 일정도 없는 것으로 응답한다. 403/404 가 갈리면 id 열거로 존재 여부가 새어나간다
         if (!schedule.getUser().getUserId().equals(userId)) {
-            throw new GeneralException(ErrorStatus.SCHEDULE_FORBIDDEN);
+            throw new GeneralException(ErrorStatus.SCHEDULE_NOT_FOUND);
         }
         return schedule;
     }

@@ -57,14 +57,15 @@ class ScheduleQueryServiceTest {
     }
 
     @Test
-    void getScheduleRejectsAnotherUsersSchedule() {
+    void getScheduleHidesAnotherUsersScheduleBehindNotFound() {
+        // 없는 일정과 남의 일정의 응답이 같아야 id 열거로 존재 여부가 새지 않는다
         when(scheduleRepository.findById(SCHEDULE_ID))
                 .thenReturn(Optional.of(schedule(2L)));
 
         assertThatThrownBy(() -> scheduleQueryService.getSchedule(USER_ID, SCHEDULE_ID))
                 .isInstanceOf(GeneralException.class)
                 .extracting(e -> ((GeneralException) e).getErrorStatus())
-                .isEqualTo(ErrorStatus.SCHEDULE_FORBIDDEN);
+                .isEqualTo(ErrorStatus.SCHEDULE_NOT_FOUND);
     }
 
     @Test
