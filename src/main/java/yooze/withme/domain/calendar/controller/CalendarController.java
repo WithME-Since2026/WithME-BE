@@ -24,8 +24,8 @@ public class CalendarController implements CalendarControllerDocs {
     @Override
     public ResponseEntity<ApiResponse<List<CalendarItemResponse>>> getCalendar(
             @RequestAttribute("userId") Long userId,
-            @RequestParam LocalDate from,
-            @RequestParam LocalDate to
+            @RequestParam(name = "from") LocalDate from,
+            @RequestParam(name = "to") LocalDate to
     ) {
         List<CalendarItemResponse> response = calendarQueryService.getCalendar(userId, from, to);
         return ApiResponse.success(SuccessStatus.GET_CALENDAR_SUCCESS, response);

@@ -33,7 +33,7 @@ public interface CalendarControllerDocs {
     @GetMapping
     ResponseEntity<ApiResponse<List<CalendarItemResponse>>> getCalendar(
             @Parameter(hidden = true) @RequestAttribute("userId") Long userId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
+            @RequestParam(name = "from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(name = "to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
     );
 }
