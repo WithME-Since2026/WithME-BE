@@ -95,6 +95,24 @@ psql -h <DB호스트> -U <user> -d withme -c "SELECT conname, condeferrable, con
 > 사용자별 잠금이 없던 시절의 경합으로 중복/구멍이 남아 있을 수 있기 때문이다.
 > 순서 자체는 보존되지만 값이 바뀌므로, 적용 전 `categories` 백업을 권장한다.
 
+### V8 을 이미 적용한 DB — 배포 전 `flyway repair`
+
+`V8` 은 `ck_users_role` 을 `NOT VALID` 로 붙이도록 바뀌었고, 기존 행 검증은 `V10` 으로 분리했다.
+제약을 즉시 검사하면 `users` 전수 스캔이 끝날 때까지 잠금이 마이그레이션 커밋까지 유지되기 때문이다.
+
+`V8` 이 이미 적용된 DB 는 체크섬이 달라져 다음 배포에서 Flyway 검증이 실패한다.
+배포 전에 한 번 이력을 맞춘다:
+
+```bash
+psql -h <DB호스트> -U <user> -d withme -c "SELECT version, checksum, success FROM flyway_schema_history WHERE version = '8';"
+
+# Gradle Flyway 플러그인을 쓰지 않으므로 CLI 이미지로 repair 한다
+docker run --rm -v "$PWD/src/main/resources/db/migration:/flyway/sql" flyway/flyway     -url=jdbc:postgresql://<DB호스트>:5432/withme -user=<user> -password=<password> repair
+```
+
+`repair` 는 이력의 체크섬만 갱신하고 스키마는 건드리지 않는다.
+이미 검증된 제약에 `V10` 을 실행해도 아무 일도 일어나지 않으므로 그대로 이어서 배포하면 된다.
+
 ### 3단계 — 이후 스키마 변경
 
 `DDL_AUTO` 는 `validate` 로 고정하고, 스키마 변경은 `db/migration` 에
