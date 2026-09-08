@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,10 +22,13 @@ import yooze.withme.common.status.ErrorStatus;
 import yooze.withme.domain.auth.entity.User;
 import yooze.withme.domain.calendar.dto.response.CalendarItemResponse;
 import yooze.withme.domain.calendar.dto.response.OccurrenceResponse;
+import yooze.withme.domain.calendar.dto.response.RecurrenceResponse;
 import yooze.withme.domain.calendar.entity.Holiday;
 import yooze.withme.domain.calendar.entity.Schedule;
 import yooze.withme.domain.calendar.enums.CalendarSourceType;
 import yooze.withme.domain.calendar.enums.HolidayType;
+import yooze.withme.domain.calendar.enums.RecurrenceEndType;
+import yooze.withme.domain.calendar.enums.RecurrenceFreq;
 import yooze.withme.domain.calendar.enums.RecurrenceOwnerType;
 import yooze.withme.domain.calendar.repository.HolidayRepository;
 import yooze.withme.domain.calendar.repository.ScheduleRepository;
@@ -147,6 +151,28 @@ class CalendarQueryServiceTest {
                 .thenReturn(List.of(todo(LocalDate.of(2026, 7, 20))));
 
         assertThat(calendarQueryService.getCalendar(USER_ID, FROM, TO)).isEmpty();
+    }
+
+    @Test
+    void keepsRecurringScheduleWithNoOccurrenceOut() {
+        // 규칙이 끝났거나 회차가 전부 건너뛰어진 반복 일정은 원본으로 대체하지 않는다
+        Schedule schedule = timedSchedule(LocalDate.of(2026, 7, 20));
+        when(scheduleRepository.findForCalendar(USER_ID, FROM, TO)).thenReturn(List.of(schedule));
+        when(recurrenceQueryService.findAll(RecurrenceOwnerType.SCHEDULE,
+                List.of(schedule.getScheduleId())))
+                .thenReturn(Map.of(schedule.getScheduleId(), new RecurrenceResponse(
+                        RecurrenceFreq.WEEKLY, 1, "MO", RecurrenceEndType.DATE,
+                        LocalDate.of(2026, 7, 31), null)));
+
+        assertThat(calendarQueryService.getCalendar(USER_ID, FROM, TO)).isEmpty();
+    }
+
+    @Test
+    void keepsNonRecurringMultiDayScheduleStartingBeforeRange() {
+        when(scheduleRepository.findForCalendar(USER_ID, FROM, TO))
+                .thenReturn(List.of(timedSchedule(LocalDate.of(2026, 7, 20))));
+
+        assertThat(calendarQueryService.getCalendar(USER_ID, FROM, TO)).hasSize(1);
     }
 
     private Todo todo(LocalDate dueDate) {

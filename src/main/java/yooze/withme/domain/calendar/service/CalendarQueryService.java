@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -70,14 +71,21 @@ public class CalendarQueryService {
 
     private List<CalendarItemResponse> todoItems(Long userId, LocalDate from, LocalDate to) {
         List<CalendarItemResponse> items = new ArrayList<>();
-        for (Todo todo : todoRepository.findForCalendar(userId, from, to)) {
+        List<Todo> todos = todoRepository.findForCalendar(userId, from, to);
+        Set<Long> recurringIds = recurrenceQueryService.findAll(
+                RecurrenceOwnerType.TODO, todos.stream().map(Todo::getTodoId).toList()).keySet();
+
+        for (Todo todo : todos) {
             // ponytail: 반복 원본 1건당 규칙+예외 조회 1번. 구간이 최대 92일이라 반복 원본 수가
             // 곧 상한이다. 반복 todo 가 수백 건이 되면 규칙/예외를 일괄 조회로 바꿀 것.
             List<OccurrenceResponse> occurrences = recurrenceQueryService.findOccurrences(
                     RecurrenceOwnerType.TODO, todo.getTodoId(), todo.getDueDate(), from, to);
 
             if (occurrences.isEmpty()) {
-                addIfWithin(items, CalendarItemResponse.ofTodo(todo, null), from, to);
+                // 반복인데 전개 결과가 비면 구간 안에 회차가 없는 것이므로 원본으로 대체하지 않는다
+                if (!recurringIds.contains(todo.getTodoId())) {
+                    addIfWithin(items, CalendarItemResponse.ofTodo(todo, null), from, to);
+                }
                 continue;
             }
             for (OccurrenceResponse occurrence : occurrences) {
@@ -89,14 +97,22 @@ public class CalendarQueryService {
 
     private List<CalendarItemResponse> scheduleItems(Long userId, LocalDate from, LocalDate to) {
         List<CalendarItemResponse> items = new ArrayList<>();
-        for (Schedule schedule : scheduleRepository.findForCalendar(userId, from, to)) {
+        List<Schedule> schedules = scheduleRepository.findForCalendar(userId, from, to);
+        Set<Long> recurringIds = recurrenceQueryService.findAll(
+                RecurrenceOwnerType.SCHEDULE,
+                schedules.stream().map(Schedule::getScheduleId).toList()).keySet();
+
+        for (Schedule schedule : schedules) {
             List<OccurrenceResponse> occurrences = recurrenceQueryService.findOccurrences(
                     RecurrenceOwnerType.SCHEDULE, schedule.getScheduleId(),
                     schedule.getStartDate(), from, to);
 
             if (occurrences.isEmpty()) {
-                // 여러 날에 걸친 일정은 시작일이 구간 앞이어도 한 칸으로 내려준다
-                items.add(CalendarItemResponse.ofSchedule(schedule, null));
+                // 반복이면 구간 안에 회차가 없는 것(규칙 종료·전수 건너뜀)이므로 제외하고,
+                // 비반복 다일 일정만 시작일이 구간 앞이어도 한 칸으로 내려준다
+                if (!recurringIds.contains(schedule.getScheduleId())) {
+                    items.add(CalendarItemResponse.ofSchedule(schedule, null));
+                }
                 continue;
             }
             for (OccurrenceResponse occurrence : occurrences) {
