@@ -182,6 +182,18 @@ class CalendarQueryServiceTest {
         assertThat(calendarQueryService.getCalendar(USER_ID, FROM, TO)).hasSize(1);
     }
 
+    @Test
+    void keepsRecurringTodoWithAllOccurrencesSkippedOut() {
+        // 구간 안 유일한 회차를 SKIP 하면 전개 결과가 비지만 원본 마감일로 되살아나면 안 된다
+        Todo todo = todo(LocalDate.of(2026, 8, 3));
+        when(todoRepository.findForCalendar(USER_ID, FROM, TO)).thenReturn(List.of(todo));
+        when(recurrenceQueryService.findAll(RecurrenceOwnerType.TODO, List.of(todo.getTodoId())))
+                .thenReturn(Map.of(todo.getTodoId(), new RecurrenceResponse(
+                        RecurrenceFreq.WEEKLY, 1, "MON", RecurrenceEndType.NEVER, null, null)));
+
+        assertThat(calendarQueryService.getCalendar(USER_ID, FROM, TO)).isEmpty();
+    }
+
     private Todo todo(LocalDate dueDate) {
         return Todo.builder()
                 .todoId(7L)

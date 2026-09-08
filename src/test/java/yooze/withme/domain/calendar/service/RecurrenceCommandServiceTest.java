@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -163,6 +164,32 @@ class RecurrenceCommandServiceTest {
                 .extracting(e -> ((GeneralException) e).getErrorStatus())
                 .isEqualTo(ErrorStatus.INVALID_OCCURRENCE);
         verify(recurrenceExceptionRepository, never()).save(any());
+    }
+
+    @Test
+    void dropsExceptionsThatNewRuleNoLongerProduces() {
+        givenWeeklyRule();
+        when(recurrenceRepository.save(any())).thenAnswer(call -> call.getArgument(0));
+        RecurrenceException moved = RecurrenceException.builder()
+                .occurrenceDate(LocalDate.of(2026, 8, 26))   // 격주로 바꾸면 사라지는 회차
+                .exceptionType(RecurrenceExceptionType.OVERRIDE)
+                .overrideDate(LocalDate.of(2026, 9, 1))
+                .build();
+        RecurrenceException kept = RecurrenceException.builder()
+                .occurrenceDate(LocalDate.of(2026, 9, 2))    // 격주로 바꿔도 남는 회차
+                .exceptionType(RecurrenceExceptionType.SKIP)
+                .build();
+        when(recurrenceExceptionRepository.findByRecurrenceRecurrenceId(7L))
+                .thenReturn(List.of(moved, kept));
+
+        recurrenceCommandService.upsert(
+                RecurrenceOwnerType.SCHEDULE, 10L, ANCHOR,
+                new RecurrenceRequest(RecurrenceFreq.WEEKLY, 2, "WED",
+                        RecurrenceEndType.NEVER, null, null));
+
+        ArgumentCaptor<List<RecurrenceException>> captor = ArgumentCaptor.forClass(List.class);
+        verify(recurrenceExceptionRepository).deleteAll(captor.capture());
+        assertThat(captor.getValue()).containsExactly(moved);
     }
 
     private void givenWeeklyRule() {

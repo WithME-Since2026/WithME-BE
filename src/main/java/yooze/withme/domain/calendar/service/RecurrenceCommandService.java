@@ -2,6 +2,7 @@ package yooze.withme.domain.calendar.service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,7 +54,38 @@ public class RecurrenceCommandService {
                 request.endCount()
         );
         validate(recurrence, anchorDate);
-        return RecurrenceResponse.from(recurrenceRepository.save(recurrence));
+        Recurrence saved = recurrenceRepository.save(recurrence);
+        dropStaleExceptions(saved, anchorDate);
+        return RecurrenceResponse.from(saved);
+    }
+
+    /**
+     * 새 규칙이 더 이상 만들어내지 않는 회차의 예외를 지운다.
+     * 남겨두면 OVERRIDE 의 옮겨진 날짜만 보고 유령 회차가 되살아난다.
+     */
+    private void dropStaleExceptions(Recurrence recurrence, LocalDate anchorDate) {
+        if (recurrence.getRecurrenceId() == null) {
+            return;
+        }
+        // ponytail: 예외 1건당 하루짜리 전개 1번. 한 규칙의 예외 수만큼이라 실질적으로 몇 건이다.
+        List<RecurrenceException> stale = recurrenceExceptionRepository
+                .findByRecurrenceRecurrenceId(recurrence.getRecurrenceId()).stream()
+                .filter(exception -> !producedBy(recurrence, anchorDate,
+                        exception.getOccurrenceDate()))
+                .toList();
+        if (!stale.isEmpty()) {
+            recurrenceExceptionRepository.deleteAll(stale);
+        }
+    }
+
+    private boolean producedBy(
+            Recurrence recurrence,
+            LocalDate anchorDate,
+            LocalDate occurrenceDate
+    ) {
+        return occurrenceDate != null
+                && recurrenceExpander.expand(recurrence, anchorDate, occurrenceDate, occurrenceDate)
+                .contains(occurrenceDate);
     }
 
     public RecurrenceResponse validateExisting(
