@@ -41,7 +41,7 @@ import yooze.withme.domain.todo.repository.TodoRepository;
 @Transactional(readOnly = true)
 public class CalendarQueryService {
 
-    /** 한 번에 조회 가능한 최대 기간. 반복 전개량이 구간 일수로 자연 제한된다. */
+    /** 한 번에 조회 가능한 최대 기간(양 끝 포함). 반복 전개량이 구간 일수로 자연 제한된다. */
     public static final int MAX_RANGE_DAYS = 92;
 
     private final TodoRepository todoRepository;
@@ -172,8 +172,9 @@ public class CalendarQueryService {
     }
 
     private void validateRange(LocalDate from, LocalDate to) {
+        // from·to 를 모두 포함해 조회하므로 간격이 92일이면 93일치가 된다
         if (from == null || to == null || from.isAfter(to)
-                || ChronoUnit.DAYS.between(from, to) > MAX_RANGE_DAYS) {
+                || ChronoUnit.DAYS.between(from, to) >= MAX_RANGE_DAYS) {
             throw new GeneralException(ErrorStatus.CALENDAR_RANGE_TOO_WIDE);
         }
     }

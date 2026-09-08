@@ -90,11 +90,18 @@ class CalendarQueryServiceTest {
 
     @Test
     void rejectsRangeWiderThanLimit() {
+        // 양 끝을 포함하므로 간격이 92일이면 93일치가 되어 상한을 넘는다
         assertThatThrownBy(() -> calendarQueryService.getCalendar(
-                USER_ID, FROM, FROM.plusDays(CalendarQueryService.MAX_RANGE_DAYS + 1)))
+                USER_ID, FROM, FROM.plusDays(CalendarQueryService.MAX_RANGE_DAYS)))
                 .isInstanceOf(GeneralException.class)
                 .extracting(e -> ((GeneralException) e).getErrorStatus())
                 .isEqualTo(ErrorStatus.CALENDAR_RANGE_TOO_WIDE);
+    }
+
+    @Test
+    void allowsExactlyMaxRangeDays() {
+        assertThat(calendarQueryService.getCalendar(
+                USER_ID, FROM, FROM.plusDays(CalendarQueryService.MAX_RANGE_DAYS - 1))).isEmpty();
     }
 
     @Test
