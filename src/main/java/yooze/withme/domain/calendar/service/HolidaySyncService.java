@@ -2,11 +2,13 @@ package yooze.withme.domain.calendar.service;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 import yooze.withme.common.notify.DiscordErrorNotifier;
 import yooze.withme.common.properties.HolidayProperties;
 import yooze.withme.common.status.ErrorStatus;
@@ -32,6 +34,7 @@ public class HolidaySyncService {
     private final HolidayProperties holidayProperties;
     private final StringRedisTemplate stringRedisTemplate;
     private final DiscordErrorNotifier discordErrorNotifier;
+    private final TransactionTemplate transactionTemplate;
 
     /**
      * 해당 연도의 특일을 동기화한다.
@@ -50,9 +53,13 @@ public class HolidaySyncService {
         }
 
         try {
+            // 중간에 실패하면 일부 타입만 남고, syncIfEmpty 가 그 한 건을 보고 재시도를 건너뛴다.
+            // 그래서 전부 받아온 뒤 한 트랜잭션으로 반영한다 (외부 호출은 트랜잭션 밖에 둔다).
+            List<Holiday> fetched = new ArrayList<>();
             for (HolidayType type : HolidayType.values()) {
-                upsertAll(holidayApiClient.fetch(type, year));
+                fetched.addAll(holidayApiClient.fetch(type, year));
             }
+            transactionTemplate.executeWithoutResult(status -> upsertAll(fetched));
             log.info("[*] 공휴일 동기화 완료 : {}년", year);
             return true;
         } catch (Exception e) {
@@ -75,10 +82,7 @@ public class HolidaySyncService {
         }
     }
 
-    /**
-     * (date, name) 기준 upsert — 재실행해도 중복이 쌓이지 않는다.
-     * 외부 API 호출을 트랜잭션 안에 넣지 않으려고 더티체킹 대신 save 로 저장한다.
-     */
+    /** (date, name) 기준 upsert — 재실행해도 중복이 쌓이지 않는다. */
     private void upsertAll(List<Holiday> holidays) {
         for (Holiday holiday : holidays) {
             Holiday target = holidayRepository

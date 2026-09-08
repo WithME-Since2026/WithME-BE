@@ -22,6 +22,8 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import yooze.withme.common.notify.DiscordErrorNotifier;
 import yooze.withme.common.properties.HolidayProperties;
 import yooze.withme.domain.calendar.entity.Holiday;
@@ -48,6 +50,9 @@ class HolidaySyncServiceTest {
 
     @Mock
     private DiscordErrorNotifier discordErrorNotifier;
+
+    @Mock
+    private PlatformTransactionManager transactionManager;
 
     @Test
     void skipsWhenServiceKeyMissing() {
@@ -134,7 +139,8 @@ class HolidaySyncServiceTest {
                 holidayRepository,
                 properties,
                 stringRedisTemplate,
-                discordErrorNotifier
+                discordErrorNotifier,
+                new TransactionTemplate(transactionManager)
         );
     }
 }
