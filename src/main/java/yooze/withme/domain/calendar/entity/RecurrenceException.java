@@ -76,7 +76,10 @@ public class RecurrenceException {
         this.overrideCompleted = null;
     }
 
-    /** 이 회차만 덮어쓴다. null인 필드는 원본 값을 그대로 쓴다는 뜻이므로 그대로 저장한다. */
+    /**
+     * 이 회차만 덮어쓴다. null인 필드는 이번 요청에 없다는 뜻이므로 기존 덮어쓰기 값을 유지한다.
+     * 덮어쓴 적이 없는 필드는 계속 null로 남아 원본(일정/Todo) 값을 그대로 쓴다.
+     */
     public void override(
             LocalDate overrideDate,
             String overrideTitle,
@@ -85,10 +88,20 @@ public class RecurrenceException {
             Boolean overrideCompleted
     ) {
         this.exceptionType = RecurrenceExceptionType.OVERRIDE;
-        this.overrideDate = overrideDate;
-        this.overrideTitle = overrideTitle;
-        this.overrideStartTime = overrideStartTime;
-        this.overrideEndTime = overrideEndTime;
-        this.overrideCompleted = overrideCompleted;
+        if (overrideDate != null) {
+            this.overrideDate = overrideDate;
+        }
+        if (overrideTitle != null) {
+            this.overrideTitle = overrideTitle;
+        }
+        if (overrideStartTime != null) {
+            this.overrideStartTime = overrideStartTime;
+        }
+        if (overrideEndTime != null) {
+            this.overrideEndTime = overrideEndTime;
+        }
+        if (overrideCompleted != null) {
+            this.overrideCompleted = overrideCompleted;
+        }
     }
 }

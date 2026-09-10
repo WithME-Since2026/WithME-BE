@@ -101,20 +101,29 @@ public class RecurrenceCommandService {
                 .orElse(null);
     }
 
-    /** 특정 회차 하나만 덮어쓴다. 전달된 필드만 원본 값을 대체한다. */
+    /**
+     * 특정 회차 하나만 덮어쓴다. 전달한 필드만 덮어쓰고, 나머지는 기존 덮어쓰기 값을 유지한다.
+     * {@code originStartTime}/{@code originEndTime} 은 덮어쓰기가 없을 때 화면에 찍히는 원본 시간으로,
+     * 한쪽만 보내도 최종 시간이 뒤집히지 않는지 검증하는 데 쓴다(종일 항목이면 null).
+     */
     public OccurrenceResponse override(
             RecurrenceOwnerType ownerType,
             Long ownerId,
             LocalDate anchorDate,
             LocalDate occurrenceDate,
+            LocalTime originStartTime,
+            LocalTime originEndTime,
             UpdateOccurrenceRequest request
     ) {
         if (request == null || request.isEmpty()) {
             throw new GeneralException(ErrorStatus.INVALID_OCCURRENCE);
         }
-        validateOverrideTimes(request.startTime(), request.endTime());
 
         RecurrenceException exception = exceptionOf(ownerType, ownerId, anchorDate, occurrenceDate);
+        validateOverrideTimes(
+                effective(request.startTime(), exception.getOverrideStartTime(), originStartTime),
+                effective(request.endTime(), exception.getOverrideEndTime(), originEndTime)
+        );
         exception.override(
                 request.date(),
                 request.title(),
@@ -165,6 +174,14 @@ public class RecurrenceCommandService {
                         .recurrence(recurrence)
                         .occurrenceDate(occurrenceDate)
                         .build());
+    }
+
+    /** 덮어쓰기 이후 실제로 쓰이는 값: 이번 요청 > 기존 덮어쓰기 > 원본 순. */
+    private LocalTime effective(LocalTime requested, LocalTime overridden, LocalTime origin) {
+        if (requested != null) {
+            return requested;
+        }
+        return overridden != null ? overridden : origin;
     }
 
     private void validateOverrideTimes(LocalTime startTime, LocalTime endTime) {

@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -109,6 +110,8 @@ class RecurrenceCommandServiceTest {
                 10L,
                 ANCHOR,
                 ANCHOR.plusWeeks(1),
+                null,
+                null,
                 new UpdateOccurrenceRequest("변경된 제목", ANCHOR.plusWeeks(1).plusDays(1),
                         null, null, null)
         );
@@ -116,6 +119,67 @@ class RecurrenceCommandServiceTest {
         assertThat(response.occurrenceDate()).isEqualTo(ANCHOR.plusWeeks(1));
         assertThat(response.date()).isEqualTo(ANCHOR.plusWeeks(1).plusDays(1));
         assertThat(response.title()).isEqualTo("변경된 제목");
+    }
+
+    @Test
+    void keepsPreviousOverrideValuesWhenRequestOmitsThem() {
+        when(recurrenceRepository.findByOwnerTypeAndOwnerId(RecurrenceOwnerType.TODO, 10L))
+                .thenReturn(Optional.of(Recurrence.builder()
+                        .recurrenceId(7L)
+                        .ownerType(RecurrenceOwnerType.TODO)
+                        .ownerId(10L)
+                        .freq(RecurrenceFreq.WEEKLY)
+                        .repeatInterval(1)
+                        .byDays("WED")
+                        .endType(RecurrenceEndType.NEVER)
+                        .build()));
+        RecurrenceException existing = RecurrenceException.builder()
+                .occurrenceDate(ANCHOR)
+                .exceptionType(RecurrenceExceptionType.OVERRIDE)
+                .overrideTitle("이 회차만 바꾼 제목")
+                .build();
+        when(recurrenceExceptionRepository.findByRecurrenceRecurrenceIdAndOccurrenceDate(
+                7L,
+                ANCHOR
+        )).thenReturn(Optional.of(existing));
+        when(recurrenceExceptionRepository.save(any(RecurrenceException.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // 체크박스만 토글: completed 만 담긴 요청이 와도 제목 덮어쓰기는 남아야 한다
+        OccurrenceResponse response = recurrenceCommandService.override(
+                RecurrenceOwnerType.TODO,
+                10L,
+                ANCHOR,
+                ANCHOR,
+                null,
+                null,
+                new UpdateOccurrenceRequest(null, null, null, null, true)
+        );
+
+        assertThat(response.title()).isEqualTo("이 회차만 바꾼 제목");
+        assertThat(response.completed()).isTrue();
+    }
+
+    @Test
+    void rejectsOneSidedTimeThatInvertsFinalRange() {
+        givenWeeklyRule();
+        when(recurrenceExceptionRepository.findByRecurrenceRecurrenceIdAndOccurrenceDate(7L, ANCHOR))
+                .thenReturn(Optional.empty());
+
+        // 원본 14:00~15:00 인 회차에 endTime 만 13:00 으로 보내면 14:00~13:00 이 된다
+        assertThatThrownBy(() -> recurrenceCommandService.override(
+                RecurrenceOwnerType.SCHEDULE,
+                10L,
+                ANCHOR,
+                ANCHOR,
+                LocalTime.of(14, 0),
+                LocalTime.of(15, 0),
+                new UpdateOccurrenceRequest(null, null, null, LocalTime.of(13, 0), null)
+        ))
+                .isInstanceOf(GeneralException.class)
+                .extracting(e -> ((GeneralException) e).getErrorStatus())
+                .isEqualTo(ErrorStatus.INVALID_OCCURRENCE);
+        verify(recurrenceExceptionRepository, never()).save(any());
     }
 
     @Test
@@ -158,6 +222,8 @@ class RecurrenceCommandServiceTest {
                 10L,
                 ANCHOR,
                 ANCHOR,
+                null,
+                null,
                 new UpdateOccurrenceRequest(null, null, null, null, null)
         ))
                 .isInstanceOf(GeneralException.class)
