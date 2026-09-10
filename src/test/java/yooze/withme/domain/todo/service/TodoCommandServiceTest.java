@@ -183,7 +183,7 @@ class TodoCommandServiceTest {
     void updateOccurrenceOverridesCompletionForThatDateOnly() {
         Todo todo = todo(TODO_ID);
         when(todoRepository.findById(TODO_ID)).thenReturn(Optional.of(todo));
-        when(recurrenceCommandService.override(any(), any(), any(), any(), any()))
+        when(recurrenceCommandService.override(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(new OccurrenceResponse(
                         DUE_DATE.plusWeeks(1), DUE_DATE.plusWeeks(1), null, null, null, true));
 

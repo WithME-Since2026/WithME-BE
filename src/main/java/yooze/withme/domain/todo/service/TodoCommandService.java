@@ -114,6 +114,8 @@ public class TodoCommandService {
                 todo.getTodoId(),
                 todo.getDueDate(),
                 request.occurrenceDate(),
+                null,
+                null,
                 new UpdateOccurrenceRequest(
                         request.title(),
                         request.date(),

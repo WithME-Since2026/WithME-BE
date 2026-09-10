@@ -4,7 +4,7 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-/** 반복 일정의 특정 회차만 덮어쓰는 요청. 전달된 필드만 원본 값을 대체한다. */
+/** 반복 일정의 특정 회차만 덮어쓰는 요청. 전달한 필드만 덮어쓰고, 나머지는 기존 덮어쓰기 값을 유지한다. */
 public record UpdateOccurrenceRequest(
         @Size(max = 255, message = "제목은 255자를 초과할 수 없습니다.")
         String title,

@@ -130,6 +130,8 @@ public class ScheduleCommandService {
                 scheduleId,
                 schedule.getStartDate(),
                 occurrenceDate,
+                schedule.isAllDay() ? null : schedule.getStartTime(),
+                schedule.isAllDay() ? null : schedule.getEndTime(),
                 request
         );
     }
