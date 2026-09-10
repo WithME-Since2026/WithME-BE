@@ -42,6 +42,11 @@ spring:
           starttls:
             enable: true
 
+# 테스트가 외부 API(공공데이터포털)를 부르지 않게 동기화는 끈다.
+holiday:
+  service-key: ""
+  enabled: false
+
 # 테스트 전용 더미 값. 운영 시크릿과 무관하다.
 jwt:
   secret: test-only-secret-key-for-context-loading-not-used-in-production

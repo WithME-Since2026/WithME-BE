@@ -1,5 +1,6 @@
 package yooze.withme.domain.group.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,6 +17,17 @@ public interface GroupResponseRepository extends JpaRepository<GroupResponse, Lo
 
     @Query("select gr from GroupResponse gr join fetch gr.member where gr.groupRound.id = :roundId and gr.member.id = :memberId")
     Optional<GroupResponse> findByGroupRoundIdAndMemberId(@Param("roundId") Long roundId, @Param("memberId") Long memberId);
+
+    /** 캘린더에 붙일 내 참석 상태를 회차 목록 단위로 한 번에 읽는다. */
+    @Query("""
+        select gr from GroupResponse gr
+        where gr.member.userId = :userId
+          and gr.groupRound.id in :roundIds
+        """)
+    List<GroupResponse> findByUserIdAndGroupRoundIdIn(
+            @Param("userId") Long userId,
+            @Param("roundIds") Collection<Long> roundIds
+    );
 
     @Query("""
         select count(gr)

@@ -3,8 +3,10 @@ package yooze.withme.domain.todo.dto.request;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
+import yooze.withme.domain.calendar.dto.request.RecurrenceRequest;
 
 public record CreateTodoRequest(
         @NotBlank(message = "제목은 필수입니다.")
@@ -17,11 +19,23 @@ public record CreateTodoRequest(
 
         Long categoryId,
 
-        boolean notificationStatus
+        boolean notificationStatus,
+
+        @Valid
+        RecurrenceRequest recurrence
 ) {
 
-    /** 앞뒤 공백을 제거해 카테고리 이름과 동일한 방식으로 정규화한다 */
+    /** 앞뒤 공백을 제거해 카테고리 이름과 동일한 방식으로 정규화 */
     public CreateTodoRequest {
         title = title == null ? null : title.strip();
+    }
+
+    public CreateTodoRequest(
+            String title,
+            LocalDate dueDate,
+            Long categoryId,
+            boolean notificationStatus
+    ) {
+        this(title, dueDate, categoryId, notificationStatus, null);
     }
 }
