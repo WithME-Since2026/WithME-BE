@@ -19,7 +19,7 @@ import yooze.withme.domain.auth.dto.response.ProfileResponse;
 import yooze.withme.domain.group.dto.response.AttendanceRateResponse;
 import yooze.withme.domain.group.dto.response.MyGroupResponse;
 
-@Tag(name = "유저", description = "유저 마이페이지(프로필/알림설정/참여율/내 모임 목록) API")
+@Tag(name = "User", description = "유저 마이페이지(프로필/알림설정/참여율/내 모임 목록) API")
 public interface UserControllerDocs {
 
     @Operation(summary = "이름 입력", description = "회원가입한 사용자의 닉네임을 입력한다.")

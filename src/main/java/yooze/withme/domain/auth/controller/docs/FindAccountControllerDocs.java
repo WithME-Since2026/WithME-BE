@@ -13,7 +13,7 @@ import yooze.withme.domain.auth.dto.request.SendPasswordCodeRequest;
 import yooze.withme.domain.auth.dto.request.VerifyCodeRequest;
 import yooze.withme.domain.auth.dto.response.FindIdResponse;
 
-@Tag(name = "계정 찾기", description = "아이디 찾기 / 비밀번호 찾기 API")
+@Tag(name = "Find Account", description = "아이디 찾기 / 비밀번호 찾기 API")
 public interface FindAccountControllerDocs {
 
     @Operation(summary = "아이디 찾기 - 인증코드 발송", description = "닉네임과 이메일로 사용자를 확인하고 6자리 인증코드를 이메일로 발송한다.")

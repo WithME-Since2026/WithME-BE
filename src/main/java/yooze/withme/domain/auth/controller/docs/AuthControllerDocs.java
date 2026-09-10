@@ -24,7 +24,7 @@ import yooze.withme.domain.auth.dto.response.LoginResponse;
 import yooze.withme.domain.auth.dto.response.SignUpResponse;
 import yooze.withme.domain.auth.dto.response.TokenReissueResponse;
 
-@Tag(name = "인증", description = "회원가입 / 로그인 / 아이디 중복 확인 / 로그아웃 / 카카오 로그인 API")
+@Tag(name = "Auth", description = "회원가입 / 로그인 / 아이디 중복 확인 / 로그아웃 / 카카오 로그인 API")
 public interface AuthControllerDocs {
 
     @Operation(summary = "회원가입", description = "아이디, 비밀번호으로 신규 회원을 등록한다.")
