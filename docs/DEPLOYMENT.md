@@ -113,6 +113,31 @@ docker run --rm -v "$PWD/src/main/resources/db/migration:/flyway/sql" flyway/fly
 `repair` 는 이력의 체크섬만 갱신하고 스키마는 건드리지 않는다.
 이미 검증된 제약에 `V10` 을 실행해도 아무 일도 일어나지 않으므로 그대로 이어서 배포하면 된다.
 
+### V4·V5 중복 버전 정리 — 배포 전 이력 확인
+
+`V4`, `V5` 가 각각 두 개씩 존재해 Flyway 가 스캔 단계에서
+`Found more than one migration with version 4` 로 기동을 막고 있었다.
+먼저 그 번호를 쓴 쪽을 남기고 나중에 붙은 두 개를 뒤로 옮겼다.
+
+| 이전 | 이후 |
+|---|---|
+| `V4__add_category_soft_delete.sql` | `V11__add_category_soft_delete.sql` |
+| `V5__create_user_auth_indexes_concurrently.sql` | `V12__create_user_auth_indexes_concurrently.sql` |
+
+`V4__nullable_user_auth_columns_for_kakao.sql` 과 `V5__add_todos_user_due_date_index.sql` 은 그대로다.
+네 파일은 각각 `user_auth`·`categories`·`todos` 로 대상이 겹치지 않아 실행 순서가 바뀌어도 결과는 같다.
+
+중복이 생긴 시점부터 Flyway 가 기동을 막았으므로 옮긴 두 개는 어떤 DB 에도 적용된 적이 없다.
+배포 전에 한 번만 확인한다:
+
+```bash
+psql -h <DB호스트> -U <user> -d withme -c "SELECT version, description, success FROM flyway_schema_history ORDER BY installed_rank;"
+```
+
+`description` 에 `add category soft delete` 나 `create user auth indexes concurrently` 가 이미 있다면
+그 줄의 `version` 에 맞춰 파일명을 되돌려야 한다. 없으면 그대로 배포하면 되고,
+`V11`·`V12` 가 이번 배포에서 처음 실행된다.
+
 ### 3단계 — 이후 스키마 변경
 
 `DDL_AUTO` 는 `validate` 로 고정하고, 스키마 변경은 `db/migration` 에
