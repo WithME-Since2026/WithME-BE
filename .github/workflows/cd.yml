@@ -145,13 +145,15 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           # 선택값. 미등록이면 compose 기본값 true. 알림을 끄려면 false 로 등록
           DISCORD_WEBHOOK_ENABLED: ${{ secrets.DISCORD_WEBHOOK_ENABLED }}
+          # Firebase 서비스 계정 키 JSON. 미주입이면 앱이 기동하지 않는다.
+          FIREBASE_SERVICE_ACCOUNT_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: IMAGE_REF,DDL_AUTO,FLYWAY_ENABLED,DB_URL,DB_USERNAME,DB_PASSWORD,JWT_SECRET,MAIL_USERNAME,MAIL_PASSWORD,KAKAO_CLIENT_ID,KAKAO_CLIENT_SECRET,KAKAO_REDIRECT_URI,DISCORD_WEBHOOK_URL,DISCORD_WEBHOOK_ENABLED,GHCR_USER,GHCR_TOKEN
+          envs: IMAGE_REF,DDL_AUTO,FLYWAY_ENABLED,DB_URL,DB_USERNAME,DB_PASSWORD,JWT_SECRET,MAIL_USERNAME,MAIL_PASSWORD,KAKAO_CLIENT_ID,KAKAO_CLIENT_SECRET,KAKAO_REDIRECT_URI,DISCORD_WEBHOOK_URL,DISCORD_WEBHOOK_ENABLED,FIREBASE_SERVICE_ACCOUNT_KEY,GHCR_USER,GHCR_TOKEN
           # script_stop 은 쓰지 않는다. 이 옵션은 스크립트 매 줄 뒤에 종료코드 검사 줄을
           # 끼워 넣는데, for/case/함수 같은 여러 줄 구문 한가운데에도 들어가서 스크립트가
           # 통째로 syntax error 가 난다. 첫 줄의 set -eu 가 같은 역할을 하고,
@@ -216,6 +218,15 @@ jobs:
               write_env DISCORD_WEBHOOK_ENABLED "${DISCORD_WEBHOOK_ENABLED-}"
             } > .env.new
             chmod 600 .env.new
+
+            # Firebase 서비스 계정 키 파일 생성 (컨테이너 볼륨 마운트 대상)
+            if [ -z "${FIREBASE_SERVICE_ACCOUNT_KEY-}" ]; then
+              echo "FIREBASE_SERVICE_ACCOUNT_KEY 값이 비어 있다. Secrets 설정을 확인하라."
+              exit 1
+            fi
+            mkdir -p ~/withme/firebase
+            printf '%s' "$FIREBASE_SERVICE_ACCOUNT_KEY" > ~/withme/firebase/service-account-key.json
+            chmod 600 ~/withme/firebase/service-account-key.json
 
             printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
 
