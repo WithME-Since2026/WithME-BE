@@ -1,6 +1,5 @@
 package yooze.withme.domain.calendar.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.net.URI;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -10,6 +9,7 @@ import java.util.List;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import tools.jackson.databind.JsonNode;
 import yooze.withme.common.properties.HolidayProperties;
 import yooze.withme.domain.calendar.entity.Holiday;
 import yooze.withme.domain.calendar.enums.HolidayType;
