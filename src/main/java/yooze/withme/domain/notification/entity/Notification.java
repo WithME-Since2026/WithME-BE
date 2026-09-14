@@ -31,7 +31,7 @@ public class Notification extends BaseEntity {
     @Column(nullable = false, length = 100)
     private String title;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false, columnDefinition = "text")
     private String body;
 
     /** null이면 읽지 않은 알림 */

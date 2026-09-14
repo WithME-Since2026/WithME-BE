@@ -50,9 +50,19 @@ public class NotificationCommandService {
         eventPublisher.publishEvent(new FcmPushEvent(user.getUserId(), title, body));
     }
 
-    /** FCM 토큰 등록 또는 갱신 — 기기 단위 원자적 upsert */
+    /**
+     * FCM 토큰 등록 또는 갱신.
+     * 같은 기기에서 계정을 바꿔 로그인하면 동일 토큰이 이전 계정에 남아
+     * 다른 사람의 알림이 수신될 수 있으므로, upsert 전에 타 유저의 동일 토큰을 삭제한다.
+     */
     public void registerFcmToken(User user, String deviceId, String token) {
+        fcmTokenRepository.deleteStaleByToken(token, user.getUserId());
         fcmTokenRepository.upsert(user.getUserId(), deviceId, token);
+    }
+
+    /** 로그아웃 시 해당 기기의 FCM 토큰 삭제 */
+    public void removeFcmToken(Long userId, String deviceId) {
+        fcmTokenRepository.deleteByUserIdAndDeviceId(userId, deviceId);
     }
 
     /** 단건 읽음 처리 (본인 알림인지 확인) */

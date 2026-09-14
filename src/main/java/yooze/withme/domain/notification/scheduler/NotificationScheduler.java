@@ -49,7 +49,12 @@ public class NotificationScheduler {
             List<User> users = userRepository.findAllById(userIds);
 
             for (User user : users) {
-                notificationCommandService.send(user, NotificationType.GROUP_REMINDER, title, body);
+                try {
+                    notificationCommandService.send(user, NotificationType.GROUP_REMINDER, title, body);
+                } catch (Exception e) {
+                    log.warn("[*] 모임 리마인더 알림 발송 실패 - userId: {}, roundId: {}, error: {}",
+                            user.getUserId(), round.getId(), e.getMessage());
+                }
             }
         }
     }
@@ -66,9 +71,14 @@ public class NotificationScheduler {
         log.info("[*] Todo 마감 알림 - 대상 수: {}", todos.size());
 
         for (Todo todo : todos) {
-            String title = "Todo 마감 알림";
-            String body = String.format("내일 마감인 할 일이 있어요! '%s'", todo.getTitle());
-            notificationCommandService.send(todo.getUser(), NotificationType.TODO_DEADLINE, title, body);
+            try {
+                String title = "Todo 마감 알림";
+                String body = String.format("내일 마감인 할 일이 있어요! '%s'", todo.getTitle());
+                notificationCommandService.send(todo.getUser(), NotificationType.TODO_DEADLINE, title, body);
+            } catch (Exception e) {
+                log.warn("[*] Todo 마감 알림 발송 실패 - todoId: {}, userId: {}, error: {}",
+                        todo.getTodoId(), todo.getUser().getUserId(), e.getMessage());
+            }
         }
     }
 }

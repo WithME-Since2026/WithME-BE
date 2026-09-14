@@ -28,4 +28,19 @@ public interface FcmTokenRepository extends JpaRepository<FcmToken, Long> {
     void upsert(@Param("userId") Long userId,
                 @Param("deviceId") String deviceId,
                 @Param("token") String token);
+
+    /**
+     * 같은 토큰이 다른 유저에 등록돼 있으면 삭제.
+     * 같은 기기에서 계정을 바꿔 로그인할 때 이전 계정의 토큰을 정리한다.
+     */
+    @Modifying
+    @Query(value = "DELETE FROM fcm_tokens WHERE token = :token AND user_id != :userId",
+            nativeQuery = true)
+    void deleteStaleByToken(@Param("token") String token, @Param("userId") Long userId);
+
+    /** 로그아웃 시 해당 기기의 토큰 삭제 */
+    @Modifying
+    @Query(value = "DELETE FROM fcm_tokens WHERE user_id = :userId AND device_id = :deviceId",
+            nativeQuery = true)
+    void deleteByUserIdAndDeviceId(@Param("userId") Long userId, @Param("deviceId") String deviceId);
 }

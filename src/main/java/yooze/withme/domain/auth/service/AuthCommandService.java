@@ -46,6 +46,7 @@ public class AuthCommandService {
     private final KakaoAuthClient kakaoAuthClient;
     private final KakaoProperties kakaoProperties;
     private final OAuthStateRedisRepository oAuthStateRedisRepository;
+    private final yooze.withme.domain.notification.service.NotificationCommandService notificationCommandService;
 
     /** 로컬 회원가입 */
     public SignUpResponse signUp(SignUpRequest signUpRequest) {
@@ -165,11 +166,15 @@ public class AuthCommandService {
         return KakaoLoginResponse.of(result.user(), accessToken, refreshToken, result.newUser());
     }
 
-    /** 로그아웃 — 해당 유저의 실제 provider만 Redis에서 삭제 */
-    public void logout(Long userId) {
+    /** 로그아웃 — JWT 토큰 폐기 + FCM 토큰 삭제 (deviceId 제공 시) */
+    public void logout(Long userId, String deviceId) {
         User user = userQueryService.getUserByUserId(userId);
         userAuthRepository.findAllByUser(user)
                 .forEach(auth -> userTokenCommandService.revokeToken(user, auth.getProvider()));
+        if (deviceId != null && !deviceId.isBlank()) {
+            notificationCommandService.removeFcmToken(userId, deviceId);
+            log.info("FCM 토큰 삭제 - userId: {}, deviceId: {}", userId, deviceId);
+        }
         log.info("로그아웃 - userId: {}", userId);
     }
 
