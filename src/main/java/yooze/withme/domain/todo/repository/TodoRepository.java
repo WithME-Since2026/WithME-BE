@@ -24,6 +24,17 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
 
     Page<Todo> findByUserUserIdAndDeletedAtIsNull(Long userId, Pageable pageable);
 
+    /** 카테고리 삭제 시 해당 카테고리를 쓰던 todo 전체를 카테고리 없음 상태로 해제한다 */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+            update Todo t
+            set t.category = null
+            where t.category.categoryId = :categoryId
+              and t.user.userId = :userId
+            """)
+    void clearCategory(@Param("userId") Long userId, @Param("categoryId") Long categoryId);
+
+
     /** 스케줄러용 — 특정 날짜 마감이고 알림 설정된 미완료 투두 (user fetch join) */
     @Query("""
             SELECT t FROM Todo t JOIN FETCH t.user
@@ -34,13 +45,27 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
             """)
     List<Todo> findDueTodosForNotification(@Param("dueDate") LocalDate dueDate);
 
-    /** 카테고리 삭제 시 해당 카테고리를 쓰던 투두 전체를 카테고리 없음 상태로 해제한다 */
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
+
+    /**
+     * 캘린더 구간에 걸리는 todo.
+     * 비반복은 마감일이 구간 안일 때만, 반복은 마감일이 구간 종료일 이전이면 모두 가져온다
+     * (마감일이 한참 전이어도 회차는 구간 안에 들어올 수 있다).
+     */
     @Query("""
-            update Todo t
-            set t.category = null
-            where t.category.categoryId = :categoryId
-              and t.user.userId = :userId
+            select t from Todo t
+            where t.user.userId = :userId
+              and t.deletedAt is null
+              and t.dueDate <= :to
+              and (t.dueDate >= :from
+                   or exists (select 1 from Recurrence r
+                              where r.ownerType = yooze.withme.domain.calendar.enums.RecurrenceOwnerType.TODO
+                                and r.ownerId = t.todoId))
             """)
-    void clearCategory(@Param("userId") Long userId, @Param("categoryId") Long categoryId);
+    List<Todo> findForCalendar(
+            @Param("userId") Long userId,
+            @Param("from") LocalDate from,
+            @Param("to") LocalDate to
+    );
+
+
 }

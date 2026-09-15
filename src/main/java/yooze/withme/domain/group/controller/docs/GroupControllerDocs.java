@@ -17,7 +17,7 @@ import yooze.withme.domain.group.dto.request.CreateGroupRequest;
 import yooze.withme.domain.group.dto.response.GroupDetailResponse;
 import yooze.withme.domain.group.dto.response.GroupRoundResponse;
 
-@Tag(name = "모임", description = "모임 생성/조회 API")
+@Tag(name = "Group", description = "모임 생성/조회 API")
 public interface GroupControllerDocs {
 
     @Operation(summary = "모임 생성", description = "모임과 기본 장소, 최초 회차를 생성하고 생성자를 운영자(OWNER)로 등록한다.")

@@ -43,7 +43,21 @@ public enum SuccessStatus implements BaseStatus {
     UPDATE_TODO_SUCCESS("TODO_200", HttpStatus.OK, "todo 수정 성공"),
     UPDATE_TODO_DATE_SUCCESS("TODO_200", HttpStatus.OK, "todo 날짜 수정 성공"),
     DELETE_TODO_SUCCESS("TODO_204", HttpStatus.NO_CONTENT, "todo 삭제 성공"),
+    UPDATE_TODO_OCCURRENCE_SUCCESS("TODO_200", HttpStatus.OK, "todo 회차 수정 성공"),
+    DELETE_TODO_OCCURRENCE_SUCCESS("TODO_200", HttpStatus.OK, "todo 회차 삭제 성공"),
     COMPLETE_TODO_SUCCESS("TODO_200", HttpStatus.OK, "todo 완료 처리 성공"),
+
+    /**
+     * Schedule
+     */
+    CREATE_SCHEDULE_SUCCESS("SCHEDULE_201", HttpStatus.CREATED, "일정 생성 성공"),
+    GET_SCHEDULE_SUCCESS("SCHEDULE_200", HttpStatus.OK, "일정 조회 성공"),
+    UPDATE_SCHEDULE_SUCCESS("SCHEDULE_200", HttpStatus.OK, "일정 수정 성공"),
+    DELETE_SCHEDULE_SUCCESS("SCHEDULE_200", HttpStatus.OK, "일정 삭제 성공"),
+    UPDATE_OCCURRENCE_SUCCESS("SCHEDULE_200", HttpStatus.OK, "일정 회차 수정 성공"),
+    DELETE_OCCURRENCE_SUCCESS("SCHEDULE_200", HttpStatus.OK, "일정 회차 삭제 성공"),
+    SYNC_HOLIDAY_SUCCESS("HOLIDAY_200", HttpStatus.OK, "공휴일 동기화 성공"),
+    GET_CALENDAR_SUCCESS("CALENDAR_200", HttpStatus.OK, "캘린더 조회 성공"),
 
     /**
      * User

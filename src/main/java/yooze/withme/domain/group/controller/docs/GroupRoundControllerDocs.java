@@ -18,7 +18,7 @@ import yooze.withme.domain.group.dto.request.SubmitGroupResponseRequest;
 import yooze.withme.domain.group.dto.response.AttendanceResponse;
 import yooze.withme.domain.group.dto.response.GroupRoundResponse;
 
-@Tag(name = "모임 회차", description = "모임 회차 일정 변경 및 참석 응답 API")
+@Tag(name = "Group Round", description = "모임 회차 일정 변경 및 참석 응답 API")
 public interface GroupRoundControllerDocs {
 
     @Operation(summary = "모임 일정 변경", description = "OWNER/CO_OWNER만 가능하며, 변경 시 해당 회차의 모든 참석 응답이 재확인(RERESPONSE) 상태로 전환된다.")

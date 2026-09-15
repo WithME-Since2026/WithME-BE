@@ -60,6 +60,19 @@ public enum ErrorStatus implements BaseStatus {
     TODO_NOT_FOUND("TODO_404", HttpStatus.NOT_FOUND, "존재하지 않는 todo입니다."),
 
     /**
+     * Schedule
+     */
+    SCHEDULE_NOT_FOUND("SCHEDULE_404", HttpStatus.NOT_FOUND, "존재하지 않는 일정입니다."),
+    SCHEDULE_FORBIDDEN("SCHEDULE_403", HttpStatus.FORBIDDEN, "본인의 일정만 접근할 수 있습니다."),
+    INVALID_SCHEDULE_PERIOD("SCHEDULE_400", HttpStatus.BAD_REQUEST, "일정 기간이 올바르지 않습니다."),
+    INVALID_RECURRENCE("RECURRENCE_400", HttpStatus.BAD_REQUEST, "반복 규칙이 올바르지 않습니다."),
+    OCCURRENCE_NOT_FOUND("OCCURRENCE_404", HttpStatus.NOT_FOUND, "존재하지 않는 반복 회차입니다."),
+    INVALID_OCCURRENCE("OCCURRENCE_400", HttpStatus.BAD_REQUEST, "회차 수정 요청이 올바르지 않습니다."),
+    HOLIDAY_SYNC_FAILED("HOLIDAY_500", HttpStatus.INTERNAL_SERVER_ERROR, "공휴일 동기화에 실패했습니다."),
+    CALENDAR_RANGE_TOO_WIDE("CALENDAR_400", HttpStatus.BAD_REQUEST,
+            "캘린더 조회 기간이 올바르지 않습니다. 최대 92일까지 조회할 수 있습니다."),
+
+    /**
      * Group
      */
     GROUP_NOT_FOUND("GROUP_404", HttpStatus.NOT_FOUND, "존재하지 않는 모임입니다."),

@@ -28,6 +28,8 @@
 | `KAKAO_REDIRECT_URI` | 카카오 로그인 Redirect URI. 카카오 개발자 콘솔에 등록한 값과 정확히 같아야 한다.      |
 | `DISCORD_WEBHOOK_URL` | (선택) 5xx 알림용 Discord 웹훅 URL. 미등록이면 알림만 꺼지고 배포는 정상 진행. |
 | `DISCORD_WEBHOOK_ENABLED` | (선택) 미등록이면 `true`. 웹훅 URL 은 두고 알림만 끄고 싶을 때 `false` 로 등록. |
+| `HOLIDAY_API_KEY` | (선택) 공공데이터포털 특일 정보 인증키(Encoding 키). 미등록이면 공휴일 동기화만 건너뛰고 기동은 정상. |
+| `HOLIDAY_SYNC_ENABLED` | (선택) 미등록이면 `true`. 키는 두고 동기화만 끄고 싶을 때 `false` 로 등록. |
 
 `GITHUB_TOKEN` 은 자동 제공되므로 등록하지 않는다.
 
@@ -92,6 +94,49 @@ psql -h <DB호스트> -U <user> -d withme -c "SELECT conname, condeferrable, con
 > `V2` 는 제약을 걸기 전에 기존 `sort_order` 를 사용자별로 `0..n-1` 로 정규화한다.
 > 사용자별 잠금이 없던 시절의 경합으로 중복/구멍이 남아 있을 수 있기 때문이다.
 > 순서 자체는 보존되지만 값이 바뀌므로, 적용 전 `categories` 백업을 권장한다.
+
+### V8 을 이미 적용한 DB — 배포 전 `flyway repair`
+
+`V8` 은 `ck_users_role` 을 `NOT VALID` 로 붙이도록 바뀌었고, 기존 행 검증은 `V10` 으로 분리했다.
+제약을 즉시 검사하면 `users` 전수 스캔이 끝날 때까지 잠금이 마이그레이션 커밋까지 유지되기 때문이다.
+
+`V8` 이 이미 적용된 DB 는 체크섬이 달라져 다음 배포에서 Flyway 검증이 실패한다.
+배포 전에 한 번 이력을 맞춘다:
+
+```bash
+psql -h <DB호스트> -U <user> -d withme -c "SELECT version, checksum, success FROM flyway_schema_history WHERE version = '8';"
+
+# Gradle Flyway 플러그인을 쓰지 않으므로 CLI 이미지로 repair 한다
+docker run --rm -v "$PWD/src/main/resources/db/migration:/flyway/sql" flyway/flyway     -url=jdbc:postgresql://<DB호스트>:5432/withme -user=<user> -password=<password> repair
+```
+
+`repair` 는 이력의 체크섬만 갱신하고 스키마는 건드리지 않는다.
+이미 검증된 제약에 `V10` 을 실행해도 아무 일도 일어나지 않으므로 그대로 이어서 배포하면 된다.
+
+### V4·V5 중복 버전 정리 — 배포 전 이력 확인
+
+`V4`, `V5` 가 각각 두 개씩 존재해 Flyway 가 스캔 단계에서
+`Found more than one migration with version 4` 로 기동을 막고 있었다.
+먼저 그 번호를 쓴 쪽을 남기고 나중에 붙은 두 개를 뒤로 옮겼다.
+
+| 이전 | 이후 |
+|---|---|
+| `V4__add_category_soft_delete.sql` | `V11__add_category_soft_delete.sql` |
+| `V5__create_user_auth_indexes_concurrently.sql` | `V12__create_user_auth_indexes_concurrently.sql` |
+
+`V4__nullable_user_auth_columns_for_kakao.sql` 과 `V5__add_todos_user_due_date_index.sql` 은 그대로다.
+네 파일은 각각 `user_auth`·`categories`·`todos` 로 대상이 겹치지 않아 실행 순서가 바뀌어도 결과는 같다.
+
+중복이 생긴 시점부터 Flyway 가 기동을 막았으므로 옮긴 두 개는 어떤 DB 에도 적용된 적이 없다.
+배포 전에 한 번만 확인한다:
+
+```bash
+psql -h <DB호스트> -U <user> -d withme -c "SELECT version, description, success FROM flyway_schema_history ORDER BY installed_rank;"
+```
+
+`description` 에 `add category soft delete` 나 `create user auth indexes concurrently` 가 이미 있다면
+그 줄의 `version` 에 맞춰 파일명을 되돌려야 한다. 없으면 그대로 배포하면 되고,
+`V11`·`V12` 가 이번 배포에서 처음 실행된다.
 
 ### 3단계 — 이후 스키마 변경
 

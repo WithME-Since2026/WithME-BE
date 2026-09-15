@@ -20,7 +20,7 @@ import yooze.withme.domain.todo.dto.request.UpdateCategoryRequest;
 import yooze.withme.domain.todo.dto.response.CategoryDetailResponse;
 import yooze.withme.domain.todo.dto.response.CategoryResponse;
 
-@Tag(name = "카테고리", description = "Todo 카테고리 생성/수정/조회 API")
+@Tag(name = "Category", description = "Todo 카테고리 생성/수정/조회 API")
 @SecurityRequirement(name = "bearerAuth")
 public interface CategoryControllerDocs {
 

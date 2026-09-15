@@ -1,6 +1,7 @@
 package yooze.withme.domain.todo.dto.response;
 
 import java.time.LocalDate;
+import yooze.withme.domain.calendar.dto.response.RecurrenceResponse;
 import yooze.withme.domain.todo.entity.Todo;
 
 public record TodoResponse(
@@ -9,17 +10,23 @@ public record TodoResponse(
         String title,
         LocalDate dueDate,
         boolean completed,
-        boolean notificationStatus
+        boolean notificationStatus,
+        RecurrenceResponse recurrence
 ) {
 
     public static TodoResponse from(Todo todo) {
+        return from(todo, null);
+    }
+
+    public static TodoResponse from(Todo todo, RecurrenceResponse recurrence) {
         return new TodoResponse(
                 todo.getTodoId(),
                 todo.getCategory() == null ? null : todo.getCategory().getCategoryId(),
                 todo.getTitle(),
                 todo.getDueDate(),
                 todo.isCompleted(),
-                todo.isNotificationStatus()
+                todo.isNotificationStatus(),
+                recurrence
         );
     }
 }
