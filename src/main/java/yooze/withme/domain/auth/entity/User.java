@@ -38,7 +38,13 @@ public class User extends BaseEntity {
     private boolean kakaoSync;
 
     @Column(nullable = false)
-    private boolean notifyAgree;
+    private boolean notifyGroupRemind;
+
+    @Column(nullable = false)
+    private boolean notifyTodoDeadline;
+
+    @Column(nullable = false)
+    private boolean notifyGroupInvite;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -55,8 +61,10 @@ public class User extends BaseEntity {
         this.nickname = nickname;
     }
 
-    /** 알림 수신 동의 여부 변경 */
-    public void updateNotifyAgree(boolean notifyAgree) {
-        this.notifyAgree = notifyAgree;
+    /** 알림 설정 변경 */
+    public void updateNotificationSettings(boolean notifyGroupRemind, boolean notifyTodoDeadline, boolean notifyGroupInvite) {
+        this.notifyGroupRemind = notifyGroupRemind;
+        this.notifyTodoDeadline = notifyTodoDeadline;
+        this.notifyGroupInvite = notifyGroupInvite;
     }
 }

@@ -16,4 +16,8 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> 
 
     @Query("select gm from GroupMember gm join fetch gm.group where gm.userId = :userId and gm.status = :status")
     List<GroupMember> findByUserIdAndStatus(@Param("userId") Long userId, @Param("status") GroupMemberStatus status);
+
+    /** 스케줄러용 — 특정 그룹의 활성 멤버 userId 목록 */
+    @Query("SELECT gm.userId FROM GroupMember gm WHERE gm.group.id = :groupId AND gm.status = 'ACTIVE'")
+    List<Long> findActiveUserIdsByGroupId(@Param("groupId") Long groupId);
 }

@@ -55,6 +55,9 @@ dependencies {
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql'
 
+    // Firebase Admin SDK (FCM 푸시 알림)
+    implementation 'com.google.firebase:firebase-admin:9.4.2'
+
     // Swagger (Spring Boot 4.x 호환)
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0'
 

@@ -61,7 +61,8 @@ public class UserController implements UserControllerDocs {
             @Valid @RequestBody UpdateNotificationSettingsRequest request
     ) {
         Long userId = Long.parseLong(userDetails.getUsername());
-        NotificationSettingsResponse response = userCommandService.updateNotificationSettings(userId, request.notifyAgree());
+        NotificationSettingsResponse response = userCommandService.updateNotificationSettings(
+                userId, request.notifyGroupRemind(), request.notifyTodoDeadline(), request.notifyGroupInvite());
         return ApiResponse.success(SuccessStatus.UPDATE_NOTIFICATION_SUCCESS, response);
     }
 

@@ -16,6 +16,7 @@ import yooze.withme.common.response.ApiResponse;
 import yooze.withme.domain.auth.dto.request.IdCheckRequest;
 import yooze.withme.domain.auth.dto.request.KakaoCallbackRequest;
 import yooze.withme.domain.auth.dto.request.LoginRequest;
+import yooze.withme.domain.auth.dto.request.LogoutRequest;
 import yooze.withme.domain.auth.dto.request.SignUpRequest;
 import yooze.withme.domain.auth.dto.request.TokenReissueRequest;
 import yooze.withme.domain.auth.dto.response.KakaoLoginResponse;
@@ -86,12 +87,13 @@ public interface AuthControllerDocs {
             @Valid @ModelAttribute IdCheckRequest idCheckRequest
     );
 
-    @Operation(summary = "로그아웃", description = "로그인한 사용자의 리프레시 토큰을 삭제한다.")
+    @Operation(summary = "로그아웃", description = "로그인한 사용자의 리프레시 토큰을 삭제한다. deviceId를 함께 전달하면 해당 기기의 FCM 토큰도 삭제된다.")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "로그아웃 성공")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/logout")
     ResponseEntity<ApiResponse<Void>> postLogout(
-            @Parameter(hidden = true) UserDetails userDetails
+            @Parameter(hidden = true) UserDetails userDetails,
+            @RequestBody(required = false) LogoutRequest request
     );
 }

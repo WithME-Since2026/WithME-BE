@@ -8,6 +8,8 @@ x-app: &app
   # 두 JVM 이 동시에 떠 있으므로 상한을 명시한다.
   # 없으면 각자 호스트 메모리의 75% 를 잡으려 든다.
   mem_limit: 700m
+  volumes:
+    - ~/withme/firebase/service-account-key.json:/app/firebase/service-account-key.json:ro
   environment:
     SPRING_PROFILES_ACTIVE: prod
     DDL_AUTO: ${DDL_AUTO:-validate}

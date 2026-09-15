@@ -41,3 +41,6 @@ out/
 
 ### oh-my-claudecode ###
 .omc/
+
+### Firebase ###
+src/main/resources/firebase/

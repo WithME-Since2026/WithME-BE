@@ -41,7 +41,7 @@ public interface UserControllerDocs {
     @GetMapping("/me/profile")
     ResponseEntity<ApiResponse<ProfileResponse>> getUserProfile(@Parameter(hidden = true) UserDetails userDetails);
 
-    @Operation(summary = "알림 설정 조회", description = "내 알림 수신 동의 여부를 조회한다.")
+    @Operation(summary = "알림 설정 조회", description = "모임 리마인드 / 할 일 마감 / 새 모임 초대 알림 수신 여부를 조회한다.")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "알림 설정 조회 성공")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     @SecurityRequirement(name = "bearerAuth")
@@ -50,7 +50,7 @@ public interface UserControllerDocs {
             @Parameter(hidden = true) UserDetails userDetails
     );
 
-    @Operation(summary = "알림 설정 수정", description = "내 알림 수신 동의 여부를 변경한다.")
+    @Operation(summary = "알림 설정 수정", description = "모임 리마인드 / 할 일 마감 / 새 모임 초대 알림 수신 여부를 각각 변경한다.")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "알림 설정 수정 성공")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "요청값이 올바르지 않음")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
