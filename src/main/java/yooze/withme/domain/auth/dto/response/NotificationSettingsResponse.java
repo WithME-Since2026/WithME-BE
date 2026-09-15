@@ -3,16 +3,10 @@ package yooze.withme.domain.auth.dto.response;
 import yooze.withme.domain.auth.entity.User;
 
 public record NotificationSettingsResponse(
-        boolean notifyGroupRemind,
-        boolean notifyTodoDeadline,
-        boolean notifyGroupInvite
+        boolean notifyAgree
 ) {
 
     public static NotificationSettingsResponse from(User user) {
-        return new NotificationSettingsResponse(
-                user.isNotifyGroupRemind(),
-                user.isNotifyTodoDeadline(),
-                user.isNotifyGroupInvite()
-        );
+        return new NotificationSettingsResponse(user.isNotifyAgree());
     }
 }

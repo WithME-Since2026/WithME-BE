@@ -24,28 +24,6 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
 
     Page<Todo> findByUserUserIdAndDeletedAtIsNull(Long userId, Pageable pageable);
 
-    /** 카테고리 삭제 시 해당 카테고리를 쓰던 todo 전체를 카테고리 없음 상태로 해제한다 */
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("""
-            update Todo t
-            set t.category = null
-            where t.category.categoryId = :categoryId
-              and t.user.userId = :userId
-            """)
-    void clearCategory(@Param("userId") Long userId, @Param("categoryId") Long categoryId);
-
-
-    /** 스케줄러용 — 특정 날짜 마감이고 알림 설정된 미완료 투두 (user fetch join) */
-    @Query("""
-            SELECT t FROM Todo t JOIN FETCH t.user
-            WHERE t.dueDate = :dueDate
-              AND t.notificationStatus = true
-              AND t.completed = false
-              AND t.deletedAt IS NULL
-            """)
-    List<Todo> findDueTodosForNotification(@Param("dueDate") LocalDate dueDate);
-
-
     /**
      * 캘린더 구간에 걸리는 todo.
      * 비반복은 마감일이 구간 안일 때만, 반복은 마감일이 구간 종료일 이전이면 모두 가져온다
@@ -67,5 +45,13 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
             @Param("to") LocalDate to
     );
 
-
+    /** 카테고리 삭제 시 해당 카테고리를 쓰던 todo 전체를 카테고리 없음 상태로 해제한다 */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+            update Todo t
+            set t.category = null
+            where t.category.categoryId = :categoryId
+              and t.user.userId = :userId
+            """)
+    void clearCategory(@Param("userId") Long userId, @Param("categoryId") Long categoryId);
 }

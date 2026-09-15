@@ -36,9 +36,7 @@ public class UserCommandService {
                 .nickname(nickname)
                 .email(email)
                 .kakaoSync(false)
-                .notifyGroupRemind(false)
-                .notifyTodoDeadline(false)
-                .notifyGroupInvite(false)
+                .notifyAgree(false)
                 .build();
 
         return userRepository.save(user);
@@ -69,9 +67,7 @@ public class UserCommandService {
                 .nickname(nickname)
                 .email(email)
                 .kakaoSync(true)
-                .notifyGroupRemind(false)
-                .notifyTodoDeadline(false)
-                .notifyGroupInvite(false)
+                .notifyAgree(false)
                 .build());
 
         userAuthRepository.save(UserAuth.builder()
@@ -104,17 +100,12 @@ public class UserCommandService {
         return ProfileResponse.from(user);
     }
 
-    /** 알림 설정 변경 — null 필드는 기존 값을 유지한다 (하위 호환) */
-    public NotificationSettingsResponse updateNotificationSettings(
-            Long userId, Boolean notifyGroupRemind, Boolean notifyTodoDeadline, Boolean notifyGroupInvite) {
+    /** 알림 수신 동의 여부 변경 */
+    public NotificationSettingsResponse updateNotificationSettings(Long userId, boolean notifyAgree) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
 
-        user.updateNotificationSettings(
-                notifyGroupRemind  != null ? notifyGroupRemind  : user.isNotifyGroupRemind(),
-                notifyTodoDeadline != null ? notifyTodoDeadline : user.isNotifyTodoDeadline(),
-                notifyGroupInvite  != null ? notifyGroupInvite  : user.isNotifyGroupInvite()
-        );
+        user.updateNotifyAgree(notifyAgree);
         return NotificationSettingsResponse.from(user);
     }
 

@@ -13,7 +13,6 @@ import yooze.withme.domain.auth.controller.docs.AuthControllerDocs;
 import yooze.withme.domain.auth.dto.request.IdCheckRequest;
 import yooze.withme.domain.auth.dto.request.KakaoCallbackRequest;
 import yooze.withme.domain.auth.dto.request.LoginRequest;
-import yooze.withme.domain.auth.dto.request.LogoutRequest;
 import yooze.withme.domain.auth.dto.request.SignUpRequest;
 import yooze.withme.domain.auth.dto.request.TokenReissueRequest;
 import yooze.withme.domain.auth.dto.response.KakaoLoginResponse;
@@ -81,12 +80,10 @@ public class AuthController implements AuthControllerDocs {
 
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> postLogout(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @RequestBody(required = false) LogoutRequest request
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
         Long userId = Long.parseLong(userDetails.getUsername());
-        String deviceId = request != null ? request.deviceId() : null;
-        authCommandService.logout(userId, deviceId);
+        authCommandService.logout(userId);
         return ApiResponse.success(SuccessStatus.LOGOUT_SUCCESS);
     }
 }
