@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
@@ -24,8 +25,14 @@ public class FirebaseConfig {
     public void init() {
         if (FirebaseApp.getApps().isEmpty()) {
             try {
-                InputStream serviceAccount =
-                        new ClassPathResource(serviceAccountKeyPath).getInputStream();
+                // 운영: 환경변수로 절대경로(/app/firebase/...)를 받아 FileSystemResource로 읽음
+                // 로컬: 환경변수 미설정 시 기본값(firebase/service-account-key.json)으로
+                //       ClassPathResource(src/main/resources/)에서 읽음
+                org.springframework.core.io.Resource keyResource =
+                        new FileSystemResource(serviceAccountKeyPath).exists()
+                                ? new FileSystemResource(serviceAccountKeyPath)
+                                : new ClassPathResource(serviceAccountKeyPath);
+                InputStream serviceAccount = keyResource.getInputStream();
 
                 FirebaseOptions options = FirebaseOptions.builder()
                         .setCredentials(GoogleCredentials.fromStream(serviceAccount))
