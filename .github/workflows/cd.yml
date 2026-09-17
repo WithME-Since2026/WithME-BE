@@ -232,7 +232,7 @@ jobs:
             fi
             mkdir -p ~/withme/firebase
             printf '%s' "$FIREBASE_SERVICE_ACCOUNT_KEY" > ~/withme/firebase/service-account-key.json
-            chmod 600 ~/withme/firebase/service-account-key.json
+            chmod 644 ~/withme/firebase/service-account-key.json
 
 
             printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
