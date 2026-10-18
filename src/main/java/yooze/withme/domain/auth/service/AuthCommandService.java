@@ -62,7 +62,7 @@ public class AuthCommandService {
             throw new GeneralException(ErrorStatus.PASSWORD_MISMATCH);
         }
 
-        User user = userCommandService.registerUser(signUpRequest.localId(), signUpRequest.email());
+        User user = userCommandService.registerUser(signUpRequest.nickname(),signUpRequest.email());
 
         UserAuth userAuth = UserAuth.builder()
                 .user(user)
