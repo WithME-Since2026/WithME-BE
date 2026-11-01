@@ -92,9 +92,6 @@ public class AuthCommandService {
         }
 
         User user = userAuth.getUser();
-        if (user.getDeletedAt() != null) {
-            throw new GeneralException(ErrorStatus.DELETED_USER);
-        }
 
         String accessToken = jwtTokenProvider.generateAccessToken(user.getUserId());
         String refreshToken = jwtTokenProvider.generateRefreshToken(user.getUserId(), ProviderType.LOCAL);

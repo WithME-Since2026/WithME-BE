@@ -11,9 +11,6 @@ import java.util.List;
 
 public interface FcmTokenRepository extends JpaRepository<FcmToken, Long> {
 
-    /** 계정 탈퇴 시 모든 기기의 푸시 토큰을 삭제한다. */
-    void deleteAllByUser(User user);
-
     /** 유저의 모든 기기 토큰 조회 */
     List<FcmToken> findAllByUser(User user);
 

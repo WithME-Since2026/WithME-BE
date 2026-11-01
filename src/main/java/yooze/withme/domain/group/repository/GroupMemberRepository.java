@@ -10,9 +10,6 @@ import yooze.withme.domain.group.enums.GroupMemberStatus;
 
 public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> {
 
-    /** 계정 탈퇴 시 비활성 멤버십도 함께 정리한다. */
-    List<GroupMember> findAllByUserId(Long userId);
-
     Optional<GroupMember> findByGroupIdAndUserId(Long groupId, Long userId);
 
     long countByGroupIdAndStatus(Long groupId, GroupMemberStatus status);
