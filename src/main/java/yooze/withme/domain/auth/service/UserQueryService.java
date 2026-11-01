@@ -24,8 +24,12 @@ public class UserQueryService {
 
     /** userId로 사용자 조회 */
     public User getUserByUserId(Long userId) {
-        return userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
+        if (user.getDeletedAt() != null) {
+            throw new GeneralException(ErrorStatus.DELETED_USER);
+        }
+        return user;
     }
 
     /** 닉네임 + 이메일로 사용자 조회 */
@@ -40,9 +44,9 @@ public class UserQueryService {
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
     }
 
-    /** 이메일 존재 여부 확인 (탈퇴 회원 제외) */
+    /** 비활성화된 계정도 이메일을 보유하므로 중복 가입을 차단한다. */
     public boolean existsByEmail(String email) {
-        return userRepository.findByEmailAndDeletedAtIsNull(email).isPresent();
+        return userRepository.findByEmail(email).isPresent();
     }
 
     /** 내 프로필 조회 */
