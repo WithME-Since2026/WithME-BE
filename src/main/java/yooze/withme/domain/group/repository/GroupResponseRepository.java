@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import yooze.withme.domain.group.entity.GroupResponse;
@@ -11,6 +12,11 @@ import yooze.withme.domain.group.enums.AttendanceStatus;
 import yooze.withme.domain.group.enums.GroupMemberStatus;
 
 public interface GroupResponseRepository extends JpaRepository<GroupResponse, Long> {
+
+    /** 본인의 모든 회차 참석 응답만 삭제한다. */
+    @Modifying
+    @Query("delete from GroupResponse gr where gr.member.id in (select gm.id from GroupMember gm where gm.userId = :userId)")
+    void deleteAllByUserId(@Param("userId") Long userId);
 
     @Query("select gr from GroupResponse gr join fetch gr.member where gr.groupRound.id = :roundId")
     List<GroupResponse> findByGroupRoundId(@Param("roundId") Long roundId);

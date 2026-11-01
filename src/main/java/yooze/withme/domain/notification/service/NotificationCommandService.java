@@ -60,6 +60,11 @@ public class NotificationCommandService {
         fcmTokenRepository.upsert(user.getUserId(), deviceId, token);
     }
 
+    /** 계정 탈퇴 시 모든 기기의 푸시 토큰을 삭제한다. */
+    public void removeAllFcmTokens(User user) {
+        fcmTokenRepository.deleteAllByUser(user);
+    }
+
     /** 로그아웃 시 해당 기기의 FCM 토큰 삭제 */
     public void removeFcmToken(Long userId, String deviceId) {
         fcmTokenRepository.deleteByUserIdAndDeviceId(userId, deviceId);
