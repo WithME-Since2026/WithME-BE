@@ -12,6 +12,7 @@ import yooze.withme.domain.auth.entity.User;
 import yooze.withme.domain.auth.repository.UserRepository;
 import yooze.withme.domain.group.dto.response.AttendanceRateResponse;
 import yooze.withme.domain.group.dto.response.MyGroupResponse;
+import yooze.withme.domain.group.dto.response.WeeklyAttendanceResponse;
 import yooze.withme.domain.group.service.GroupQueryService;
 
 @Service
@@ -40,9 +41,9 @@ public class UserQueryService {
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
     }
 
-    /** 이메일 존재 여부 확인 (탈퇴 회원 제외) */
+    /** 이메일 존재 여부 확인. 탈퇴 회원도 email unique 제약에 걸리므로 포함한다 */
     public boolean existsByEmail(String email) {
-        return userRepository.findByEmailAndDeletedAtIsNull(email).isPresent();
+        return userRepository.findByEmail(email).isPresent();
     }
 
     /** 내 프로필 조회 */
@@ -61,6 +62,15 @@ public class UserQueryService {
     public AttendanceRateResponse getUserAttendanceRate(Long userId) {
         getUserByUserId(userId);
         return groupQueryService.getUserAttendanceRate(userId);
+    }
+
+    /** 최근 weeks 주 주차별 참석률 조회 */
+    public List<WeeklyAttendanceResponse> getUserWeeklyAttendance(Long userId, int weeks) {
+        if (weeks < 1 || weeks > 52) {
+            throw new GeneralException(ErrorStatus.BAD_REQUEST);
+        }
+        getUserByUserId(userId);
+        return groupQueryService.getUserWeeklyAttendance(userId, weeks);
     }
 
     /** 내가 활동 중인 모임 목록 조회 - 사용자 존재를 확인한 뒤 Group 도메인의 조회 결과를 그대로 전달 */

@@ -56,6 +56,16 @@ public class User extends BaseEntity {
         this.deletedAt = LocalDateTime.now();
     }
 
+    /** 탈퇴 계정 복구 (카카오 재로그인) */
+    public void restore() {
+        this.deletedAt = null;
+    }
+
+    /** 프로필 이미지 변경. null 이면 기본 이미지 */
+    public void updateProfileImg(String profileImg) {
+        this.profileImg = profileImg;
+    }
+
     /** 닉네임 변경 */
     public void updateNickname(String nickname) {
         this.nickname = nickname;
