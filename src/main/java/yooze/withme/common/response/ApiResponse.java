@@ -40,6 +40,12 @@ public class ApiResponse<T> {
                 .body(new ApiResponse<>(false, errorStatus.getCode(), errorStatus.getMessage(), null));
     }
 
+    public static ResponseEntity<ApiResponse<Object>> error(BaseStatus errorStatus, Object data) {
+        return ResponseEntity
+                .status(errorStatus.getHttpStatus())
+                .body(new ApiResponse<>(false, errorStatus.getCode(), errorStatus.getMessage(), data));
+    }
+
     public static ResponseEntity<ApiResponse<Void>> error(BaseStatus errorStatus, String message) {
         return ResponseEntity
                 .status(errorStatus.getHttpStatus())
