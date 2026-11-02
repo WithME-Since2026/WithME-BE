@@ -67,6 +67,10 @@ public enum SuccessStatus implements BaseStatus {
     UPDATE_NOTIFICATION_SUCCESS("USER_200", HttpStatus.OK, "알림 설정 수정 성공"),
     GET_ATTENDANCE_SUCCESS("USER_200", HttpStatus.OK, "참여율 조회 성공"),
     GET_MY_GROUPS_SUCCESS("USER_200", HttpStatus.OK, "참여 모임 목록 조회 성공"),
+    DELETE_USER_SUCCESS("USER_200", HttpStatus.OK, "회원 탈퇴 성공"),
+    UPDATE_PROFILE_IMAGE_SUCCESS("USER_200", HttpStatus.OK, "프로필 이미지 변경 성공"),
+    DELETE_PROFILE_IMAGE_SUCCESS("USER_200", HttpStatus.OK, "프로필 이미지 삭제 성공"),
+    GET_WEEKLY_ATTENDANCE_SUCCESS("USER_200", HttpStatus.OK, "주차별 참석률 조회 성공"),
 
     /**
      * Notification
@@ -84,7 +88,8 @@ public enum SuccessStatus implements BaseStatus {
     GET_GROUP_ROUNDS_SUCCESS("GROUP_200", HttpStatus.OK, "모임 회차 목록 조회 성공"),
     RESCHEDULE_GROUP_ROUND_SUCCESS("GROUP_200", HttpStatus.OK, "모임 일정 변경 성공"),
     GET_GROUP_RESPONSES_SUCCESS("GROUP_200", HttpStatus.OK, "참석 현황 조회 성공"),
-    SUBMIT_GROUP_RESPONSE_SUCCESS("GROUP_200", HttpStatus.OK, "참석 응답 제출 성공");
+    SUBMIT_GROUP_RESPONSE_SUCCESS("GROUP_200", HttpStatus.OK, "참석 응답 제출 성공"),
+    UPDATE_GROUP_OWNER_SUCCESS("GROUP_200", HttpStatus.OK, "모임장 위임 성공");
 
     private final String code;
     private final HttpStatus httpStatus;
