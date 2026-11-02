@@ -7,7 +7,7 @@
 # 되돌릴 것이 없다(대기 색만 정지시킨다).
 #
 # 워크플로가 미리 넘겨주는 것:
-#   - docker-compose.yml, scripts/switch.sh, nginx/withme.conf.default
+#   - docker-compose.yml, scripts/switch.sh, nginx/withme.conf.default, nginx/upload-limit.conf
 #   - .env.new    (색과 무관한 설정값. APP_IMAGE 는 들어 있지 않다)
 #   - IMAGE_REF   (환경변수. 색은 서버가 정하므로 워크플로는 색을 모른다)
 #

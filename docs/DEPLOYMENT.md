@@ -26,6 +26,9 @@
 | `KAKAO_CLIENT_ID` | 카카오 앱 REST API 키                                          |
 | `KAKAO_CLIENT_SECRET` | 카카오 앱 Client Secret                                      |
 | `KAKAO_REDIRECT_URI` | 카카오 로그인 Redirect URI. 카카오 개발자 콘솔에 등록한 값과 정확히 같아야 한다.      |
+| `KAKAO_ADMIN_KEY` | (선택) 카카오 앱 Admin 키. 미등록이면 회원 탈퇴 시 카카오 연결 끊기(unlink)만 건너뛴다. |
+| `AWS_S3_BUCKET` | (선택) 프로필 이미지 버킷 이름. 미등록이면 기동은 정상이고 이미지 업로드만 실패한다. |
+| `AWS_REGION` | (선택) 버킷 리전. 미등록이면 `ap-northeast-2`. 버킷 리전과 같아야 이미지 URL 이 맞는다. |
 | `DISCORD_WEBHOOK_URL` | (선택) 5xx 알림용 Discord 웹훅 URL. 미등록이면 알림만 꺼지고 배포는 정상 진행. |
 | `DISCORD_WEBHOOK_ENABLED` | (선택) 미등록이면 `true`. 웹훅 URL 은 두고 알림만 끄고 싶을 때 `false` 로 등록. |
 | `HOLIDAY_API_KEY` | (선택) 공공데이터포털 특일 정보 인증키(Encoding 키). 미등록이면 공휴일 동기화만 건너뛰고 기동은 정상. |
@@ -157,6 +160,56 @@ mkdir -p ~/withme
 인스턴스 타입은 **최소 2GB(`t3.small`)** 여야 한다.
 Blue-Green 은 전환 구간에 JVM 두 개가 동시에 떠 있으므로 `t3.micro`(1GB)에서는 성립하지 않는다.
 (`docker-compose.yml` 의 `mem_limit: 700m` 이 각 앱의 상한이다.)
+
+## S3 사전 준비 (프로필 이미지)
+
+업로드는 서버가 하고, 프론트는 공개 URL 로 이미지를 읽는다.
+
+**버킷**
+
+- 이름에 점(`.`)을 넣지 않는다. HTTPS 인증서 오류가 난다.
+- ACL 비활성화, 버전 관리 비활성화, 기본 암호화는 SSE-S3 (SSE-KMS 는 공개 URL 로 읽을 수 없다).
+- 퍼블릭 액세스 차단은 ACL 항목 2개만 켜고 버킷 정책 항목 2개는 끈다.
+- 버킷 정책으로 `profile/` 경로의 읽기만 공개한다.
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Sid": "PublicReadProfileImages",
+    "Effect": "Allow",
+    "Principal": "*",
+    "Action": "s3:GetObject",
+    "Resource": "arn:aws:s3:::<버킷이름>/profile/*"
+  }]
+}
+```
+
+**EC2 권한**
+
+액세스 키 대신 인스턴스에 IAM 역할을 연결한다. 앱은 AWS SDK 기본 체인으로 자격 증명을 찾는다.
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": ["s3:PutObject", "s3:DeleteObject"],
+    "Resource": "arn:aws:s3:::<버킷이름>/profile/*"
+  }]
+}
+```
+
+앱이 컨테이너 안에서 돌기 때문에 메타데이터 hop limit 이 1 이면 역할 자격 증명을 받지 못할 수 있다.
+
+```bash
+aws ec2 modify-instance-metadata-options --instance-id <인스턴스ID> --http-put-response-hop-limit 2
+```
+
+**업로드 용량**
+
+앱 상한은 파일 5MB, 요청 6MB 이고 nginx 상한은 `nginx/upload-limit.conf` 의 6MB 다.
+값을 바꾸면 `application.yml` 과 이 파일을 함께 바꾼다.
 
 ## 롤백
 
