@@ -47,6 +47,11 @@ public class GroupMember {
     @Column(nullable = false, length = 20)
     private GroupMemberStatus status;
 
+    /** 모임장 위임 시 직책 변경 */
+    public void changePosition(GroupMemberPosition position) {
+        this.position = position;
+    }
+
     /** ACTIVE 상태이면서 OWNER/CO_OWNER인 경우에만 관리자로 인정 — 탈퇴/비활성 멤버는 직책이 남아있어도 권한 없음 */
     public boolean manager() {
         return status == GroupMemberStatus.ACTIVE
