@@ -26,6 +26,7 @@ public enum SuccessStatus implements BaseStatus {
     UPDATE_PASSWORD_SUCCESS("AUTH_204", HttpStatus.OK, "비밀번호 변경 성공"),
     CREATE_TOKEN_SUCCESS("AUTH_200", HttpStatus.OK, "토큰 재발급 성공"),
     KAKAO_LOGIN_SUCCESS("AUTH_200", HttpStatus.OK, "카카오 로그인 성공"),
+    RESTORE_USER_SUCCESS("AUTH_200", HttpStatus.OK, "계정 복구 성공"),
 
     /**
      * CATEGORY

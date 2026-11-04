@@ -56,7 +56,7 @@ public class User extends BaseEntity {
         this.deletedAt = LocalDateTime.now();
     }
 
-    /** 탈퇴 계정 복구 (카카오 재로그인) */
+    /** 탈퇴 계정 복구 (복구 API) */
     public void restore() {
         this.deletedAt = null;
     }

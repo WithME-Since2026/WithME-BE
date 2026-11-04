@@ -17,6 +17,7 @@ import yooze.withme.domain.auth.dto.request.IdCheckRequest;
 import yooze.withme.domain.auth.dto.request.KakaoCallbackRequest;
 import yooze.withme.domain.auth.dto.request.LoginRequest;
 import yooze.withme.domain.auth.dto.request.LogoutRequest;
+import yooze.withme.domain.auth.dto.request.RestoreRequest;
 import yooze.withme.domain.auth.dto.request.SignUpRequest;
 import yooze.withme.domain.auth.dto.request.TokenReissueRequest;
 import yooze.withme.domain.auth.dto.response.KakaoLoginResponse;
@@ -40,9 +41,22 @@ public interface AuthControllerDocs {
     @Operation(summary = "로그인", description = "아이디와 비밀번호로 로그인하고 JWT 토큰을 발급받는다.")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "로그인 성공")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "아이디 또는 비밀번호 불일치")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "탈퇴한 계정 — data.restoreToken 으로 /restore 를 호출하면 복구할 수 있다")
     @PostMapping("/login")
     ResponseEntity<ApiResponse<LoginResponse>> postLogin(
             @Valid @RequestBody LoginRequest loginRequest
+    );
+
+    @Operation(
+            summary = "탈퇴 계정 복구",
+            description = "로컬·카카오 로그인의 403 응답으로 받은 restoreToken 으로 계정을 복구하고 JWT 토큰을 발급받는다. "
+                    + "토큰은 10분간 유효하고 한 번만 쓸 수 있다. 모임 멤버십은 복구되지 않으므로 재초대로 다시 참여한다."
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "계정 복구 성공")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "유효하지 않거나 만료된 복구 토큰")
+    @PostMapping("/restore")
+    ResponseEntity<ApiResponse<LoginResponse>> postRestore(
+            @Valid @RequestBody RestoreRequest request
     );
 
     @Operation(
@@ -64,6 +78,7 @@ public interface AuthControllerDocs {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "카카오 로그인 성공")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "유효하지 않은 state 또는 이메일 제공 동의 필요")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "카카오 인가 코드가 유효하지 않음")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "탈퇴한 계정 — data.restoreToken 으로 /restore 를 호출하면 복구할 수 있다")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "이미 해당 이메일로 로컬 계정이 존재함 — 아이디 로그인 후 마이페이지에서 카카오 연동 필요")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "502", description = "카카오 서버 오류")
     @PostMapping("/kakao/callback")

@@ -14,6 +14,7 @@ import yooze.withme.domain.auth.dto.request.IdCheckRequest;
 import yooze.withme.domain.auth.dto.request.KakaoCallbackRequest;
 import yooze.withme.domain.auth.dto.request.LoginRequest;
 import yooze.withme.domain.auth.dto.request.LogoutRequest;
+import yooze.withme.domain.auth.dto.request.RestoreRequest;
 import yooze.withme.domain.auth.dto.request.SignUpRequest;
 import yooze.withme.domain.auth.dto.request.TokenReissueRequest;
 import yooze.withme.domain.auth.dto.response.KakaoLoginResponse;
@@ -44,6 +45,14 @@ public class AuthController implements AuthControllerDocs {
     ) {
         LoginResponse loginResponse = authCommandService.login(loginRequest);
         return ApiResponse.success(SuccessStatus.LOGIN_SUCCESS, loginResponse);
+    }
+
+    @PostMapping("/restore")
+    public ResponseEntity<ApiResponse<LoginResponse>> postRestore(
+            @Valid @RequestBody RestoreRequest request
+    ) {
+        LoginResponse loginResponse = authCommandService.restore(request.restoreToken());
+        return ApiResponse.success(SuccessStatus.RESTORE_USER_SUCCESS, loginResponse);
     }
 
     @GetMapping("/kakao/state")

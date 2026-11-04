@@ -40,6 +40,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/v1/auth/sign-up",
                                 "/api/v1/auth/login",
+                                "/api/v1/auth/restore",
                                 "/api/v1/auth/reissue",
                                 "/api/v1/auth/id-check",
                                 "/api/v1/auth/kakao/state",

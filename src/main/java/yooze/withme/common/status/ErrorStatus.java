@@ -30,6 +30,7 @@ public enum ErrorStatus implements BaseStatus {
     KAKAO_SERVER_ERROR("AUTH_502", HttpStatus.BAD_GATEWAY, "카카오 서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."),
     KAKAO_EMAIL_REQUIRED("AUTH_400", HttpStatus.BAD_REQUEST, "카카오 계정에 이메일 제공 동의가 필요합니다."),
     INVALID_OAUTH_STATE("AUTH_400", HttpStatus.BAD_REQUEST, "유효하지 않거나 만료된 state 값입니다. 다시 로그인해 주세요."),
+    INVALID_RESTORE_TOKEN("AUTH_400", HttpStatus.BAD_REQUEST, "유효하지 않거나 만료된 복구 토큰입니다. 다시 로그인해 주세요."),
 
     /**
      * User

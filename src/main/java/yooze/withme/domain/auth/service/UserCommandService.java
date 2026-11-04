@@ -14,9 +14,11 @@ import yooze.withme.domain.auth.client.KakaoAuthClient;
 import yooze.withme.domain.auth.dto.response.NotificationSettingsResponse;
 import yooze.withme.domain.auth.dto.response.ProfileImageResponse;
 import yooze.withme.domain.auth.dto.response.ProfileResponse;
+import yooze.withme.domain.auth.dto.response.RestoreTokenResponse;
 import yooze.withme.domain.auth.entity.User;
 import yooze.withme.domain.auth.entity.UserAuth;
 import yooze.withme.domain.auth.enums.ProviderType;
+import yooze.withme.domain.auth.repository.RestoreTokenRedisRepository;
 import yooze.withme.domain.auth.repository.UserAuthRepository;
 import yooze.withme.domain.auth.repository.UserRepository;
 import yooze.withme.domain.group.service.GroupCommandService;
@@ -49,6 +51,7 @@ public class UserCommandService {
     private final NotificationCommandService notificationCommandService;
     private final KakaoAuthClient kakaoAuthClient;
     private final S3ImageStorage s3ImageStorage;
+    private final RestoreTokenRedisRepository restoreTokenRedisRepository;
 
     /** 신규 사용자 생성 */
     public User registerUser(String nickname, String email) {
@@ -77,9 +80,9 @@ public class UserCommandService {
         if (existing.isPresent()) {
             User user = existing.get().getUser();
             if (user.getDeletedAt() != null) {
-                // 탈퇴 계정 복구 — 프로필·설정만. 모임 멤버십은 탈퇴 때 지웠으므로 재초대로 다시 참여한다
-                user.restore();
-                log.info("탈퇴 계정 복구 - userId: {}, kakaoId: {}", user.getUserId(), kakaoId);
+                // 바로 복구하지 않는다. 사용자 의사를 확인한 뒤 복구 API 로 복구한다
+                String restoreToken = restoreTokenRedisRepository.issue(user.getUserId(), ProviderType.KAKAO);
+                throw new GeneralException(ErrorStatus.DELETED_USER, new RestoreTokenResponse(restoreToken));
             }
             return new KakaoUserResult(user, false);
         }
@@ -165,7 +168,7 @@ public class UserCommandService {
         log.info("회원 탈퇴 - userId: {}, reason: {}", userId, reason);
     }
 
-    /** 프로필 이미지 변경 — jpg/png 만, 최대 5MB. 기존 이미지는 커밋 후 삭제 */
+    /** 프로필 이미지 변경 — jpg/png 만, 최대 5MB. 기존 이미지는 커밋 후, 새 이미지는 롤백 시 삭제 */
     public ProfileImageResponse updateProfileImage(Long userId, MultipartFile image) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
@@ -175,6 +178,7 @@ public class UserCommandService {
         String contentType = extension.equals("png") ? "image/png" : "image/jpeg";
         String url = s3ImageStorage.upload(
                 "profile/" + userId + "/" + UUID.randomUUID() + "." + extension, bytes, contentType);
+        afterRollback(() -> s3ImageStorage.delete(url));
 
         replaceProfileImg(user, url);
         return new ProfileImageResponse(url);
@@ -226,6 +230,18 @@ public class UserCommandService {
             @Override
             public void afterCommit() {
                 task.run();
+            }
+        });
+    }
+
+    /** 현재 트랜잭션이 롤백된 뒤에 실행할 작업 등록. 커밋 여부를 알 수 없는 STATUS_UNKNOWN 에는 실행하지 않는다 */
+    private void afterRollback(Runnable task) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                if (status == STATUS_ROLLED_BACK) {
+                    task.run();
+                }
             }
         });
     }
