@@ -26,6 +26,7 @@ public class KakaoAuthClient {
 
     private static final String TOKEN_URI = "https://kauth.kakao.com/oauth/token";
     private static final String USER_INFO_URI = "https://kapi.kakao.com/v2/user/me";
+    private static final String UNLINK_URI = "https://kapi.kakao.com/v1/user/unlink";
 
     private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(3);
     private static final Duration READ_TIMEOUT = Duration.ofSeconds(5);
@@ -105,6 +106,33 @@ public class KakaoAuthClient {
         } catch (RestClientException e) {
             log.warn("[*] 카카오 사용자 정보 조회 실패 - 네트워크 오류 : {}", e.getMessage());
             throw new GeneralException(ErrorStatus.KAKAO_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * 회원 탈퇴 시 앱 연결 끊기 (Admin 키 방식).
+     * 탈퇴 커밋 이후에 호출되므로 실패해도 예외를 던지지 않고 로그만 남긴다.
+     */
+    public void unlink(Long kakaoId) {
+        if (!StringUtils.hasText(kakaoProperties.adminKey())) {
+            log.warn("[*] 카카오 Admin 키 미설정 - unlink 생략, kakaoId: {}", kakaoId);
+            return;
+        }
+
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("target_id_type", "user_id");
+        body.add("target_id", String.valueOf(kakaoId));
+
+        try {
+            restClient.post()
+                    .uri(UNLINK_URI)
+                    .header(HttpHeaders.AUTHORIZATION, "KakaoAK " + kakaoProperties.adminKey())
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body(body)
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (RestClientException e) {
+            log.warn("[*] 카카오 unlink 실패 - kakaoId: {} : {}", kakaoId, e.getMessage());
         }
     }
 }

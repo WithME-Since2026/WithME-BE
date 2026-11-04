@@ -7,14 +7,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import yooze.withme.common.response.ApiResponse;
 import yooze.withme.common.status.SuccessStatus;
 import yooze.withme.domain.auth.dto.request.UpdateNicknameRequest;
 import yooze.withme.domain.auth.dto.request.UpdateNotificationSettingsRequest;
+import yooze.withme.domain.auth.dto.request.WithdrawRequest;
 import yooze.withme.domain.auth.dto.response.NotificationSettingsResponse;
+import yooze.withme.domain.auth.dto.response.ProfileImageResponse;
 import yooze.withme.domain.auth.dto.response.ProfileResponse;
 import yooze.withme.domain.group.dto.response.AttendanceRateResponse;
 import yooze.withme.domain.group.dto.response.MyGroupResponse;
+import yooze.withme.domain.group.dto.response.WeeklyAttendanceResponse;
 import yooze.withme.domain.auth.controller.docs.UserControllerDocs;
 import yooze.withme.domain.auth.service.UserCommandService;
 import yooze.withme.domain.auth.service.UserQueryService;
@@ -80,5 +84,39 @@ public class UserController implements UserControllerDocs {
         Long userId = Long.parseLong(userDetails.getUsername());
         List<MyGroupResponse> response = userQueryService.getUserGroups(userId);
         return ApiResponse.success(SuccessStatus.GET_MY_GROUPS_SUCCESS, response);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<List<WeeklyAttendanceResponse>>> getUserWeeklyAttendance(
+            @AuthenticationPrincipal UserDetails userDetails, int weeks
+    ) {
+        Long userId = Long.parseLong(userDetails.getUsername());
+        List<WeeklyAttendanceResponse> response = userQueryService.getUserWeeklyAttendance(userId, weeks);
+        return ApiResponse.success(SuccessStatus.GET_WEEKLY_ATTENDANCE_SUCCESS, response);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<ProfileImageResponse>> updateProfileImage(
+            @AuthenticationPrincipal UserDetails userDetails, MultipartFile image
+    ) {
+        Long userId = Long.parseLong(userDetails.getUsername());
+        ProfileImageResponse response = userCommandService.updateProfileImage(userId, image);
+        return ApiResponse.success(SuccessStatus.UPDATE_PROFILE_IMAGE_SUCCESS, response);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<Void>> deleteProfileImage(@AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = Long.parseLong(userDetails.getUsername());
+        userCommandService.deleteProfileImage(userId);
+        return ApiResponse.success(SuccessStatus.DELETE_PROFILE_IMAGE_SUCCESS);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<Void>> deleteUser(
+            @AuthenticationPrincipal UserDetails userDetails, WithdrawRequest request
+    ) {
+        Long userId = Long.parseLong(userDetails.getUsername());
+        userCommandService.deleteUser(userId, request != null ? request.reason() : null);
+        return ApiResponse.success(SuccessStatus.DELETE_USER_SUCCESS);
     }
 }

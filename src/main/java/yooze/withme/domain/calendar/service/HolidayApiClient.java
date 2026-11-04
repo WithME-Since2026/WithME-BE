@@ -21,7 +21,7 @@ public class HolidayApiClient {
     private static final String BASE_URL =
             "https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/";
     private static final DateTimeFormatter LOCDATE = DateTimeFormatter.ofPattern("yyyyMMdd");
-    // ponytail: 오퍼레이션당 연 100건을 넘지 않아 한 페이지로 끝난다. 넘치면 pageNo 루프를 돌 것.
+    // 오퍼레이션당 연 100건을 넘지 않아 한 페이지로 끝난다. 넘치면 pageNo 루프를 돌 것.
     private static final int NUM_OF_ROWS = 200;
     private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(3);
     private static final Duration READ_TIMEOUT = Duration.ofSeconds(10);

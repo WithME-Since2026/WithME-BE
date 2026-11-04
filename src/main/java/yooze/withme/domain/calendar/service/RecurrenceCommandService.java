@@ -67,7 +67,7 @@ public class RecurrenceCommandService {
         if (recurrence.getRecurrenceId() == null) {
             return;
         }
-        // ponytail: 예외 1건당 하루짜리 전개 1번. 한 규칙의 예외 수만큼이라 실질적으로 몇 건이다.
+        // 예외 1건당 하루짜리 전개 1번. 한 규칙의 예외 수만큼이라 실질적으로 몇 건이다.
         List<RecurrenceException> stale = recurrenceExceptionRepository
                 .findByRecurrenceRecurrenceId(recurrence.getRecurrenceId()).stream()
                 .filter(exception -> !producedBy(recurrence, anchorDate,

@@ -76,7 +76,7 @@ public class CalendarQueryService {
                 RecurrenceOwnerType.TODO, todos.stream().map(Todo::getTodoId).toList()).keySet();
 
         for (Todo todo : todos) {
-            // ponytail: 반복 원본 1건당 규칙+예외 조회 1번. 구간이 최대 92일이라 반복 원본 수가
+            // 반복 원본 1건당 규칙+예외 조회 1번. 구간이 최대 92일이라 반복 원본 수가
             // 곧 상한이다. 반복 todo 가 수백 건이 되면 규칙/예외를 일괄 조회로 바꿀 것.
             List<OccurrenceResponse> occurrences = recurrenceQueryService.findOccurrences(
                     RecurrenceOwnerType.TODO, todo.getTodoId(), todo.getDueDate(), from, to);

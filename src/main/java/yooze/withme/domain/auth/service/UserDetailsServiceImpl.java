@@ -5,6 +5,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import yooze.withme.common.exception.GeneralException;
+import yooze.withme.common.status.ErrorStatus;
 import yooze.withme.domain.auth.entity.User;
 import yooze.withme.domain.auth.repository.UserRepository;
 
@@ -19,6 +21,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
         User user = userRepository.findById(Long.parseLong(userId))
                 .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다. userId: " + userId));
+        // 탈퇴 전에 발급된 액세스 토큰 차단. JwtAuthenticationFilter 가 잡아 미인증으로 처리한다
+        if (user.getDeletedAt() != null) {
+            throw new GeneralException(ErrorStatus.DELETED_USER);
+        }
 
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getUserId().toString())

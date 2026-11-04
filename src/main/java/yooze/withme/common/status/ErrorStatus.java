@@ -30,6 +30,7 @@ public enum ErrorStatus implements BaseStatus {
     KAKAO_SERVER_ERROR("AUTH_502", HttpStatus.BAD_GATEWAY, "카카오 서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."),
     KAKAO_EMAIL_REQUIRED("AUTH_400", HttpStatus.BAD_REQUEST, "카카오 계정에 이메일 제공 동의가 필요합니다."),
     INVALID_OAUTH_STATE("AUTH_400", HttpStatus.BAD_REQUEST, "유효하지 않거나 만료된 state 값입니다. 다시 로그인해 주세요."),
+    INVALID_RESTORE_TOKEN("AUTH_400", HttpStatus.BAD_REQUEST, "유효하지 않거나 만료된 복구 토큰입니다. 다시 로그인해 주세요."),
 
     /**
      * User
@@ -44,6 +45,10 @@ public enum ErrorStatus implements BaseStatus {
     INVALID_VERIFICATION_CODE("AUTH_400", HttpStatus.BAD_REQUEST, "인증코드가 올바르지 않거나 만료되었습니다."),
     EMAIL_SEND_FAILED("COMM_500", HttpStatus.INTERNAL_SERVER_ERROR, "이메일 발송에 실패했습니다."),
     TOO_MANY_REQUESTS("COMM_429", HttpStatus.TOO_MANY_REQUESTS, "요청이 너무 많습니다. 잠시 후 다시 시도해주세요."),
+    USER_OWNER_GROUP_EXISTS("USER_409", HttpStatus.CONFLICT, "모임장 위임이 필요한 모임이 있습니다."),
+    INVALID_IMAGE_TYPE("USER_400", HttpStatus.BAD_REQUEST, "jpg 또는 png 이미지만 업로드할 수 있습니다."),
+    IMAGE_TOO_LARGE("USER_413", HttpStatus.PAYLOAD_TOO_LARGE, "이미지는 최대 5MB까지 업로드할 수 있습니다."),
+    IMAGE_UPLOAD_FAILED("USER_500", HttpStatus.INTERNAL_SERVER_ERROR, "이미지 업로드에 실패했습니다."),
 
     /**
      * CATEGORY
@@ -80,6 +85,8 @@ public enum ErrorStatus implements BaseStatus {
     GROUP_MEMBER_NOT_FOUND("GROUP_404", HttpStatus.NOT_FOUND, "해당 모임의 멤버가 아닙니다."),
     GROUP_MEMBER_FORBIDDEN("GROUP_403", HttpStatus.FORBIDDEN, "모임 운영자만 접근할 수 있습니다."),
     GROUP_MEMBER_INACTIVE("GROUP_403", HttpStatus.FORBIDDEN, "비활성화되었거나 탈퇴한 멤버는 이용할 수 없습니다."),
+    GROUP_OWNER_FORBIDDEN("GROUP_403", HttpStatus.FORBIDDEN, "모임장만 위임할 수 있습니다."),
+    INVALID_NEW_OWNER("GROUP_400", HttpStatus.BAD_REQUEST, "위임 대상은 본인이 아닌 모임 멤버여야 합니다."),
     GROUP_RESPONSE_NOT_FOUND("GROUP_404", HttpStatus.NOT_FOUND, "출석 응답 정보를 찾을 수 없습니다."),
     INVALID_ATTENDANCE_STATUS("GROUP_400", HttpStatus.BAD_REQUEST, "참석 응답은 ATTEND 또는 ABSENT만 가능합니다."),
     GROUP_RESPONSE_CONFLICT("GROUP_409", HttpStatus.CONFLICT, "다른 요청과 동시에 처리되어 충돌이 발생했습니다. 다시 시도해주세요.");
