@@ -14,6 +14,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import yooze.withme.common.response.ApiResponse;
 import yooze.withme.common.base.BaseStatus;
@@ -29,14 +30,14 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     private final DiscordErrorNotifier discordErrorNotifier;
 
     @ExceptionHandler(GeneralException.class)
-    public ResponseEntity<ApiResponse<Void>> handleGeneralException(GeneralException e) {
+    public ResponseEntity<ApiResponse<Object>> handleGeneralException(GeneralException e) {
         if (e.getErrorStatus().getHttpStatus().is5xxServerError()) {
             log.error("[*] GeneralException :", e);
             discordErrorNotifier.notify(e.getErrorStatus(), e);
         } else {
             log.warn("[*] GeneralException : {}", e.getMessage());
         }
-        return ApiResponse.error(e.getErrorStatus());
+        return ApiResponse.error(e.getErrorStatus(), e.getData());
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
@@ -151,6 +152,19 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
         BaseStatus errorCode = ErrorStatus.METHOD_NOT_ALLOWED;
         ApiResponse<Void> body = createApiResponse(errorCode, null);
         return handleExceptionInternal(ex, body, headers, status, request);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleMaxUploadSizeExceededException(
+            MaxUploadSizeExceededException ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request
+    ) {
+        log.warn("[*] MaxUploadSizeExceededException : {}", ex.getMessage());
+        BaseStatus errorCode = ErrorStatus.IMAGE_TOO_LARGE;
+        ApiResponse<Void> body = createApiResponse(errorCode, null);
+        return handleExceptionInternal(ex, body, headers, errorCode.getHttpStatus(), request);
     }
 
     private ApiResponse<Void> createApiResponse(

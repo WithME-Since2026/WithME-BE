@@ -38,6 +38,11 @@ public interface FcmTokenRepository extends JpaRepository<FcmToken, Long> {
             nativeQuery = true)
     void deleteStaleByToken(@Param("token") String token, @Param("userId") Long userId);
 
+    /** 회원 탈퇴 시 모든 기기의 토큰 삭제 */
+    @Modifying
+    @Query(value = "DELETE FROM fcm_tokens WHERE user_id = :userId", nativeQuery = true)
+    void deleteAllByUserId(@Param("userId") Long userId);
+
     /** 로그아웃 시 해당 기기의 토큰 삭제 */
     @Modifying
     @Query(value = "DELETE FROM fcm_tokens WHERE user_id = :userId AND device_id = :deviceId",

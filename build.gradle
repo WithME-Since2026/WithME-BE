@@ -58,6 +58,9 @@ dependencies {
     // Firebase Admin SDK (FCM 푸시 알림)
     implementation 'com.google.firebase:firebase-admin:9.4.2'
 
+    // 프로필 이미지 업로드 (S3)
+    implementation 'software.amazon.awssdk:s3:2.30.0'
+
     // Swagger (Spring Boot 4.x 호환)
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0'
 

@@ -19,12 +19,15 @@ import yooze.withme.domain.auth.dto.request.SignUpRequest;
 import yooze.withme.domain.auth.dto.response.KakaoLoginResponse;
 import yooze.withme.domain.auth.dto.response.KakaoStateResponse;
 import yooze.withme.domain.auth.dto.response.LoginResponse;
+import yooze.withme.domain.auth.dto.response.RestoreTokenResponse;
 import yooze.withme.domain.auth.dto.response.SignUpResponse;
 import yooze.withme.domain.auth.dto.response.TokenReissueResponse;
 import yooze.withme.domain.auth.entity.User;
 import yooze.withme.domain.auth.entity.UserAuth;
 import yooze.withme.domain.auth.enums.ProviderType;
 import yooze.withme.domain.auth.repository.OAuthStateRedisRepository;
+import yooze.withme.domain.auth.repository.RestoreTokenRedisRepository;
+import yooze.withme.domain.auth.repository.RestoreTokenRedisRepository.RestoreTarget;
 import yooze.withme.domain.auth.repository.UserAuthRepository;
 import yooze.withme.domain.auth.service.UserCommandService.KakaoUserResult;
 
@@ -46,6 +49,7 @@ public class AuthCommandService {
     private final KakaoAuthClient kakaoAuthClient;
     private final KakaoProperties kakaoProperties;
     private final OAuthStateRedisRepository oAuthStateRedisRepository;
+    private final RestoreTokenRedisRepository restoreTokenRedisRepository;
     private final yooze.withme.domain.notification.service.NotificationCommandService notificationCommandService;
 
     /** 로컬 회원가입 */
@@ -92,6 +96,10 @@ public class AuthCommandService {
         }
 
         User user = userAuth.getUser();
+        if (user.getDeletedAt() != null) {
+            String restoreToken = restoreTokenRedisRepository.issue(user.getUserId(), ProviderType.LOCAL);
+            throw new GeneralException(ErrorStatus.DELETED_USER, new RestoreTokenResponse(restoreToken));
+        }
 
         String accessToken = jwtTokenProvider.generateAccessToken(user.getUserId());
         String refreshToken = jwtTokenProvider.generateRefreshToken(user.getUserId(), ProviderType.LOCAL);
@@ -100,6 +108,25 @@ public class AuthCommandService {
         userTokenCommandService.issueToken(user, refreshToken, ProviderType.LOCAL, refreshExpiredAt);
 
         log.info("로컬 로그인 성공 - userId: {}", user.getUserId());
+        return LoginResponse.of(accessToken, refreshToken);
+    }
+
+    /** 탈퇴 계정 복구 — 로그인 때 받은 일회성 토큰으로 복구하고 바로 로그인시킨다 */
+    public LoginResponse restore(String restoreToken) {
+        RestoreTarget target = restoreTokenRedisRepository.consume(restoreToken)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.INVALID_RESTORE_TOKEN));
+
+        // 프로필·설정만 복구한다. 모임 멤버십은 탈퇴 때 지웠으므로 재초대로 다시 참여한다
+        User user = userQueryService.getUserByUserId(target.userId());
+        user.restore();
+
+        String accessToken = jwtTokenProvider.generateAccessToken(user.getUserId());
+        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getUserId(), target.provider());
+        LocalDateTime refreshExpiredAt = jwtTokenProvider.getRefreshTokenExpiredAt();
+
+        userTokenCommandService.issueToken(user, refreshToken, target.provider(), refreshExpiredAt);
+
+        log.info("탈퇴 계정 복구 - userId: {}, provider: {}", user.getUserId(), target.provider());
         return LoginResponse.of(accessToken, refreshToken);
     }
 

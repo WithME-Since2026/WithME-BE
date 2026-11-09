@@ -114,7 +114,7 @@ jobs:
           # withme.conf 는 서버에서 라이브 색을 담는 상태 파일이므로 보내지 않는다.
           # .default 만 보내고, deploy.sh 가 서버에 파일이 없을 때만 복사한다.
           # 매 배포마다 덮어쓰면 upstream 이 blue 로 리셋된다.
-          source: "docker-compose.yml,scripts/deploy.sh,scripts/switch.sh,nginx/withme.conf.default"
+          source: "docker-compose.yml,scripts/deploy.sh,scripts/switch.sh,nginx/withme.conf.default,nginx/upload-limit.conf"
           target: /home/${{ secrets.EC2_USER }}/withme
 
       # 색과 무관한 설정만 .env.new 로 전달한다.
@@ -141,6 +141,12 @@ jobs:
           KAKAO_CLIENT_ID: ${{ secrets.KAKAO_CLIENT_ID }}
           KAKAO_CLIENT_SECRET: ${{ secrets.KAKAO_CLIENT_SECRET }}
           KAKAO_REDIRECT_URI: ${{ secrets.KAKAO_REDIRECT_URI }}
+          # 선택값. 미등록이면 회원 탈퇴 시 카카오 unlink 만 건너뛰고 배포는 정상 진행
+          KAKAO_ADMIN_KEY: ${{ secrets.KAKAO_ADMIN_KEY }}
+          # 선택값. 미등록이면 기동은 정상이고 프로필 이미지 업로드만 실패한다
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+          # 선택값. 미등록이면 compose 기본값 ap-northeast-2. 버킷 리전과 같아야 한다
+          AWS_REGION: ${{ secrets.AWS_REGION }}
           # 선택값. 미등록이면 5xx Discord 알림만 꺼지고 배포는 정상 진행
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           # 선택값. 미등록이면 compose 기본값 true. 알림을 끄려면 false 로 등록
@@ -158,7 +164,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: IMAGE_REF,DDL_AUTO,FLYWAY_ENABLED,DB_URL,DB_USERNAME,DB_PASSWORD,JWT_SECRET,MAIL_USERNAME,MAIL_PASSWORD,KAKAO_CLIENT_ID,KAKAO_CLIENT_SECRET,KAKAO_REDIRECT_URI,DISCORD_WEBHOOK_URL,DISCORD_WEBHOOK_ENABLED,FIREBASE_SERVICE_ACCOUNT_KEY,HOLIDAY_API_KEY,HOLIDAY_SYNC_ENABLED,GHCR_USER,GHCR_TOKEN
+          envs: IMAGE_REF,DDL_AUTO,FLYWAY_ENABLED,DB_URL,DB_USERNAME,DB_PASSWORD,JWT_SECRET,MAIL_USERNAME,MAIL_PASSWORD,KAKAO_CLIENT_ID,KAKAO_CLIENT_SECRET,KAKAO_REDIRECT_URI,KAKAO_ADMIN_KEY,AWS_S3_BUCKET,AWS_REGION,DISCORD_WEBHOOK_URL,DISCORD_WEBHOOK_ENABLED,FIREBASE_SERVICE_ACCOUNT_KEY,HOLIDAY_API_KEY,HOLIDAY_SYNC_ENABLED,GHCR_USER,GHCR_TOKEN
           # script_stop 은 쓰지 않는다. 이 옵션은 스크립트 매 줄 뒤에 종료코드 검사 줄을
           # 끼워 넣는데, for/case/함수 같은 여러 줄 구문 한가운데에도 들어가서 스크립트가
           # 통째로 syntax error 가 난다. 첫 줄의 set -eu 가 같은 역할을 하고,
@@ -183,7 +189,7 @@ jobs:
             done
 
             # 선택값도 .env 형식을 깨뜨릴 수 있는 개행은 허용하지 않는다.
-            for key in DISCORD_WEBHOOK_URL DISCORD_WEBHOOK_ENABLED; do
+            for key in DISCORD_WEBHOOK_URL DISCORD_WEBHOOK_ENABLED KAKAO_ADMIN_KEY AWS_S3_BUCKET AWS_REGION; do
               eval "value=\${$key-}"
               if [ "$(printf '%s' "$value" | tr -d '\r\n')" != "$value" ]; then
                 echo "$key 값에 개행 문자가 포함되어 있다. Secret 을 다시 등록하라."
@@ -219,6 +225,9 @@ jobs:
               write_env KAKAO_CLIENT_ID "$KAKAO_CLIENT_ID"
               write_env KAKAO_CLIENT_SECRET "$KAKAO_CLIENT_SECRET"
               write_env KAKAO_REDIRECT_URI "$KAKAO_REDIRECT_URI"
+              write_env KAKAO_ADMIN_KEY "${KAKAO_ADMIN_KEY-}"
+              write_env AWS_S3_BUCKET "${AWS_S3_BUCKET-}"
+              write_env AWS_REGION "${AWS_REGION-}"
               write_env DISCORD_WEBHOOK_URL "${DISCORD_WEBHOOK_URL-}"
               write_env DISCORD_WEBHOOK_ENABLED "${DISCORD_WEBHOOK_ENABLED-}"
               write_env HOLIDAY_API_KEY "${HOLIDAY_API_KEY-}"

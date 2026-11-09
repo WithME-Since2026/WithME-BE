@@ -9,11 +9,13 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import yooze.withme.common.response.ApiResponse;
 import yooze.withme.domain.group.dto.request.CreateGroupRequest;
+import yooze.withme.domain.group.dto.request.DelegateOwnerRequest;
 import yooze.withme.domain.group.dto.response.GroupDetailResponse;
 import yooze.withme.domain.group.dto.response.GroupRoundResponse;
 
@@ -43,4 +45,17 @@ public interface GroupControllerDocs {
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/{groupId}/group-rounds")
     ResponseEntity<ApiResponse<List<GroupRoundResponse>>> getGroupRounds(@PathVariable Long groupId);
+
+    @Operation(summary = "모임장 위임", description = "모임장(OWNER)이 다른 활동 멤버에게 모임장을 넘긴다. 기존 모임장은 일반 멤버가 된다.")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "모임장 위임 성공")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "위임 대상이 모임 멤버가 아님")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "요청자가 모임장이 아님")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "존재하지 않는 모임")
+    @SecurityRequirement(name = "bearerAuth")
+    @PatchMapping("/{groupId}/owner")
+    ResponseEntity<ApiResponse<Void>> updateGroupOwner(
+            @Parameter(hidden = true) UserDetails userDetails,
+            @PathVariable Long groupId,
+            @Valid @RequestBody DelegateOwnerRequest request
+    );
 }

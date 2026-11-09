@@ -25,6 +25,12 @@ x-app: &app
     KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID}
     KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET}
     KAKAO_REDIRECT_URI: ${KAKAO_REDIRECT_URI}
+    # 선택값. 비어 있으면 회원 탈퇴 시 카카오 연결 끊기(unlink)만 건너뜀
+    KAKAO_ADMIN_KEY: ${KAKAO_ADMIN_KEY:-}
+    # 프로필 이미지 저장소. 버킷이 비어 있으면 기동은 정상이고 이미지 업로드만 실패한다.
+    AWS_S3_BUCKET: ${AWS_S3_BUCKET:-}
+    # 빈 문자열을 그대로 넘기면 S3 클라이언트 생성이 실패하므로 여기서 기본값을 채운다.
+    AWS_REGION: ${AWS_REGION:-ap-northeast-2}
     # 선택값. 비어 있으면 5xx Discord 알림 발송 X
     DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
     # 빈 문자열을 그대로 넘기면 boolean 바인딩이 깨지므로 여기서 기본값을 채운다.

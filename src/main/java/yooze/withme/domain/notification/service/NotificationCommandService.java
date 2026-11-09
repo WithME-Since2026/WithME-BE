@@ -65,6 +65,11 @@ public class NotificationCommandService {
         fcmTokenRepository.deleteByUserIdAndDeviceId(userId, deviceId);
     }
 
+    /** 회원 탈퇴 시 모든 기기의 FCM 토큰 삭제 */
+    public void deleteAllFcmTokens(Long userId) {
+        fcmTokenRepository.deleteAllByUserId(userId);
+    }
+
     /** 단건 읽음 처리 (본인 알림인지 확인) */
     public void markAsRead(Long userId, Long notificationId) {
         notificationRepository.findById(notificationId)

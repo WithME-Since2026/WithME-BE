@@ -11,6 +11,7 @@ import yooze.withme.common.response.ApiResponse;
 import yooze.withme.common.status.SuccessStatus;
 import yooze.withme.domain.group.controller.docs.GroupControllerDocs;
 import yooze.withme.domain.group.dto.request.CreateGroupRequest;
+import yooze.withme.domain.group.dto.request.DelegateOwnerRequest;
 import yooze.withme.domain.group.dto.response.GroupDetailResponse;
 import yooze.withme.domain.group.dto.response.GroupRoundResponse;
 import yooze.withme.domain.group.service.GroupCommandService;
@@ -45,5 +46,14 @@ public class GroupController implements GroupControllerDocs {
     public ResponseEntity<ApiResponse<List<GroupRoundResponse>>> getGroupRounds(Long groupId) {
         List<GroupRoundResponse> response = groupQueryService.getGroupRounds(groupId);
         return ApiResponse.success(SuccessStatus.GET_GROUP_ROUNDS_SUCCESS, response);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<Void>> updateGroupOwner(
+            @AuthenticationPrincipal UserDetails userDetails, Long groupId, DelegateOwnerRequest request
+    ) {
+        Long userId = Long.parseLong(userDetails.getUsername());
+        groupCommandService.updateGroupOwner(userId, groupId, request.newOwnerId());
+        return ApiResponse.success(SuccessStatus.UPDATE_GROUP_OWNER_SUCCESS);
     }
 }
