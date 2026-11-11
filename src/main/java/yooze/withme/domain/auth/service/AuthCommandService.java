@@ -24,7 +24,9 @@ import yooze.withme.domain.auth.dto.response.SignUpResponse;
 import yooze.withme.domain.auth.dto.response.TokenReissueResponse;
 import yooze.withme.domain.auth.entity.User;
 import yooze.withme.domain.auth.entity.UserAuth;
+import yooze.withme.domain.auth.enums.PlatformType;
 import yooze.withme.domain.auth.enums.ProviderType;
+import org.springframework.web.util.UriComponentsBuilder;
 import yooze.withme.domain.auth.repository.OAuthStateRedisRepository;
 import yooze.withme.domain.auth.repository.RestoreTokenRedisRepository;
 import yooze.withme.domain.auth.repository.RestoreTokenRedisRepository.RestoreTarget;
@@ -132,32 +134,44 @@ public class AuthCommandService {
 
     /**
      * 카카오 OAuth 로그인 시작 시 state 생성.
-     * 프론트는 반환된 kakaoLoginUrl 로 리다이렉트하고 카카오가 돌려준
-     * code·state 를 /kakao/callback 으로 그대로 전달한다.
+     * platform 에 따라 앱/웹용 redirect_uri 를 선택해 카카오 로그인 URL 을 만들고,
+     * state 와 redirect_uri 를 Redis 에 함께 저장한다.
+     * 콜백에서 카카오 토큰 요청 시 같은 redirect_uri 를 써야 하므로 state 에 묶어 관리한다.
+     * platform 미전달 시 APP 으로 처리해 기존 앱 호환을 유지한다.
      */
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public KakaoStateResponse generateKakaoState() {
+    public KakaoStateResponse generateKakaoState(PlatformType platform) {
         String state = UUID.randomUUID().toString();
-        oAuthStateRedisRepository.save(state);
+        String redirectUri = kakaoProperties.redirectUriFor(platform);
+        oAuthStateRedisRepository.save(state, redirectUri);
 
-        String kakaoLoginUrl = "https://kauth.kakao.com/oauth/authorize"
-                + "?client_id=" + kakaoProperties.clientId()
-                + "&redirect_uri=" + kakaoProperties.redirectUri()
-                + "&response_type=code"
-                + "&state=" + state;
+        // 쿼리 파라미터를 직접 문자열로 이어붙이면 특수문자가 그대로 노출될 수 있으므로
+        // UriComponentsBuilder 로 빌드해 안전하게 인코딩한다.
+        String kakaoLoginUrl = UriComponentsBuilder
+                .fromUriString("https://kauth.kakao.com/oauth/authorize")
+                .queryParam("client_id", kakaoProperties.clientId())
+                .queryParam("redirect_uri", redirectUri)
+                .queryParam("response_type", "code")
+                .queryParam("state", state)
+                .build()
+                .toUriString();
 
         return new KakaoStateResponse(state, kakaoLoginUrl);
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public KakaoLoginResponse kakaoLogin(String authorizationCode, String state) {
-        // 0. CSRF 방지 — state 일회성 검증 (존재하면 즉시 삭제)
-        if (!oAuthStateRedisRepository.consumeState(state)) {
+        // 0. CSRF 방지 — state 일회성 검증 (존재하면 즉시 삭제) + 저장된 redirect_uri 반환
+        // state 생성 시 플랫폼별 redirect_uri 를 함께 저장했으므로,
+        // 여기서 꺼낸 URI 를 카카오 토큰 요청에 그대로 사용한다.
+        // (카카오는 인가 요청과 토큰 요청의 redirect_uri 가 반드시 일치해야 한다)
+        String redirectUri = oAuthStateRedisRepository.consumeState(state);
+        if (redirectUri == null) {
             throw new GeneralException(ErrorStatus.INVALID_OAUTH_STATE);
         }
 
         // 1. 외부 HTTP 호출 — 트랜잭션(DB 커넥션) 없이 실행
-        KakaoTokenResponse kakaoToken = kakaoAuthClient.getToken(authorizationCode);
+        KakaoTokenResponse kakaoToken = kakaoAuthClient.getToken(authorizationCode, redirectUri);
         KakaoUserInfoResponse kakaoUserInfo = kakaoAuthClient.getUserInfo(kakaoToken.accessToken());
 
         Long kakaoId = kakaoUserInfo.id();
