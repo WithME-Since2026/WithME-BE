@@ -141,6 +141,7 @@ jobs:
           KAKAO_CLIENT_ID: ${{ secrets.KAKAO_CLIENT_ID }}
           KAKAO_CLIENT_SECRET: ${{ secrets.KAKAO_CLIENT_SECRET }}
           KAKAO_REDIRECT_URI: ${{ secrets.KAKAO_REDIRECT_URI }}
+          KAKAO_WEB_REDIRECT_URI: ${{ secrets.KAKAO_WEB_REDIRECT_URI }}
           # 선택값. 미등록이면 회원 탈퇴 시 카카오 unlink 만 건너뛰고 배포는 정상 진행
           KAKAO_ADMIN_KEY: ${{ secrets.KAKAO_ADMIN_KEY }}
           # 선택값. 미등록이면 기동은 정상이고 프로필 이미지 업로드만 실패한다
@@ -164,7 +165,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: IMAGE_REF,DDL_AUTO,FLYWAY_ENABLED,DB_URL,DB_USERNAME,DB_PASSWORD,JWT_SECRET,MAIL_USERNAME,MAIL_PASSWORD,KAKAO_CLIENT_ID,KAKAO_CLIENT_SECRET,KAKAO_REDIRECT_URI,KAKAO_ADMIN_KEY,AWS_S3_BUCKET,AWS_REGION,DISCORD_WEBHOOK_URL,DISCORD_WEBHOOK_ENABLED,FIREBASE_SERVICE_ACCOUNT_KEY,HOLIDAY_API_KEY,HOLIDAY_SYNC_ENABLED,GHCR_USER,GHCR_TOKEN
+          envs: IMAGE_REF,DDL_AUTO,FLYWAY_ENABLED,DB_URL,DB_USERNAME,DB_PASSWORD,JWT_SECRET,MAIL_USERNAME,MAIL_PASSWORD,KAKAO_CLIENT_ID,KAKAO_CLIENT_SECRET,KAKAO_REDIRECT_URI,KAKAO_WEB_REDIRECT_URI,KAKAO_ADMIN_KEY,AWS_S3_BUCKET,AWS_REGION,DISCORD_WEBHOOK_URL,DISCORD_WEBHOOK_ENABLED,FIREBASE_SERVICE_ACCOUNT_KEY,HOLIDAY_API_KEY,HOLIDAY_SYNC_ENABLED,GHCR_USER,GHCR_TOKEN
           # script_stop 은 쓰지 않는다. 이 옵션은 스크립트 매 줄 뒤에 종료코드 검사 줄을
           # 끼워 넣는데, for/case/함수 같은 여러 줄 구문 한가운데에도 들어가서 스크립트가
           # 통째로 syntax error 가 난다. 첫 줄의 set -eu 가 같은 역할을 하고,
@@ -225,6 +226,7 @@ jobs:
               write_env KAKAO_CLIENT_ID "$KAKAO_CLIENT_ID"
               write_env KAKAO_CLIENT_SECRET "$KAKAO_CLIENT_SECRET"
               write_env KAKAO_REDIRECT_URI "$KAKAO_REDIRECT_URI"
+              write_env KAKAO_WEB_REDIRECT_URI "${KAKAO_WEB_REDIRECT_URI-}"
               write_env KAKAO_ADMIN_KEY "${KAKAO_ADMIN_KEY-}"
               write_env AWS_S3_BUCKET "${AWS_S3_BUCKET-}"
               write_env AWS_REGION "${AWS_REGION-}"
