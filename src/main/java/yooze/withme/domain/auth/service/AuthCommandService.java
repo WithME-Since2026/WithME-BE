@@ -146,15 +146,15 @@ public class AuthCommandService {
         oAuthStateRedisRepository.save(state, redirectUri);
 
         // 쿼리 파라미터를 직접 문자열로 이어붙이면 특수문자가 그대로 노출될 수 있으므로
-        // UriComponentsBuilder 로 빌드해 안전하게 인코딩한다.
+        // redirect_uri 를 URI 변수로 확장해 예약 문자까지 쿼리 값으로 인코딩한다.
         String kakaoLoginUrl = UriComponentsBuilder
                 .fromUriString("https://kauth.kakao.com/oauth/authorize")
                 .queryParam("client_id", kakaoProperties.clientId())
-                .queryParam("redirect_uri", redirectUri)
+                .queryParam("redirect_uri", "{redirectUri}")
                 .queryParam("response_type", "code")
                 .queryParam("state", state)
-                .build()
                 .encode()
+                .buildAndExpand(redirectUri)
                 .toUriString();
 
         return new KakaoStateResponse(state, kakaoLoginUrl);
