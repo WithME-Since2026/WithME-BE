@@ -154,6 +154,7 @@ public class AuthCommandService {
                 .queryParam("response_type", "code")
                 .queryParam("state", state)
                 .build()
+                .encode()
                 .toUriString();
 
         return new KakaoStateResponse(state, kakaoLoginUrl);
