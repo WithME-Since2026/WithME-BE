@@ -27,13 +27,11 @@ public class OAuthStateRedisRepository {
     /**
      * state 를 검증하고 즉시 삭제(일회용)한 뒤 저장된 redirect_uri 를 반환한다.
      * state 가 없거나 만료된 경우 null 을 반환한다.
+     *
+     * GETDEL 로 조회와 삭제를 원자적으로 처리한다.
+     * GET → DELETE 를 분리하면 두 요청이 동시에 조회에 성공해 일회용 보장이 깨질 수 있다.
      */
     public String consumeState(String state) {
-        String redirectUri = redisTemplate.opsForValue().get(PREFIX + state);
-        if (redirectUri == null) {
-            return null;
-        }
-        redisTemplate.delete(PREFIX + state);
-        return redirectUri;
+        return redisTemplate.opsForValue().getAndDelete(PREFIX + state);
     }
 }
