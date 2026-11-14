@@ -22,6 +22,7 @@ import yooze.withme.domain.auth.dto.request.SignUpRequest;
 import yooze.withme.domain.auth.dto.request.TokenReissueRequest;
 import yooze.withme.domain.auth.dto.response.KakaoLoginResponse;
 import yooze.withme.domain.auth.dto.response.KakaoStateResponse;
+import yooze.withme.domain.auth.enums.PlatformType;
 import yooze.withme.domain.auth.dto.response.LoginResponse;
 import yooze.withme.domain.auth.dto.response.SignUpResponse;
 import yooze.withme.domain.auth.dto.response.TokenReissueResponse;
@@ -62,12 +63,17 @@ public interface AuthControllerDocs {
     @Operation(
             summary = "카카오 로그인 시작 (state 발급)",
             description = "CSRF 방지용 state를 생성하고 카카오 로그인 URL을 반환한다. "
+                    + "platform 파라미터로 APP(기본값) 또는 WEB을 지정하면 "
+                    + "플랫폼에 맞는 redirect_uri로 카카오 로그인 URL이 생성된다. "
                     + "프론트는 kakaoLoginUrl로 리다이렉트하고, 카카오가 돌려준 code·state를 "
                     + "/kakao/callback 으로 그대로 전달해야 한다. state는 10분간 유효하다."
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "state 및 로그인 URL 발급 성공")
     @GetMapping("/kakao/state")
-    ResponseEntity<ApiResponse<KakaoStateResponse>> getKakaoState();
+    ResponseEntity<ApiResponse<KakaoStateResponse>> getKakaoState(
+            @Parameter(description = "로그인 플랫폼 (APP: 모바일 앱, WEB: 웹 브라우저). 기본값 APP")
+            @RequestParam(defaultValue = "APP") PlatformType platform
+    );
 
     @Operation(
             summary = "카카오 로그인 콜백",
