@@ -1,6 +1,8 @@
 package yooze.withme.common.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import yooze.withme.common.exception.GeneralException;
+import yooze.withme.common.status.ErrorStatus;
 import yooze.withme.domain.auth.enums.PlatformType;
 
 @ConfigurationProperties(prefix = "kakao")
@@ -22,7 +24,7 @@ public record KakaoProperties(
     public String redirectUriFor(PlatformType platform) {
         if (platform == PlatformType.WEB) {
             if (webRedirectUri == null || webRedirectUri.isBlank()) {
-                throw new IllegalStateException("kakao.web-redirect-uri 설정이 없습니다.");
+                throw new GeneralException(ErrorStatus.KAKAO_WEB_NOT_CONFIGURED);
             }
             return webRedirectUri;
         }
