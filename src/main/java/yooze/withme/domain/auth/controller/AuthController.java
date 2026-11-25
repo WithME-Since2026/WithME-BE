@@ -22,6 +22,7 @@ import yooze.withme.domain.auth.dto.response.KakaoStateResponse;
 import yooze.withme.domain.auth.dto.response.LoginResponse;
 import yooze.withme.domain.auth.dto.response.SignUpResponse;
 import yooze.withme.domain.auth.dto.response.TokenReissueResponse;
+import yooze.withme.domain.auth.enums.PlatformType;
 import yooze.withme.domain.auth.service.AuthCommandService;
 
 @RestController
@@ -56,8 +57,10 @@ public class AuthController implements AuthControllerDocs {
     }
 
     @GetMapping("/kakao/state")
-    public ResponseEntity<ApiResponse<KakaoStateResponse>> getKakaoState() {
-        KakaoStateResponse response = authCommandService.generateKakaoState();
+    public ResponseEntity<ApiResponse<KakaoStateResponse>> getKakaoState(
+            @RequestParam(defaultValue = "APP") PlatformType platform
+    ) {
+        KakaoStateResponse response = authCommandService.generateKakaoState(platform);
         return ApiResponse.success(SuccessStatus.SUCCESS_200, response);
     }
 

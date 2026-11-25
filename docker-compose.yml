@@ -25,6 +25,8 @@ x-app: &app
     KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID}
     KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET}
     KAKAO_REDIRECT_URI: ${KAKAO_REDIRECT_URI}
+    # 선택값. 비어 있으면 웹 카카오 로그인만 비활성화되고 기동은 정상
+    KAKAO_WEB_REDIRECT_URI: ${KAKAO_WEB_REDIRECT_URI:-}
     # 선택값. 비어 있으면 회원 탈퇴 시 카카오 연결 끊기(unlink)만 건너뜀
     KAKAO_ADMIN_KEY: ${KAKAO_ADMIN_KEY:-}
     # 프로필 이미지 저장소. 버킷이 비어 있으면 기동은 정상이고 이미지 업로드만 실패한다.

@@ -45,12 +45,16 @@ public class KakaoAuthClient {
         this.kakaoProperties = kakaoProperties;
     }
 
-    /** 인가 코드(authorization code)로 카카오 access token 발급 */
-    public KakaoTokenResponse getToken(String authorizationCode) {
+    /**
+     * 인가 코드(authorization code)로 카카오 access token 발급.
+     * redirectUri 는 state 발급 시 플랫폼에 따라 선택된 값을 그대로 전달해야 한다.
+     * 카카오는 인가 요청과 토큰 요청의 redirect_uri 가 다르면 오류를 반환한다.
+     */
+    public KakaoTokenResponse getToken(String authorizationCode, String redirectUri) {
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("grant_type", "authorization_code");
         body.add("client_id", kakaoProperties.clientId());
-        body.add("redirect_uri", kakaoProperties.redirectUri());
+        body.add("redirect_uri", redirectUri);
         body.add("code", authorizationCode);
         if (StringUtils.hasText(kakaoProperties.clientSecret())) {
             body.add("client_secret", kakaoProperties.clientSecret());
